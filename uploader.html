@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Outil d'Importation de Workflow ComfyUI</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css"> 
+    <style>
+        /* Styles spécifiques pour l'uploader */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .upload-container {
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            background: var(--panel);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-soft);
+        }
+        .upload-container h2 {
+            margin-top: 0;
+            color: var(--accent-strong);
+        }
+        .label-small {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="upload-container">
+    <h2>Importer un nouveau Workflow ComfyUI</h2>
+    <p style="font-size: 14px; color: var(--muted);">
+        Le fichier JSON du workflow et son image de vignette doivent avoir **le même nom** (ex: `workflow.json` et `workflow.png`).
+    </p>
+
+    <div class="row-2">
+        <div>
+            <span class="label-small">Fichier Workflow (.json)</span>
+            <button type="button" class="btn-secondary" id="workflow-file-btn">
+                Choisir JSON
+            </button>
+            <input type="file" id="workflow-file-input" accept=".json" style="display:none;">
+        </div>
+        
+        <div>
+            <span class="label-small">Vignette (.png/.jpg)</span>
+            <button type="button" class="btn-secondary" id="vignette-file-btn">
+                Choisir Image
+            </button>
+            <input type="file" id="vignette-file-input" accept="image/png, image/jpeg" style="display:none;">
+        </div>
+    </div>
+
+    <button type="button" class="btn-main" id="upload-workflow-btn" style="width: 100%;" disabled>
+        Uploader & Mettre à jour la liste
+    </button>
+    <div id="upload-status" class="log-message log-info" style="display:none; margin-top: 15px;"></div>
+</div>
+
+<script>
+    // Configuration de l'API (à maintenir cohérente avec script.js)
+    const API_BASE_URL = "http://127.0.0.1:8000";
+
+    // Références DOM
+    const workflowFileInput = document.getElementById("workflow-file-input");
+    const vignetteFileInput = document.getElementById("vignette-file-input");
+    const workflowFileBtn = document.getElementById("workflow-file-btn");
+    const vignetteFileBtn = document.getElementById("vignette-file-btn");
+    const uploadWorkflowBtn = document.getElementById("upload-workflow-btn");
+    const uploadStatus = document.getElementById("upload-status");
+
+    let selectedWorkflowFile = null;
+    let selectedVignetteFile = null;
+
+    // Fonction utilitaire pour la gestion des logs
+    function logStatus(message, type = 'info') {
+        uploadStatus.textContent = message;
+        uploadStatus.classList.remove('log-error', 'log-success', 'log-info');
+        uploadStatus.classList.add(`log-${type}`);
+        uploadStatus.style.display = 'flex';
+    }
+
+    // ------------------------------------
+    // Gestion des événements et validation
+    // ------------------------------------
+
+    workflowFileBtn.addEventListener("click", () => workflowFileInput.click());
+    vignetteFileBtn.addEventListener("click", () => vignetteFileInput.click());
+
+    workflowFileInput.addEventListener("change", () => {
+        selectedWorkflowFile = workflowFileInput.files[0];
+        workflowFileBtn.textContent = selectedWorkflowFile ? selectedWorkflowFile.name : 'Choisir JSON';
+        checkUploadReadiness();
+    });
+
+    vignetteFileInput.addEventListener("change", () => {
+        selectedVignetteFile = vignetteFileInput.files[0];
+        vignetteFileBtn.textContent = selectedVignetteFile ? selectedVignetteFile.name : 'Choisir Image';
+        checkUploadReadiness();
+    });
+
+    function checkUploadReadiness() {
+        if (selectedWorkflowFile && selectedVignetteFile) {
+            
+            const baseWorkflowName = selectedWorkflowFile.name.replace(/\.json$/i, '');
+            const baseVignetteName = selectedVignetteFile.name.replace(/\.(png|jpg|jpeg)$/i, '');
+
+            if (baseWorkflowName !== baseVignetteName) {
+                logStatus("❌ Erreur: Les noms de base des fichiers (avant l'extension) ne correspondent pas.", 'error');
+                uploadWorkflowBtn.disabled = true;
+            } else {
+                uploadStatus.style.display = 'none';
+                uploadWorkflowBtn.disabled = false;
+            }
+        } else {
+            uploadWorkflowBtn.disabled = true;
+            uploadStatus.style.display = 'none';
+        }
+    }
+
+    // ------------------------------------
+    // Logique d'Upload
+    // ------------------------------------
+    uploadWorkflowBtn.addEventListener("click", async () => {
+        if (uploadWorkflowBtn.disabled) return;
+
+        // 1. Préparation des données
+        const formData = new FormData();
+        formData.append("workflow_file", selectedWorkflowFile, selectedWorkflowFile.name);
+        formData.append("vignette_file", selectedVignetteFile, selectedVignetteFile.name);
+
+        logStatus(`⏳ Upload de ${selectedWorkflowFile.name} en cours...`, 'info');
+        uploadWorkflowBtn.disabled = true;
+
+        try {
+            // 2. Envoi au Bridge API
+            const resp = await fetch(`${API_BASE_URL}/upload/workflow`, {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await resp.json();
+
+            // 3. Traitement de la réponse
+            if (resp.ok) {
+                logStatus(`✅ Succès! Workflow '${data.name}' importé. Actualisez la page principale (index.html).`, 'success');
+                
+                // Réinitialiser les champs pour un nouvel upload
+                workflowFileInput.value = '';
+                vignetteFileInput.value = '';
+                workflowFileBtn.textContent = 'Choisir JSON';
+                vignetteFileBtn.textContent = 'Choisir Image';
+                selectedWorkflowFile = null;
+                selectedVignetteFile = null;
+
+            } else {
+                throw new Error(data.detail || `Échec de l'upload. Statut HTTP: ${resp.status}`);
+            }
+
+        } catch (error) {
+            logStatus(`❌ Échec upload: ${error.message}`, 'error');
+            uploadWorkflowBtn.disabled = false;
+        }
+    });
+
+</script>
+
+</body>
+</html>
