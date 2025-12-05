@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <title>Génération de contenu Démonstration</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-shell">
+
+    <header>
+        <div style="height: 35px; width: 35px; margin-right: 20px;"></div>
+
+        <div class="title-group">
+            <h1>Générateur de contenu IA</h1>
+            <div class="title-chip">
+                <span></span>
+                <div>Bridge Workflow • Live Preview</div>
+            </div>
+        </div>
+
+        <div class="gpu-card" id="gpu-card">
+            <div class="gpu-main">
+                <span class="gpu-label">CARTE GRAPHIQUE</span>
+                <strong id="gpu-name">–</strong>
+                <div class="gpu-pills">
+                    <div class="gpu-pill">
+                        <span id="gpu-util">0%</span> • Utilisation
+                    </div>
+                    <div class="gpu-pill">
+                        <span id="gpu-mem">0 / 0 Go</span>
+                    </div>
+                </div>
+            </div>
+            <div class="gpu-status-indicator">
+                <div class="gpu-dot"></div>
+                <div class="gpu-value" id="gpu-temp">– °C</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="layout">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span class="icon">⚙️</span>
+                    <div>
+                        Paramètres de génération
+                        <div class="panel-sub">Sélectionne un workflow, puis ajuste le prompt & paramètres.</div>
+                    </div>
+                </div>
+                <span class="pill">Mode : Workflow only</span>
+            </div>
+
+            <form id="generation-form">
+                
+                <div class="section" title="Le workflow (séquence de tâches) à exécuter.">
+                    <label>Workflow (obligatoire)</label>
+                    <div class="workflow-carousel-wrapper">
+                        <button type="button" class="carousel-btn left" id="workflow-carousel-left">‹</button>
+                        <button type="button" class="carousel-btn right" id="workflow-carousel-right">›</button>
+                        <div id="workflow-groups-container" class="workflow-groups-flex">
+                            <span style="font-size:12px;color:#9ca3af;">Chargement des workflows…</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="workflow-select" name="workflow" value="" />
+                </div>
+
+                <div class="section" id="checkpoint-wrapper" title="Le modèle de base (Checkpoint) utilisé pour la génération, si le workflow le supporte.">
+                    <label for="checkpoint-select">Checkpoint (si le workflow utilise {{checkpoint}})</label>
+                    <select id="checkpoint-select" name="checkpoint">
+                        <option value="">Chargement des checkpoints…</option>
+                    </select>
+                </div>
+
+                <div class="section" title="Le texte décrivant l'image que vous voulez générer. Soyez le plus précis possible.">
+                    <label for="prompt">Prompt</label>
+                    <textarea id="prompt" name="prompt" placeholder="Décris précisément l’image à générer…"></textarea>
+                </div>
+
+                <div class="section" id="input-image-section" style="display:none; margin-top: 4px;" title="Image de référence utilisée par certains workflows (ex: Image to Image, ControlNet).">
+                    <label>Image d'entrée (optionnelle)</label>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <button type="button" class="btn-secondary" id="input-image-browse-btn">
+                            Choisir une image…
+                        </button>
+                        <span id="input-image-label" style="font-size:12px;color:#9ca3af;">
+                            Aucune image sélectionnée
+                        </span>
+                    </div>
+                    <input type="file" id="input-image-file" accept="image/*" style="display:none;">
+                    <input type="hidden" id="input_image_path" name="input_image_path">
+                </div>
+
+                <div class="section">
+                    <div id="group-steps" style="display: none;" title="Le nombre d'étapes d'échantillonnage (sampling).">
+                        <label for="steps-slider">Steps: <span id="steps-value">30</span></label>
+                        <input type="range" id="steps-slider" name="steps" min="10" max="100" value="30" />
+                    </div>
+                    <div id="group-cfg" style="display: none; margin-top: 10px;" title="Classifier Free Guidance. Contrôle la fidélité de l'image au prompt.">
+                        <label for="cfg_scale-slider">CFG Scale: <span id="cfg_scale-value">7.0</span></label>
+                        <input type="range" id="cfg_scale-slider" name="cfg_scale" min="1" max="20" step="0.5" value="7" />
+                    </div>
+                    
+                    <div class="section" id="group-seed" style="display:none !important; margin-top: 10px;">
+                        <label for="seed-input">Seed:</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="number" id="seed-input" name="seed_value" value="42" style="flex-grow: 1;" title="Entrez une valeur numérique fixe. Conserver la même 'seed' reproduit le même résultat." />
+                            
+                            <input type="checkbox" id="seed-random-toggle" name="seed_random" style="width: auto; margin-left: 0;" />
+                            <label for="seed-random-toggle" style="margin-left: -5px; display: flex; align-items: center; cursor: pointer;" title="Si cochée, le système utilisera une Seed aléatoire (-1) à chaque génération, ignorant la valeur fixe ci-contre.">
+                                Aléatoire ℹ️
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <label>Format rapide</label>
+                    <div class="quick-format-icons">
+                        <span class="fmt-icon" data-w="1920" data-h="1080">🖥️</span>
+                        <span class="fmt-icon" data-w="1080" data-h="1920">📱</span>
+                        <span class="fmt-icon" data-w="1080" data-h="1080">⬛</span>
+                    </div>
+                </div>
+
+                <div class="section row" style="margin-top: 15px; display: none !important;">
+                    <div id="group-width" style="display:none;" title="La largeur de l'image à générer.">
+                        <label for="width-input">Width</label>
+                        <input type="number" id="width-input" name="width" value="1024" />
+                    </div>
+                    <div id="group-height" style="display:none;" title="La hauteur de l'image à générer.">
+                        <label for="height-input">Height</label>
+                        <input type="number" id="height-input" name="height" value="1024" />
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div id="group-sampler" style="display: none;" title="L'algorithme d'échantillonnage (sampler) utilisé pour créer l'image.">
+                        <label for="sampler">Sampler</label>
+                        <select id="sampler" name="sampler">
+                            <option value="euler">Euler</option>
+                            <option value="euler_a">Euler a</option>
+                            <option value="ddim">DDIM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section" id="video-params-section" style="display:none; margin-top: 4px;">
+                    <label>Paramètres vidéo</label>
+                    <div class="row">
+                        <div>
+                            <label for="duration">Durée (secondes)</label>
+                            <input type="number" id="duration" name="duration" value="5" min="1" />
+                        </div>
+                        <div>
+                            <label for="ratio">Ratio</label>
+                            <select id="ratio" name="ratio">
+                                <option value="1280:720">1280 × 720 (paysage)</option>
+                                <option value="720:1280">720 × 1280 (portrait)</option>
+                                <option value="1920:1080">1920 × 1080 (paysage large)</option>
+                                <option value="1080:1920">1080 × 1920 (portrait large)</option>
+                                <option value="1024:576">1024 × 576 (standard)</option>
+                                <option value="576:1024">576 × 1024 (portrait standard)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section" id="sdxl-panel" style="display:none; margin-top:10px;">
+                    <h3 style="margin:0 0 8px;font-size:14px;">⚙️ Paramètres SDXL (Refiner)</h3>
+
+                    <label for="sdxl_mode" title="Choix du mode pour le processus de raffinement (Refiner) de l'image.">Mode Refiner</label>
+                    <select id="sdxl_mode">
+                        <option value="standard">Standard</option>
+                        <option value="detail">Détail boost</option>
+                        <option value="soft">Soft</option>
+                    </select>
+
+                    <div class="row" style="margin-top:8px;">
+                        <div title="Le pourcentage des étapes (steps) auxquelles le processus de raffinement doit commencer.">
+                            <label for="sdxl_start-slider">Refiner Start (%): <span id="sdxl_start-value">60</span></label>
+                            <input type="range" id="sdxl_start-slider" min="0" max="100" value="60" />
+                        </div>
+                        <div title="Le pourcentage des étapes (steps) auxquelles le processus de raffinement doit se terminer.">
+                            <label for="sdxl_end-slider">Refiner End (%): <span id="sdxl_end-value">100</span></label>
+                            <input type="range" id="sdxl_end-slider" min="1" max="100" value="100" />
+                        </div>
+                    </div>
+
+                    <label for="sdxl_quality" style="margin-top:8px;" title="Ajuste la qualité globale de l'image, agissant sur le nombre de steps par défaut.">Qualité globale</label>
+                    <select id="sdxl_quality">
+                        <option value="normal">Normal</option>
+                        <option value="high">Haute qualité</option>
+                        <option value="ultra">Ultra</option>
+                    </select>
+                </div>
+            </form>
+
+            <div class="log-box" id="log-box"></div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span class="icon">🖼️</span>
+                    <div>
+                        Résultat & preview
+                        <div class="panel-sub">Prévisualisation temps réel et image finale.</div>
+                    </div>
+                </div>
+                <span class="pill-green" id="job-status-pill">READY</span>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <button id="generate-button" type="submit" class="btn-main" form="generation-form" style="width: 100%;">
+                    <span class="dot"></span>
+                    Démarrer la génération
+                </button>
+            </div>
+            
+            <div id="result-area">
+                <div id="progress-overlay">
+                    <div id="progress-spinner"></div>
+                    <div id="progress-meta">
+                        <span id="progress-label">En attente…</span>
+                        <span id="progress-percent">0%</span>
+                    </div>
+                    <div class="progress-bar-large">
+                        <div class="progress-inner-large" id="progress-inner"></div>
+                    </div>
+                </div>
+
+                <div id="result-placeholder">
+                    <p style="font-size:12px;color:var(--muted);text-align:center;">
+                        Aucune image encore générée. Configure ton workflow à gauche et clique sur
+                        <strong>"Démarrer la génération"</strong>.
+                    </p>
+                </div>
+
+            </div>
+
+            <div id="result-footer" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border);">
+                <div class="row" style="margin-bottom: 8px; justify-content: space-between;">
+                    <span style="font-size:12px; color:var(--muted); display:flex; align-items:center; gap: 4px;">
+                        ⏱️ Temps de génération : <strong id="time-taken">–</strong>
+                    </span>
+                    <button type="button" id="copy-params-btn" class="btn-secondary" style="padding: 4px 10px; font-size: 12px;">
+                        📋 Copier les paramètres
+                    </button>
+                </div>
+                
+                <h3 style="margin: 0 0 5px; font-size: 14px; color: var(--text);">Paramètres (Info)</h3>
+                <div id="metadata-display" class="metadata-grid">
+                    <span title="Seed">Seed: <strong id="meta-seed">–</strong></span>
+                    <span title="Steps">Steps: <strong id="meta-steps">–</strong></span>
+                    <span title="CFG Scale">CFG: <strong id="meta-cfg">–</strong></span>
+                    <span title="Sampler">Sampler: <strong id="meta-sampler">–</strong></span>
+                </div>
+            </div>
+            <div id="error-box" class="error-text" style="display:none;"></div>
+        </div>
+    </div>
+</div>
+
+<div id="image-modal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close-btn">&times;</span>
+        <img id="modal-image" src="" alt="Image en taille réelle" />
+        <a id="modal-download-link" href="#" download class="btn-secondary" style="margin-top: 20px;">
+            Télécharger (Nom du fichier)
+        </a>
+    </div>
+</div>
+
+<div id="workflow-popover" class="workflow-popover">
+    <div class="popover-content">
+        <h4 id="popover-title">Nom du Workflow</h4>
+        <div class="workflow-image-wrapper">
+            <img id="popover-image" src="" alt="Aperçu du Workflow">
+        </div>
+        <p id="popover-description">Description du modèle...</p>
+        <span class="popover-tip"></span>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
