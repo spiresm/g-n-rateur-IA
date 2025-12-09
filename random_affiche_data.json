@@ -1,0 +1,131 @@
+{
+  "titres": [
+    "La Grande Aventure",
+    "L'Épopée Fantastique",
+    "Destination Magique",
+    "Le Royaume Perdu",
+    "La Nuit des Merveilles",
+    "Rêve Éternel",
+    "Horizons",
+    "Aube Nouvelle",
+    "Echo Stellaire",
+    "Le Secret des Lumières"
+  ],
+
+  "sous_titres": [
+    "Édition spéciale",
+    "Chapitre I",
+    "Le voyage commence",
+    "Inspiré d’un univers imaginaire",
+    "Une création originale",
+    "Version remasterisée",
+    "Légende moderne",
+    "Histoire visuelle",
+    "Un monde à découvrir",
+    "Aventure cinématographique"
+  ],
+
+  "themes": [
+    "Anniversaire",
+    "Noël",
+    "Halloween",
+    "Saint Nicolas",
+    "Nouvel An",
+    "Fête foraine",
+    "Univers fantastique",
+    "Exploration spatiale",
+    "Magie hivernale",
+    "Carnaval lumineux"
+  ],
+
+  "ambiances": [
+    "festive et colorée",
+    "magique et lumineuse",
+    "mystérieuse et douce",
+    "énergique et joyeuse",
+    "sombre mais élégante",
+    "cinématique dramatique",
+    "enchanted dream atmosphere",
+    "vintage années 80",
+    "futuriste néon",
+    "cosy et chaleureuse"
+  ],
+
+  "personnages": [
+    "un enfant joyeux",
+    "un père Noël souriant",
+    "une silhouette héroïque",
+    "une créature mignonne",
+    "un robot stylisé",
+    "une sorcière amusante",
+    "un chat anthropomorphisé",
+    "un petit monstre rigolo",
+    "une mascotte cartoon",
+    "un explorateur courageux"
+  ],
+
+  "environnements": [
+    "un décor enneigé",
+    "une forêt enchantée",
+    "une scène nocturne lumineuse",
+    "une ville futuriste",
+    "un château mystérieux",
+    "une fête colorée",
+    "un paysage spatial",
+    "une plage tropicale stylisée",
+    "une salle décorée",
+    "un univers miniature"
+  ],
+
+  "actions": [
+    "sourit devant la caméra",
+    "marche vers l’avant",
+    "observe au loin",
+    "flotte dans les airs",
+    "tient un objet lumineux",
+    "lance des confettis",
+    "ouvre un coffre magique",
+    "joue avec la lumière",
+    "court joyeusement",
+    "fait un geste théâtral"
+  ],
+
+  "palettes": [
+    "couleurs chaudes (rouge, orange, jaune)",
+    "couleurs froides (bleu, turquoise, violet)",
+    "pastels doux",
+    "dégradé bleu → violet",
+    "dégradé rose → bleu",
+    "dégradé or → noir",
+    "dégradé rouge → orange",
+    "ambiance néon rose et cyan",
+    "tons dorés cinématiques",
+    "contraste fort noir et or"
+  ],
+
+  "styles_titre": [
+    "blockbuster dramatique",
+    "cartoon arrondi",
+    "vintage rétro",
+    "style manuscrit élégant",
+    "chromé métallique",
+    "minimaliste moderne",
+    "néon futuriste",
+    "style gravure",
+    "typographie épaisse cinéma",
+    "logo stylisé"
+  ],
+
+  "details": [
+    "particules lumineuses",
+    "lueurs magiques",
+    "flocons subtils",
+    "confettis flottants",
+    "effets de lumière douce",
+    "reflets cinématiques",
+    "nuages stylisés",
+    "poussière atmosphérique",
+    "halo lumineux",
+    "effets scintillants"
+  ]
+}
