@@ -1,3 +1,7 @@
+/* =========================================================
+   VARIABLES GLOBALES
+========================================================= */
+
 :root {
     --bg: #050509;
     --bg-alt: #0c0c12;
@@ -33,6 +37,10 @@ body {
     padding: 24px 20px 40px;
 }
 
+/* =========================================================
+   HEADER & GPU CARD
+========================================================= */
+
 header {
     display: flex;
     align-items: center;
@@ -41,15 +49,13 @@ header {
     margin-bottom: 20px;
 }
 
-/* NOUVEAU STYLE LOGO */
 .header-logo {
-    height: 35px; /* Ajuster la taille du logo */
+    height: 35px;
     margin-right: 20px;
-    align-self: center;
 }
 
 .title-group {
-    flex-grow: 1; /* Permet au titre de prendre de la place */
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -58,7 +64,6 @@ header {
 .title-group h1 {
     font-size: 22px;
     margin: 0;
-    letter-spacing: 0.02em;
 }
 
 .title-chip {
@@ -74,7 +79,6 @@ header {
 }
 
 .title-chip span {
-    display: inline-block;
     width: 7px;
     height: 7px;
     border-radius: 999px;
@@ -90,8 +94,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    box-shadow: 0 18px 35px rgba(0,0,0,0.45);
+    box-shadow: var(--shadow-soft);
 }
 
 .gpu-main {
@@ -100,14 +103,9 @@ header {
     gap: 2px;
 }
 
-.gpu-main strong {
-    font-size: 13px;
-}
-
 .gpu-label {
     font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
     color: var(--muted);
 }
 
@@ -121,7 +119,6 @@ header {
     padding: 2px 7px;
     border-radius: 999px;
     border: 1px solid rgba(148,163,184,0.3);
-    color: #e5e7eb;
 }
 
 .gpu-dot {
@@ -131,14 +128,14 @@ header {
     background: #22c55e;
 }
 
-.gpu-status-error .gpu-dot {
-    background: #ef4444;
-}
-
 .gpu-value {
     font-size: 11px;
     color: var(--muted);
 }
+
+/* =========================================================
+   GRID LAYOUT
+========================================================= */
 
 .layout {
     display: grid;
@@ -148,49 +145,53 @@ header {
 
 @media (max-width: 980px) {
     .layout {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: 1fr;
     }
+
     header {
         flex-direction: column;
         align-items: flex-start;
     }
+
     .gpu-card {
         width: 100%;
     }
 }
 
+/* =========================================================
+   PANELS
+========================================================= */
+
 .panel {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
-    background: radial-gradient(circle at top left, #111827 0, #020617 45%, #020617 100%);
+    background: radial-gradient(circle at top left, #111827 0, #020617 45%);
     padding: 16px 16px 18px;
     box-shadow: var(--shadow-soft);
 }
 
 .panel-header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
     margin-bottom: 12px;
 }
 
 .panel-title {
-    font-size: 14px;
-    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .panel-title span.icon {
     width: 22px;
     height: 22px;
     border-radius: 7px;
-    background: linear-gradient(135deg, #4f46e5, #22c55e);
+    background: linear-gradient(135deg,#4f46e5,#22c55e);
     display: flex;
-    align-items: center;
     justify-content: center;
-    font-size: 14px;
+    align-items: center;
 }
 
 .panel-sub {
@@ -198,50 +199,37 @@ header {
     color: var(--muted);
 }
 
-.pill {
-    border-radius: 999px;
-    padding: 3px 10px;
-    font-size: 11px;
-    border: 1px solid rgba(148,163,184,0.35);
-    color: #e5e7eb;
-    background: radial-gradient(circle at top left,#111827 0,#020617 60%);
-}
-
-.pill-green {
-    border-color: rgba(34,197,94,0.5);
-    color: #bbf7d0;
-    background: rgba(22,163,74,0.14);
-}
+/* =========================================================
+   FORM INPUTS
+========================================================= */
 
 .section {
     margin-bottom: 14px;
 }
 
 .section label {
-    display: block;
     font-size: 12px;
     color: var(--muted);
     margin-bottom: 5px;
+    display: block;
 }
 
+input,
 select,
-textarea,
-input[type="number"],
-input[type="text"] {
+textarea {
     width: 100%;
     padding: 8px 10px;
     border-radius: var(--radius-md);
-    border: 1px solid #1f2937;
     background: rgba(15,23,42,0.95);
+    border: 1px solid #1f2937;
     color: var(--text);
-    font-size: 13px;
     outline: none;
+    font-size: 13px;
 }
 
-select:focus,
+input:focus,
 textarea:focus,
-input[type="number"]:focus,
-input[type="text"]:focus {
+select:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 1px rgba(79,70,229,0.5);
 }
@@ -251,21 +239,15 @@ textarea {
     resize: vertical;
 }
 
-.row {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0,1fr));
-    gap: 10px;
-}
-
-.row-3 {
-    grid-template-columns: repeat(3,minmax(0,1fr));
-}
+/* =========================================================
+   BUTTONS
+========================================================= */
 
 .btn-main {
     width: 100%;
     padding: 10px 16px;
     border-radius: 999px;
-    background: linear-gradient(135deg, #4f46e5, #22c55e);
+    background: linear-gradient(135deg,#4f46e5,#22c55e);
     border: none;
     color: white;
     font-size: 14px;
@@ -273,230 +255,98 @@ textarea {
     cursor: pointer;
     box-shadow: 0 18px 35px rgba(34,197,94,0.35);
     display: inline-flex;
-    align-items: center;
     justify-content: center;
     gap: 8px;
     margin-top: 6px;
 }
 
-.btn-main span.dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 99px;
-    background: rgba(15,23,42,0.9);
-}
-
 .btn-main:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    box-shadow: none;
 }
 
 .btn-secondary {
     padding: 8px 15px;
     border-radius: var(--radius-md);
     background-color: #374151;
-    color: var(--text);
-    text-decoration: none;
-    font-size: 14px;
-    transition: background-color 0.2s;
     border: 1px solid #4b5563;
+    color: white;
 }
 
-.btn-secondary:hover {
-    background-color: #4b5563;
-}
-
-/* ---------------------------------- */
-/* STYLES SLIDERS (range input) */
-/* ---------------------------------- */
-input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 8px;
-    background: #1f2937;
-    border-radius: 999px;
-    margin-top: 5px;
-    cursor: pointer;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #4f46e5, #22c55e);
-    cursor: pointer;
-    border: 2px solid #020617;
-    box-shadow: 0 0 0 2px #4f46e5;
-}
-
-input[type="range"]::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #4f46e5, #22c55e);
-    cursor: pointer;
-    border: 2px solid #020617;
-    box-shadow: 0 0 0 2px #4f46e5;
-}
-
-
-/* ---------------------------------- */
-/* STYLES ZONE DE RÉSULTAT AVEC PROGRESSION */
-/* ---------------------------------- */
+/* =========================================================
+   IMAGE RÉSULTAT — FIX COMPLET
+========================================================= */
 
 #result-area {
     position: relative;
-    aspect-ratio: 1 / 1; /* Assure que c'est un carré pour l'image */
     width: 100%;
-    max-width: 100%;
+    min-height: 200px;
     border-radius: 16px;
     border: 1px solid #1f2937;
     background: #020617;
-    overflow: hidden;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
+    padding: 12px;
 }
+
 
 #result-placeholder {
     width: 100%;
-    height: 100%;
+    min-height: 100%;
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
-    padding: 20px;
-    background-size: cover;
-    background-position: center;
+    align-items: center;
+    padding: 10px;
 }
 
+#result-placeholder p {
+    display: none !important;
+}
+
+/* IMAGE PREVIEW */
 .result-image {
-    max-width: 100%;
-    max-height: 100%;
-    border-radius: 16px;
-    display: block;
-    object-fit: contain;
-}
-
-.result-image.clickable {
-    cursor: pointer; /* Indiquer que l'image est cliquable */
-    transition: transform 0.2s;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    max-width: 95% !important;
+    max-height: 95% !important;
+    object-fit: contain !important;
+    opacity: 1 !important;
+    border-radius: 10px;
+    transition: opacity .5s ease, filter .5s ease, transform .3s;
 }
 
 .result-image.clickable:hover {
-    transform: scale(1.01);
+    transform: scale(1.02);
+    cursor: pointer;
 }
 
+/* =========================================================
+   MODALE / LIGHTBOX
+========================================================= */
 
-/* Overlays de progression */
-#progress-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.85);
-    z-index: 10;
-    display: none; /* Caché par défaut */
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    text-align: center;
-    padding: 40px;
-}
-
-#progress-overlay.visible {
-    display: flex;
-}
-
-#progress-meta {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-#progress-percent {
-    font-size: 36px;
-    color: var(--accent-strong);
-}
-
-/* Grande barre de progression */
-.progress-bar-large {
-    width: 80%;
-    max-width: 400px;
-    height: 12px;
-    border-radius: 999px;
-    background: #1f2937;
-    overflow: hidden;
-    border: 1px solid #374151;
-    position: relative;
-}
-
-.progress-inner-large {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #4f46e5, #22c55e);
-    transition: width 0.3s ease-out;
-}
-
-/* Spinner de chargement (Optionnel mais joli) */
-#progress-spinner {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    border: 6px solid #1f2937;
-    border-top-color: #22c55e;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* ---------------------------------- */
-/* STYLES MODALE / LIGHTBOX */
-/* ---------------------------------- */
 .modal {
-    display: none; /* Caché par défaut */
+    display: none;
     position: fixed;
     z-index: 100;
-    left: 0;
-    top: 0;
+    top: 0; left: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.9); /* Fond noir semi-transparent */
-    align-items: center;
+    background: rgba(0,0,0,0.88);
     justify-content: center;
+    align-items: center;
 }
 
 .modal-content {
-    margin: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     max-width: 90%;
     max-height: 90%;
-    position: relative;
-    padding: 20px;
 }
 
 #modal-image {
-    display: block;
-    width: auto;
     max-width: 100%;
-    max-height: 80vh; /* 80% de la hauteur de la fenêtre */
+    max-height: 85vh;
     border-radius: var(--radius-lg);
 }
 
@@ -504,304 +354,133 @@ input[type="range"]::-moz-range-thumb {
     position: absolute;
     top: 20px;
     right: 35px;
-    color: #f1f1f1;
     font-size: 40px;
-    font-weight: bold;
-    transition: 0.3s;
+    color: white;
     cursor: pointer;
 }
 
-.modal-close-btn:hover,
-.modal-close-btn:focus {
-    color: #bbb;
-    text-decoration: none;
-    cursor: pointer;
+/* =========================================================
+   PROGRESS OVERLAY (FIX SUPERPOSITION)
+========================================================= */
+
+#progress-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 50;
+    display: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 40px;
+    gap: 20px;
 }
 
-
-/* ---------------------------------- */
-/* LOGS ET ERREURS */
-/* ---------------------------------- */
-.error-text {
-    color: var(--danger);
-    font-size: 12px;
-    margin-top: 8px;
+#progress-overlay.visible {
+    display: flex;
 }
 
-.log-box {
-    margin-top: 14px;
-    font-size: 11px;
-    color: var(--muted);
-    background: radial-gradient(circle at top left,#020617 0,#020617 60%,#020617 100%);
-    border-radius: 12px;
-    border: 1px solid #1f2937;
-    padding: 8px 10px;
-    max-height: 140px;
-    overflow: auto;
+#progress-meta {
+    margin-top: 10px;
+    font-size: 14px;
 }
 
-.log-line {
-    margin-bottom: 2px;
+.progress-bar-large {
+    width: 80%;
+    max-width: 400px;
+    height: 12px;
+    background: #1f2937;
+    border-radius: 999px;
+    overflow: hidden;
 }
 
-.log-line strong {
-    color: #e5e7eb;
+.progress-inner-large {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg,#4f46e5,#22c55e);
+    transition: width .3s ease-out;
 }
 
-/* ---------------------------------- */
-/* STYLES VIGNETTES DE WORKFLOW */
-/* ---------------------------------- */
+/* =========================================================
+   WORKFLOW CAROUSEL
+========================================================= */
 
-/* Conteneur global des groupes de workflows */
 .workflow-groups-flex {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-/* Conteneur de chaque groupe (titre + carrousel) */
-.workflow-group-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-/* Titre au-dessus des vignettes (COMFYUI, RUNWAYML, etc.) */
-.workflow-group-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 4px;
-    margin: 0;
-}
-
-/* Wrapper général pour les boutons + listes */
-.workflow-carousel-wrapper {
-    position: relative;
-}
-
-/* Liste horizontale de vignettes (carrousel) */
 .workflow-grid {
     display: flex;
-    flex-wrap: nowrap;
     gap: 15px;
-    padding: 6px 6px 10px;
-    overflow-x: auto;       /* on garde le scroll, mais */
-    overflow-y: hidden;
-    scroll-behavior: smooth;
-    scroll-snap-type: none; /* on supprime le snap qui faisait vibrer */
-
-    scrollbar-width: thin;
-    scrollbar-color: #4f46e5 #111827;
+    overflow-x: auto;
+    padding: 6px;
 }
 
-.workflow-grid::-webkit-scrollbar {
-    height: 6px;
-}
-.workflow-grid::-webkit-scrollbar-track {
-    background: #111827;
-}
-.workflow-grid::-webkit-scrollbar-thumb {
-    background: #4f46e5;
-    border-radius: 999px;
-}
-
-/* Carte de workflow (TEXTE UNIQUEMENT) */
 .workflow-vignette {
     flex: 0 0 150px;
     height: 90px;
     border-radius: var(--radius-md);
-    background: radial-gradient(circle at top left, #111827 0, #020617 65%);
+    background: radial-gradient(circle at top left,#111827,#020617);
     border: 2px solid transparent;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.45);
-
     display: flex;
     align-items: center;
     justify-content: center;
-
+    transition: .2s ease;
     cursor: pointer;
-    transition: all 0.18s ease-in-out;
 }
 
 .workflow-vignette:hover {
-    border-color: #4f46e5;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(79,70,229,0.45);
+    border-color: var(--accent);
 }
 
-/* État sélectionné : contour vert comme avant */
 .workflow-vignette.selected {
-    border-color: #22c55e;
-    box-shadow: 0 0 0 2px #22c55e, 0 6px 20px rgba(34,197,94,0.45);
-    transform: translateY(-3px);
+    border-color: var(--accent-strong);
+    box-shadow: 0 0 10px rgba(34,197,94,0.4);
 }
 
-/* Texte au centre de la vignette */
 .vignette-label-only {
-    padding: 0 10px;
     font-size: 13px;
     font-weight: 600;
-    color: var(--text);
+    color: white;
     text-align: center;
-
+    padding: 0 12px;
     white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
+    overflow: hidden;
 }
 
-/* IMPORTANT : si une image .workflow-thumb est injectée par le JS → on la cache */
+/* CACHE IMAGES PAR DÉFAUT */
 .workflow-thumb,
 .workflow-thumb-wrapper {
     display: none !important;
 }
 
-/* Boutons de navigation du carrousel */
-.carousel-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 28px;
-    height: 28px;
+/* =========================================================
+   LOGS & ERRORS
+========================================================= */
 
-    border-radius: 999px;
-    border: 1px solid rgba(148,163,184,0.6);
-    background: rgba(15,23,42,0.9);
-    backdrop-filter: blur(4px);
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    font-size: 15px;
-    color: #e5e7eb;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: all 0.18s ease-in-out;
-    z-index: 5;
+.log-box {
+    margin-top: 14px;
+    background: #020617;
+    border: 1px solid #1f2937;
+    border-radius: 12px;
+    padding: 8px 12px;
+    max-height: 140px;
+    overflow-y: auto;
+    font-size: 11px;
 }
 
-.carousel-btn:hover {
-    opacity: 1;
-    border-color: #4f46e5;
-    color: #4f46e5;
+.error-text {
+    color: var(--danger);
 }
-
-.carousel-btn.left {
-    left: -8px;
-}
-
-.carousel-btn.right {
-    right: -8px;
-}
-
-/* ---------------------------------- */
-/* METADATA POST-GÉNÉRATION */
-/* ---------------------------------- */
-.metadata-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
-    gap: 8px 15px;
-    font-size: 12px;
-    color: var(--muted);
-}
-
-.metadata-grid strong {
-    color: var(--text);
-    font-weight: 600;
-}
-
-/* ---------------------------------- */
-/* POPOVER WORKFLOW */
-/* ---------------------------------- */
-
-.workflow-popover {
-    position: fixed;
-    z-index: 20;
-    pointer-events: none;
-    top: 0;
-    left: 0;
-    transform: translate(15px, 15px);
-    display: none;
-    max-width: 300px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    padding: 12px;
-}
-
-.popover-content h4 {
-    margin: 0 0 8px;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--accent-strong);
-    word-break: break-all;
-}
-
-.popover-image-wrapper {
-    margin: 0 0 10px;
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    border: 1px solid var(--border);
-}
-
-#popover-image {
-    display: block;
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-}
-
-#popover-description {
-    margin: 0;
-    font-size: 12px;
-    line-height: 1.4;
-    color: var(--muted);
-}
-
-.popover-tip {
-    position: absolute;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 0 8px 8px 8px;
-    border-color: transparent transparent var(--border) transparent;
-    top: -8px; 
-    left: 15px; 
-}
-.popover-tip::after {
-    content: "";
-    position: absolute;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 0 7px 7px 7px;
-    border-color: transparent transparent var(--panel) transparent;
-    top: 1px;
-    left: -7px;
-}
-
-.fmt-icon {
-    padding: 6px 10px;
-    background: #111827;
-    border: 1px solid #374151;
-    border-radius: 10px;
-    transition: all .15s ease-in-out;
-}
-.fmt-icon:hover {
-    transform: scale(1.1);
-    border-color: #4f46e5;
-}
-
-
 .quick-format-icons {
     display: flex;
     gap: 12px;
     font-size: 32px;
     margin: 10px 0;
+    justify-content: flex-start;
 }
 
 .fmt-icon {
@@ -816,4 +495,14 @@ input[type="range"]::-moz-range-thumb {
 .fmt-icon:hover {
     transform: scale(1.12);
     border-color: #4f46e5;
+}
+
+.fmt-icon.selected {
+    border-color: #22c55e !important;
+    background: rgba(34,197,94,0.15);
+    transform: scale(1.1);
+}
+.btn-main.clicked {
+    transform: scale(0.97);
+    opacity: 0.85;
 }
