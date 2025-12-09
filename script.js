@@ -1,804 +1,827 @@
-const API_BASE_URL = "http://127.0.0.1:8001";
-const WS_BASE_URL  = "ws://127.0.0.1:8001/ws/progress";
+// =========================================================
+// CONFIGURATION (FRONTEND)
+// =========================================================
 
-let isGenerating = false;
-let gpuInterval = null;
-let wsClient = null;
-let lastUsedParams = {}; // Pour stocker les paramètres de la dernière génération
-let doneTimeout = null; // Ajout pour le mécanisme de timeout
+const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
 
-// Map workflow -> nom du modèle affiché (rempli dynamiquement)
-const MODEL_DISPLAY_NAME_BY_WORKFLOW = {};
+// =========================================================
+// CONFIGURATION DU POLLING HTTP (NOUVEAU SYSTEME SANS WS)
+// =========================================================
+const POLLING_INTERVAL_MS = 900;
+let pollingProgressInterval = null;
+let fakeProgress = 0;
 
-// -----------------------------
-// DOM refs
-// -----------------------------
-const form = document.getElementById("generation-form");
-const workflowSelect = document.getElementById("workflow-select");
-const workflowGroupsContainer = document.getElementById("workflow-groups-container");
-const checkpointSelect = document.getElementById("checkpoint-select");
-const checkpointWrapper = document.getElementById("checkpoint-wrapper");
-const sdxlPanel = document.getElementById("sdxl-panel");
-const generateButton = document.getElementById("generate-button");
+// =========================================================
+// VARIABLES GLOBALES
+// =========================================================
+let currentPromptId = null;
+let lastGenerationStartTime = null;
 
-const inputImageSection = document.getElementById("input-image-section");
-const inputImageFile = document.getElementById("input-image-file");
-const inputImageBrowseBtn = document.getElementById("input-image-browse-btn");
-const inputImageLabel = document.getElementById("input-image-label");
-const inputImagePathHidden = document.getElementById("input_image_path");
+// =========================================================
+// OUTILS D’AFFICHAGE (LOGS, ERREURS, PROGRESSION VISUELLE)
+// =========================================================
 
-const groupSeed = document.getElementById("group-seed");
-const groupSteps = document.getElementById("group-steps");
-const groupCfg = document.getElementById("group-cfg");
-const groupWidth = document.getElementById("group-width");
-const groupHeight = document.getElementById("group-height");
-const groupSampler = document.getElementById("group-sampler");
-const videoParamsSection = document.getElementById("video-params-section");
-const durationInput = document.getElementById("duration");
-const ratioSelect = document.getElementById("ratio");
-
-// sliders
-const stepsSlider = document.getElementById("steps-slider");
-const stepsValue = document.getElementById("steps-value");
-const cfgScaleSlider = document.getElementById("cfg_scale-slider");
-const cfgScaleValue = document.getElementById("cfg_scale-value");
-// Seed
-const seedInput = document.getElementById("seed-input");
-const seedRandomToggle = document.getElementById("seed-random-toggle");
-// Width/Height
-const widthInput = document.getElementById("width-input");
-const heightInput = document.getElementById("height-input");
-
-// ⭐ AJOUT: Initialisation des valeurs par défaut 1080x1080 pour les inputs masqués
-if (widthInput) widthInput.value = 1080;
-if (heightInput) heightInput.value = 1080;
-
-
-// preview / progression
-const progressOverlay = document.getElementById("progress-overlay");
-const progressInner = document.getElementById("progress-inner");
-const progressLabel = document.getElementById("progress-label");
-const progressPercent = document.getElementById("progress-percent");
-const resultArea = document.getElementById("result-area");
-const resultPlaceholder = document.getElementById("result-placeholder");
-
-// SDXL (on garde les refs mais on ne l'utilisera plus dans la logique)
-const sdxlStartSlider = document.getElementById("sdxl_start-slider");
-const sdxlStartValue = document.getElementById("sdxl_start-value");
-const sdxlEndSlider = document.getElementById("sdxl_end-slider");
-const sdxlEndValue = document.getElementById("sdxl_end-value");
-const sdxlModeSelect = document.getElementById("sdxl_mode");
-const sdxlQualitySelect = document.getElementById("sdxl_quality");
-
-// modal
-const imageModal = document.getElementById("image-modal");
-const modalImage = document.getElementById("modal-image");
-const modalCloseBtn = document.querySelector(".modal-close-btn");
-const modalDownloadLink = document.getElementById("modal-download-link");
-
-// metadata
-const timeTakenDisplay = document.getElementById("time-taken");
-const copyParamsBtn = document.getElementById("copy-params-btn");
-const metaSeed = document.getElementById("meta-seed");
-const metaSteps = document.getElementById("meta-steps");
-const metaCfg = document.getElementById("meta-cfg");
-const metaSampler = document.getElementById("meta-sampler");
-
-// logs / status
-const logBox = document.getElementById("log-box");
-const errorBox = document.getElementById("error-box");
-const jobStatusPill = document.getElementById("job-status-pill");
-
-// GPU
-const gpuCard = document.getElementById("gpu-card");
-const gpuName = document.getElementById("gpu-name");
-const gpuUtil = document.getElementById("gpu-util");
-const gpuMem = document.getElementById("gpu-mem");
-const gpuTemp = document.getElementById("gpu-temp");
-
-// popover workflow
-const workflowPopover = document.getElementById("workflow-popover");
-const popoverTitle = document.getElementById("popover-title");
-const popoverImage = document.getElementById("popover-image");
-const popoverDescription = document.getElementById("popover-description");
-
-// carrousel
-const workflowCarouselLeft = document.getElementById("workflow-carousel-left");
-const workflowCarouselRight = document.getElementById("workflow-carousel-right");
-
-
-// -----------------------------
-// Sliders sync
-// -----------------------------
-function setupSliderSync(slider, valueDisplay, decimalPlaces = 0) {
-    if (!slider || !valueDisplay) return;
-    const updateValue = () => {
-        valueDisplay.textContent = parseFloat(slider.value).toFixed(decimalPlaces);
-    };
-    slider.addEventListener("input", updateValue);
-    updateValue();
-}
-
-setupSliderSync(stepsSlider, stepsValue, 0);
-setupSliderSync(cfgScaleSlider, cfgScaleValue, 1);
-setupSliderSync(sdxlStartSlider, sdxlStartValue, 0);
-setupSliderSync(sdxlEndSlider, sdxlEndValue, 0);
-
-
-// -----------------------------
-// Seed Logic
-// -----------------------------
-const DEFAULT_FIXED_SEED = 42; 
-
-if (seedRandomToggle && seedInput) {
-    seedRandomToggle.addEventListener('change', () => {
-        if (seedRandomToggle.checked) {
-            // Aléatoire sélectionné
-            seedInput.disabled = true;
-            // On conserve la valeur affichée pour réutilisation, mais la valeur logique sera -1
-            seedInput.placeholder = "Seed Aléatoire (-1)";
-            seedInput.value = ""; 
-        } else {
-            // Fixe sélectionné
-            seedInput.disabled = false;
-            seedInput.placeholder = "";
-            // Si le champ est vide, on remet la valeur par défaut
-            if (seedInput.value === "") {
-                seedInput.value = DEFAULT_FIXED_SEED;
-            }
-        }
-    });
-    // Initialisation
-    // Définir la SEED comme aléatoire par défaut
-    seedRandomToggle.checked = true; 
-    seedInput.disabled = true;
-    seedInput.value = "";
-    seedInput.placeholder = "Seed Aléatoire (-1)";
-}
-
-
-// -----------------------------
-// Logging / erreurs / statut
-// -----------------------------
-function log(message) {
+function log(...args) {
+    console.log(...args);
+    const box = document.getElementById("log-box");
+    if (!box) return;
     const line = document.createElement("div");
     line.className = "log-line";
-    line.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
-    logBox.prepend(line);
+    const ts = new Date().toLocaleTimeString("fr-FR", { hour12: false });
+    line.innerHTML = `<strong>[${ts}]</strong> ${args.join(" ")}`;
+    box.appendChild(line);
+    box.scrollTop = box.scrollHeight;
 }
 
 function setError(msg) {
-    errorBox.style.display = "block";
-    errorBox.textContent = msg;
-}
-
-function clearError() {
-    errorBox.style.display = "none";
-    errorBox.textContent = "";
-}
-
-function setJobStatus(text) {
-    jobStatusPill.textContent = text;
-}
-
-
-// -----------------------------
-// Popover workflows (autodetect)
-// -----------------------------
-function showPopover(workflowName, x, y) {
-    // Utilise le nom forcé "DEMO TEST"
-    const displayName = "DEMO TEST"; 
-    const baseName = workflowName.replace(/\.json$/i, "");
-    const vignettePath = `./vignettes/${baseName}.png`;
-
-    popoverTitle.textContent = displayName;
-    popoverDescription.textContent = workflowName;
-    popoverImage.src = vignettePath;
-
-    workflowPopover.style.left = `${x + 15}px`;
-    workflowPopover.style.top = `${y + 15}px`;
-    workflowPopover.style.display = "block";
-}
-
-function hidePopover() {
-    workflowPopover.style.display = "none";
-}
-
-
-// -----------------------------
-// GPU 
-// -----------------------------
-async function loadGPU() {
-    try {
-        const resp = await fetch(API_BASE_URL + "/gpu_status");
-        const data = await resp.json();
-
-        // Affiche le nom exact retourné par le backend. 
-        gpuName.textContent = data.name || "GPU"; 
-        gpuUtil.textContent = data.load + "%";
-        gpuMem.textContent = data.memory_used + " / " + data.memory_total + " Go";
-        if (data.temperature !== undefined) {
-            gpuTemp.textContent = data.temperature + " °C";
-        }
-    } catch (err) {
-        gpuName.textContent = "GPU (Erreur)";
+    const errBox = document.getElementById("error-box");
+    if (!errBox) return;
+    if (msg) {
+        errBox.style.display = "block";
+        errBox.textContent = msg;
+    } else {
+        errBox.style.display = "none";
+        errBox.textContent = "";
     }
 }
 
+function showProgressOverlay(show, label = "En attente…") {
+    const overlay = document.getElementById("progress-overlay");
+    const labelSpan = document.getElementById("progress-label");
+    const percentSpan = document.getElementById("progress-percent");
+    const innerBar = document.getElementById("progress-inner");
 
-// -----------------------------
-// Checkpoints
-// -----------------------------
-async function loadCheckpoints() {
-    try {
-        const resp = await fetch(API_BASE_URL + "/checkpoints");
-        const data = await resp.json();
-        checkpointSelect.innerHTML = "";
+    if (!overlay || !labelSpan || !percentSpan || !innerBar) return;
 
-        data.checkpoints.forEach(ck => {
-            const opt = document.createElement("option");
-            opt.value = ck;
-            opt.textContent = ck;
-            checkpointSelect.appendChild(opt);
-        });
-    } catch (err) {
-        checkpointSelect.innerHTML = `<option value="">Erreur chargement</option>`;
+    if (show) {
+        overlay.classList.add("visible");
+        labelSpan.textContent = label;
+        percentSpan.textContent = "0%";
+        innerBar.style.width = "0%";
+        fakeProgress = 0;
+    } else {
+        overlay.classList.remove("visible");
     }
 }
 
+// =========================================================
+// GPU STATUS (SIMPLIFIÉ)
+// =========================================================
 
-// -----------------------------
-// Placeholders : adaptation UI
-// -----------------------------
-async function fetchWorkflowPlaceholders(wf) {
+async function refreshGPU() {
+    const card = document.getElementById("gpu-card");
+    const nameEl = document.getElementById("gpu-name");
+    const utilEl = document.getElementById("gpu-util");
+    const memEl = document.getElementById("gpu-mem");
+    const tempEl = document.getElementById("gpu-temp");
+
+    if (!card || !nameEl || !utilEl || !memEl || !tempEl) return;
+
     try {
-        const resp = await fetch(`${API_BASE_URL}/workflows/${wf}`);
-        if (!resp.ok) return;
-        const wfJson = await resp.json();
-        updateUIForWorkflowPlaceholders(wfJson);
-    } catch {}
+        const resp = await fetch(`${API_BASE_URL}/gpu_status`);
+        if (!resp.ok) throw new Error("GPU status fetch failed");
+        const data = await resp.json();
+        nameEl.textContent = data.name || "NVIDIA GPU";
+        utilEl.textContent = (data.load ?? 0) + "%";
+        memEl.textContent = `${data.memory_used ?? 0} / ${data.memory_total ?? 0} Go`;
+        tempEl.textContent = (data.temperature ?? 0) + "°C";
+
+        card.classList.remove("gpu-status-error");
+    } catch (e) {
+        card.classList.add("gpu-status-error");
+        nameEl.textContent = "GPU indisponible";
+        utilEl.textContent = "–%";
+        memEl.textContent = "– / – Go";
+        tempEl.textContent = "– °C";
+        console.warn("Erreur GPU status:", e);
+    }
 }
 
-function updateUIForWorkflowPlaceholders(workflowJson) {
-    const json = JSON.stringify(workflowJson);
+// =========================================================
+// GESTION WORKFLOWS & CHECKPOINTS
+// =========================================================
 
-    const hasInputImage = json.includes("{{input_image_path}}");
-    const hasCheckpoint = json.includes("{{checkpoint}}");
-
-    inputImageSection.style.display = hasInputImage ? "block" : "none";
-    
-    // groupSeed, groupWidth, groupHeight sont masqués de façon permanente dans index.html
-
-    videoParamsSection.style.display = "none";
-    checkpointWrapper.style.display = hasCheckpoint ? "block" : "none";
-    sdxlPanel.style.display = "none";
-}
-
-
-// -----------------------------
-// Extraction du nom de modèle (Forcé)
-// -----------------------------
-function prettifyModelName(raw) {
-    // Force le nom de la vignette à "DEMO TEST"
-    return "DEMO TEST"; 
-}
-
-async function extractModelDisplayName(workflowName) {
-    // Force le nom de la vignette à "DEMO TEST"
-    return "DEMO TEST"; 
-}
-
-
-// -----------------------------
-// LOAD WORKFLOWS : auto-détection + vignettes
-// -----------------------------
 async function loadWorkflows() {
+    const container = document.getElementById("workflow-groups-container");
+    const hiddenInput = document.getElementById("workflow-select");
+
+    if (!container) return;
+
     try {
-        const resp = await fetch(API_BASE_URL + "/workflows");
+        const resp = await fetch(`${API_BASE_URL}/workflows`);
+        if (!resp.ok) throw new Error("Erreur chargement workflows");
         const data = await resp.json();
-        const workflowFiles = data.workflows || [];
 
-        workflowGroupsContainer.innerHTML = "";
+        const workflows = data.workflows || [];
+        log("Workflows reçus:", JSON.stringify(workflows));
 
-        const grid = document.createElement("div");
-        grid.className = "workflow-grid";
-        workflowGroupsContainer.appendChild(grid);
+        container.innerHTML = "";
 
-        let firstWorkflow = null;
-
-        for (const wfName of workflowFiles) {
-            if (!firstWorkflow) firstWorkflow = wfName;
-
-            // Nom d'affichage forcé
-            const displayName = "DEMO TEST"; 
-            MODEL_DISPLAY_NAME_BY_WORKFLOW[wfName] = displayName;
-
-            const baseName = wfName.replace(/\.json$/i, "");
-            const vignette = document.createElement("div");
-            vignette.className = "workflow-vignette";
-            vignette.setAttribute("data-workflow-name", wfName);
-
-            const imgSrc = `./vignettes/${baseName}.png`;
-
-            vignette.innerHTML = `
-                <div class="workflow-thumb-wrapper">
-                    <img class="workflow-thumb" src="${imgSrc}" alt="${displayName}" />
-                </div>
-                <div class="vignette-label-only">${displayName}</div>
-            `;
-
-            const imgEl = vignette.querySelector(".workflow-thumb");
-            if (imgEl) {
-                imgEl.onerror = () => {
-                    imgEl.src = "./vignettes/default.png";
-                };
+        const groupsConfig = [
+            {
+                label: "ComfyUI",
+                filter: (name) => name.endsWith(".json")
             }
+        ];
 
-            vignette.addEventListener("mouseover", (e) => {
-                showPopover(wfName, e.clientX, e.clientY);
+        let firstSelected = false;
+
+        for (const group of groupsConfig) {
+            const groupWfs = workflows.filter(group.filter);
+            if (!groupWfs.length) continue;
+
+            const wrap = document.createElement("div");
+            wrap.className = "workflow-group-wrapper";
+
+            const title = document.createElement("h4");
+            title.className = "workflow-group-label";
+            title.textContent = group.label;
+            wrap.appendChild(title);
+
+            const grid = document.createElement("div");
+            grid.className = "workflow-grid";
+
+            groupWfs.forEach(wf => {
+                const base = wf.replace(/\.json$/,"");
+                const v = document.createElement("div");
+                v.className = "workflow-vignette";
+                v.dataset.workflowName = wf;
+
+                v.innerHTML = `
+                    <div class="workflow-thumb-wrapper">
+                        <img class="workflow-thumb" src="./vignettes/${base}.png" onerror="this.src='./vignettes/default.png'">
+                    </div>
+                    <div class="vignette-label-only">${base}</div>
+                `;
+
+                v.addEventListener("click", () => selectWorkflow(wf));
+                grid.appendChild(v);
             });
-            vignette.addEventListener("mousemove", (e) => {
-                showPopover(wfName, e.clientX, e.clientY);
-            });
-            vignette.addEventListener("mouseout", hidePopover);
 
-            vignette.addEventListener("click", () => selectWorkflow(wfName));
+            wrap.appendChild(grid);
+            container.appendChild(wrap);
 
-            grid.appendChild(vignette);
+            if (!firstSelected && groupWfs.length > 0) {
+                selectWorkflow(groupWfs[0]);
+                firstSelected = true;
+            }
         }
 
-        if (firstWorkflow) {
-            setTimeout(() => selectWorkflow(firstWorkflow), 0);
-        } else {
-            workflowGroupsContainer.innerHTML = `<span style="font-size:12px;color:#9ca3af;">Aucun workflow disponible.</span>`;
+        if (!firstSelected && workflows.length > 0) {
+            selectWorkflow(workflows[0]);
         }
 
-    } catch (err) {
-        console.error(err);
-        workflowGroupsContainer.innerHTML = "Erreur chargement workflows";
+    } catch (e) {
+        console.error("Erreur loadWorkflows:", e);
+        if (container) {
+            container.innerHTML = `<span style="font-size:12px;color:#f97373;">Erreur de chargement des workflows.</span>`;
+        }
+    }
+
+    try {
+        const resp = await fetch(`${API_BASE_URL}/checkpoints`);
+        const data = await resp.json();
+        const select = document.getElementById("checkpoint-select");
+        if (!select) return;
+
+        select.innerHTML = "";
+        const optEmpty = document.createElement("option");
+        optEmpty.value = "";
+        optEmpty.textContent = "Aucun (par défaut du workflow)";
+        select.appendChild(optEmpty);
+
+        (data.checkpoints || []).forEach(ckpt => {
+            const opt = document.createElement("option");
+            opt.value = ckpt;
+            opt.textContent = ckpt;
+            select.appendChild(opt);
+        });
+
+    } catch (e) {
+        console.warn("Erreur chargement checkpoints:", e);
     }
 }
 
-
-// -----------------------------
-// Sélection workflow
-// -----------------------------
 function selectWorkflow(workflowName) {
-    workflowSelect.value = workflowName;
+    const hiddenInput = document.getElementById("workflow-select");
+    if (hiddenInput) {
+        hiddenInput.value = workflowName;
+    }
 
-    document.querySelectorAll(".workflow-vignette").forEach(v => {
-        if (v.getAttribute("data-workflow-name") === workflowName) {
-            v.classList.add("selected");
-        } else {
-            v.classList.remove("selected");
-        }
+    const all = document.querySelectorAll(".workflow-vignette");
+    all.forEach(el => {
+        el.classList.toggle("selected", el.dataset.workflowName === workflowName);
     });
 
-    // On charge seulement les placeholders réels
-    fetchWorkflowPlaceholders(workflowName);
-}
+    log("Workflow sélectionné:", workflowName);
 
+    const checkpointWrapper = document.getElementById("checkpoint-wrapper");
+    const videoParamsSection = document.getElementById("video-params-section");
+    const inputImageSection = document.getElementById("input-image-section");
+    const groupSteps = document.getElementById("group-steps");
+    const groupCfg = document.getElementById("group-cfg");
+    const groupSampler = document.getElementById("group-sampler");
+    const seedSection = document.getElementById("group-seed");
+    const sdxlPanel = document.getElementById("sdxl-panel");
 
-// -----------------------------
-// Progress / Form
-// -----------------------------
-function updateProgress(pct, label) {
-    progressInner.style.width = pct + "%";
-    progressPercent.textContent = pct + "%";
-    if (label) progressLabel.textContent = label;
-}
+    const afficheMenu = document.getElementById("affiche-menu");
 
-function toggleForm(disabled) {
-    isGenerating = disabled;
-    generateButton.disabled = disabled;
+    if (workflowName === "affiche.json") {
+        if (afficheMenu) afficheMenu.style.display = "block";
+        const wInput = document.getElementById("width-input");
+        const hInput = document.getElementById("height-input");
+        if (wInput) wInput.value = "1080";
+        if (hInput) hInput.value = "1920";
 
-    if (disabled) {
-        progressOverlay.classList.add("visible");
+        const fmtIcons = document.querySelectorAll(".fmt-icon");
+        fmtIcons.forEach(icon => {
+            if (icon.dataset.w === "1080" && icon.dataset.h === "1920") {
+                icon.classList.add("selected-format");
+            } else {
+                icon.classList.remove("selected-format");
+            }
+        });
+
+        if (groupSteps) groupSteps.style.display = "none";
+        if (groupCfg) groupCfg.style.display = "none";
+        if (groupSampler) groupSampler.style.display = "none";
+        if (seedSection) seedSection.style.display = "none";
+        if (sdxlPanel) sdxlPanel.style.display = "none";
+
     } else {
-        progressOverlay.classList.remove("visible");
+        if (afficheMenu) afficheMenu.style.display = "none";
+    }
+
+    if (workflowName.includes("video")) {
+        if (videoParamsSection) videoParamsSection.style.display = "block";
+    } else {
+        if (videoParamsSection) videoParamsSection.style.display = "none";
     }
 }
 
+// =========================================================
+ // OUTILS POUR LES CHAMPS (SETVALUE + MERGE SELECT/CUSTOM)
+ // =========================================================
 
-// -----------------------------
-// Modal image
-// -----------------------------
-function openModal(imageSrc, savedFileName) {
-    modalImage.src = imageSrc;
-    modalDownloadLink.href = imageSrc;
-    modalDownloadLink.textContent = "Télécharger (" + (savedFileName || "image.png") + ")";
-    imageModal.style.display = "flex";
+function setValue(id, val) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = val;
 }
 
-function closeModal() {
-    imageModal.style.display = "none";
+function mergeSelectAndCustom(selectId, customId) {
+    const s = document.getElementById(selectId)?.value.trim() || "";
+    const c = document.getElementById(customId)?.value.trim() || "";
+
+    if (s && c) return `${s}, ${c}`;
+    if (s) return s;
+    if (c) return c;
+    return "";
 }
 
-modalCloseBtn.addEventListener("click", closeModal);
-imageModal.addEventListener("click", e => {
-    if (e.target === imageModal) closeModal();
+function stripAccents(str) {
+    try {
+        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    } catch {
+        return str;
+    }
+}
+
+// =========================================================
+// GÉNÉRATION DU PROMPT POUR LE MODE AFFICHE
+// =========================================================
+
+document.getElementById("affiche-generate-btn")?.addEventListener("click", () => {
+
+    const titre = document.getElementById("aff_titre")?.value.trim() || "";
+    const sousTitre = document.getElementById("aff_sous_titre")?.value.trim() || "";
+    const tagline = document.getElementById("aff_tagline")?.value.trim() || "";
+
+    const theme = mergeSelectAndCustom("aff_theme", "aff_theme_custom");
+    const ambiance = mergeSelectAndCustom("aff_ambiance", "aff_ambiance_custom");
+    const perso = mergeSelectAndCustom("aff_perso_sugg", "aff_perso_desc");
+    const env = mergeSelectAndCustom("aff_env_sugg", "aff_env_desc");
+    const action = mergeSelectAndCustom("aff_action_sugg", "aff_action_desc");
+    const details = document.getElementById("aff_details")?.value.trim() || "";
+    const palette = mergeSelectAndCustom("aff_palette", "aff_palette_custom");
+    const styleTitre = mergeSelectAndCustom("aff_style_titre", "aff_style_titre_custom");
+
+    const hasTitle = Boolean(titre);
+    const hasSubtitle = Boolean(sousTitre);
+    const hasTagline = Boolean(tagline);
+
+    let textBlock = "";
+
+    // 👉 Si aucun texte : neutralisation totale du texte
+    if (!hasTitle && !hasSubtitle && !hasTagline) {
+        textBlock = `
+NO TEXT MODE:
+The poster must contain ZERO text, letters, symbols or numbers.
+Do not invent any title, subtitle or tagline.
+Avoid any shapes that resemble typography.
+`;
+    } else {
+        textBlock = `
+ALLOWED TEXT ONLY (MODEL MUST NOT INVENT ANYTHING ELSE):
+
+${hasTitle ? `TITLE: "${titre}" (top area, clean, sharp, readable, no distortion)` : ""}
+${hasSubtitle ? `SUBTITLE: "${sousTitre}" (under title, smaller, crisp, readable)` : ""}
+${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
+
+Rules for text:
+- Only the items above are permitted.
+- No additional text, no hallucinated wording.
+- No extra letters, no random symbols.
+- No decorative scribbles that look like writing.
+- Title/style: ${styleTitre || "cinematic, elegant contrast"}.
+`;
+    }
+
+    const prompt = `
+Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
+
+${textBlock}
+
+Visual elements:
+- Theme/mood: ${theme}
+- Ambiance: ${ambiance}
+- Main character: ${perso}
+- Environment: ${env}
+- Action: ${action}
+
+Extra details:
+${details || "cinematic particles, depth fog, volumetric light"}
+
+Color palette:
+${palette || "high contrast cinematic palette"}
+
+Image style:
+Premium poster design, professional layout, ultra high resolution, visually striking.
+`.trim();
+
+    const promptArea = document.getElementById("prompt");
+    if (promptArea) {
+        promptArea.value = prompt;
+    }
+
+    log("🎨 prompt affiche généré (version anti-texte parasite)");
 });
 
+// =========================================================
+// RANDOM AFFICHE — CHARGEMENT + GÉNÉRATION AUTOMATIQUE
+// =========================================================
 
-// -----------------------------
-// Fallback HTTP pour l'image
-// -----------------------------
-async function checkForResult(promptId) {
-    // Si l'image est déjà affichée, on ne fait rien
-    if (resultPlaceholder.innerHTML.includes("result-image")) {
-        return;
-    }
+let RANDOM_AFFICHE_DATA = null;
+
+// Charge le fichier JSON une seule fois
+async function loadRandomAfficheJSON() {
+    if (RANDOM_AFFICHE_DATA) return RANDOM_AFFICHE_DATA;
 
     try {
-        log("WS fermé. Tentative de récupération du résultat par HTTP...");
-        const resp = await fetch(`${API_BASE_URL}/result/${promptId}`);
+        const resp = await fetch("random_affiche_data.json");
         if (!resp.ok) {
-            throw new Error("Erreur HTTP: " + resp.status);
+            console.error("❌ Fichier random_affiche_data.json introuvable !");
+            return null;
         }
-        const data = await resp.json();
 
-        if (data.image_base64) {
-            log("Image récupérée avec succès via HTTP.");
-            
-            const src = `data:image/png;base64,${data.image_base64}`;
-            const filename = data.filename || "output.png";
-            resultPlaceholder.innerHTML = `
-                <img class="result-image clickable"
-                     src="${src}"
-                     data-original-src="${src}"
-                     data-file-name="${filename}" />
-            `;
+        RANDOM_AFFICHE_DATA = await resp.json();
+        console.log("📁 random_affiche_data.json chargé !");
+        return RANDOM_AFFICHE_DATA;
 
-            const clickable = document.querySelector(".result-image.clickable");
-            if (clickable) {
-                clickable.addEventListener("click", () => {
-                    openModal(src, filename);
-                });
-            }
-            if (isGenerating) {
-                toggleForm(false);
-                updateProgress(100, "Terminé (HTTP Fallback)");
-                setJobStatus("DONE");
-            }
-        } else {
-            log("Réponse HTTP reçue, mais aucune image trouvée.");
-        }
-    } catch (err) {
-        log(`Échec de la récupération HTTP: ${err.message}`);
-        setError("L'image n'a pas pu être récupérée après l'exécution.");
+    } catch (e) {
+        console.error("Erreur lors du chargement JSON random :", e);
+        return null;
     }
 }
 
+// Pioche aléatoire
+function pickRandom(arr) {
+    if (!arr || !arr.length) return "";
+    const idx = Math.floor(Math.random() * arr.length);
+    return arr[idx];
+}
 
-// -----------------------------
-// WebSocket progression
-// -----------------------------
-function connectWebSocket(promptId) {
-    const ws = new WebSocket(`${WS_BASE_URL}/${promptId}`);
-    wsClient = ws;
+// Injection massive dans les champs
+function fillAfficheFieldsFromRandom(randomObj) {
+    if (!randomObj) return;
 
-    if (doneTimeout) {
-        clearTimeout(doneTimeout);
-        doneTimeout = null;
+    setValue("aff_titre", randomObj.titre || "");
+    setValue("aff_sous_titre", randomObj.sous_titre || "");
+    setValue("aff_tagline", randomObj.tagline || "");
+
+    if (randomObj.theme) {
+        setValue("aff_theme_custom", randomObj.theme);
+        const s = document.getElementById("aff_theme");
+        if (s) s.value = "";
     }
 
-    ws.onopen = () => {
-        log("WS connecté");
-        setJobStatus("RUNNING");
-    };
+    if (randomObj.ambiance) {
+        setValue("aff_ambiance_custom", randomObj.ambiance);
+        const s = document.getElementById("aff_ambiance");
+        if (s) s.value = "";
+    }
 
-    ws.onmessage = evt => {
-        const msg = JSON.parse(evt.data);
-        console.log("WS MESSAGE TYPE:", msg.type, "PROMPT ID:", promptId);
+    if (randomObj.personnage) {
+        setValue("aff_perso_desc", randomObj.personnage);
+        const s = document.getElementById("aff_perso_sugg");
+        if (s) s.value = "";
+    }
 
-        if (msg.type === "progress" || msg.type === "preview") {
-            if (doneTimeout) {
-                clearTimeout(doneTimeout);
-                doneTimeout = null;
+    if (randomObj.environnement) {
+        setValue("aff_env_desc", randomObj.environnement);
+        const s = document.getElementById("aff_env_sugg");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.action) {
+        setValue("aff_action_desc", randomObj.action);
+        const s = document.getElementById("aff_action_sugg");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.details) {
+        setValue("aff_details", randomObj.details);
+    }
+
+    if (randomObj.palette) {
+        setValue("aff_palette_custom", randomObj.palette);
+        const s = document.getElementById("aff_palette");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.style_titre) {
+        setValue("aff_style_titre_custom", randomObj.style_titre);
+        const s = document.getElementById("aff_style_titre");
+        if (s) s.value = "";
+    }
+}
+
+// DOMContentLoaded → branche le bouton random
+document.addEventListener("DOMContentLoaded", () => {
+
+    const randomBtn = document.getElementById("affiche-random-btn");
+    if (!randomBtn) return;
+
+    randomBtn.addEventListener("click", async () => {
+        console.log("🎲 Clic random détecté !");
+
+        const data = await loadRandomAfficheJSON();
+        if (!data) return;
+
+        const theme = pickRandom(data.themes);
+        const ambiance = pickRandom(data.ambiances);
+        const perso = pickRandom(data.personnages);
+        const env = pickRandom(data.environnements);
+        const action = pickRandom(data.actions);
+        const palette = pickRandom(data.palettes);
+        const styleTitre = pickRandom(data.styles_titre);
+        const details = pickRandom(data.details);
+        const titre = pickRandom(data.titres);
+        const sousTitre = pickRandom(data.sous_titres);
+        const tagline = pickRandom(data.taglines || []);
+
+        const randomObj = {
+            titre,
+            sous_titre: sousTitre,
+            tagline,
+            theme,
+            ambiance,
+            personnage: perso,
+            environnement: env,
+            action,
+            palette,
+            style_titre: styleTitre,
+            details
+        };
+
+        fillAfficheFieldsFromRandom(randomObj);
+
+        console.log("🎲 Champs affiche remplis aléatoirement:", randomObj);
+    });
+});
+
+// =========================================================
+// GESTION FORMATS RAPIDES
+// =========================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    const fmtIcons = document.querySelectorAll(".fmt-icon");
+    const widthInput = document.getElementById("width-input");
+    const heightInput = document.getElementById("height-input");
+
+    fmtIcons.forEach(icon => {
+        icon.addEventListener("click", () => {
+            const w = icon.dataset.w;
+            const h = icon.dataset.h;
+            if (!w || !h) return;
+
+            fmtIcons.forEach(i => i.classList.remove("selected-format"));
+            icon.classList.add("selected-format");
+
+            if (widthInput) widthInput.value = w;
+            if (heightInput) heightInput.value = h;
+
+            log(`Format rapide sélectionné: ${w}x${h}`);
+        });
+    });
+});
+
+// =========================================================
+// PROGRESSION FAKE + DÉTECTION AUTO /result
+// =========================================================
+async function pollProgress(promptId) {
+    if (!promptId) return;
+
+    fakeProgress = 0;
+    showProgressOverlay(true, "Génération en cours…");
+
+    if (pollingProgressInterval) {
+        clearInterval(pollingProgressInterval);
+    }
+
+    const percentSpan = document.getElementById("progress-percent");
+    const innerBar = document.getElementById("progress-inner");
+    const statusPill = document.getElementById("job-status-pill");
+
+    if (statusPill) {
+        statusPill.textContent = "RUNNING";
+        statusPill.classList.remove("pill-green");
+        statusPill.classList.add("pill");
+    }
+
+    pollingProgressInterval = setInterval(async () => {
+        // Animation FAKE jusqu'à 92 %
+        fakeProgress = Math.min(fakeProgress + 7, 92);
+
+        if (percentSpan) percentSpan.textContent = fakeProgress + "%";
+        if (innerBar) innerBar.style.width = fakeProgress + "%";
+
+        // Test direct si le résultat est disponible
+        try {
+            const resCheck = await fetch(`${API_BASE_URL}/result/${promptId}`);
+
+            if (resCheck.ok) {
+                clearInterval(pollingProgressInterval);
+                pollingProgressInterval = null;
+
+                if (percentSpan) percentSpan.textContent = "100%";
+                if (innerBar) innerBar.style.width = "100%";
+
+                showProgressOverlay(false);
+
+                if (statusPill) {
+                    statusPill.textContent = "DONE";
+                    statusPill.classList.remove("pill");
+                    statusPill.classList.add("pill-green");
+                }
+
+                fetchResult(promptId);
+                return;
             }
+
+        } catch (e) {
+            // Pas encore prêt → on continue
         }
 
-        if (msg.type === "progress") {
-            const pct = Math.floor((msg.value / msg.max_value) * 100);
-            updateProgress(pct, "Exécution workflow…");
-            
-            if (pct >= 99 && !doneTimeout) {
-                doneTimeout = setTimeout(() => {
-                    log("Timeout atteint: Fermeture forcée de l'overlay.");
-                    toggleForm(false);
-                    updateProgress(100, "Terminé (Force Close)");
-                    setJobStatus("DONE");
-                    ws.close();
-                }, 12000);
-            }
-        }
+    }, POLLING_INTERVAL_MS);
+}
 
-        if (msg.type === "preview" && msg.image_base64) {
-            resultPlaceholder.innerHTML =
-                `<img class="result-image" src="data:image/png;base64,${msg.image_base64}" />`;
-        }
-        
-        if (msg.type === "output" && msg.image_base64) {
-            if (doneTimeout) clearTimeout(doneTimeout);
-            
-            toggleForm(false);
-            updateProgress(100, "Terminé");
-            setJobStatus("DONE");
+// =========================================================
+// RÉCUPÉRATION RESULTAT /result/{prompt_id}
+// =========================================================
 
-            const src = `data:image/png;base64,${msg.image_base64}`;
-            resultPlaceholder.innerHTML = `
-                <img class="result-image clickable"
-                     src="${src}"
-                     data-original-src="${src}"
-                     data-file-name="${msg.filename || "output.png"}" />
-            `;
-
-            const clickable = document.querySelector(".result-image.clickable");
-            if (clickable) {
-                clickable.addEventListener("click", () => {
-                    openModal(src, msg.filename);
-                });
-            }
-            ws.close();
+async function fetchResult(promptId) {
+    try {
+        log("Récupération du résultat pour:", promptId);
+        const resp = await fetch(`${API_BASE_URL}/result/${promptId}`);
+        if (!resp.ok) {
+            log("Result HTTP non OK:", resp.status);
+            setError("Impossible de récupérer le résultat pour l’instant.");
             return;
         }
 
-        const completionTypes = [
-            "result", "executed", "final_result", "done", "execution_done", "execution_end"
-        ];
+        const data = await resp.json();
+        const base64 = data.image_base64;
+        const filename = data.filename || "image.png";
 
-        if (completionTypes.includes(msg.type)) {
-            if (doneTimeout) clearTimeout(doneTimeout);
-            if (isGenerating) {
-                toggleForm(false);
-                updateProgress(100, "Terminé");
-                setJobStatus("DONE");
+        const resultArea = document.getElementById("result-area");
+        const placeholder = document.getElementById("result-placeholder");
+
+        if (placeholder) placeholder.style.display = "none";
+
+        const imgExisting = resultArea.querySelector("img.result-image");
+        if (imgExisting) imgExisting.remove();
+
+        const img = document.createElement("img");
+        img.className = "result-image mj-img mj-blur clickable";
+        img.src = `data:image/png;base64,${base64}`;
+        img.alt = "Image générée";
+        img.style.maxWidth = "100%";
+        img.style.height = "auto";
+        img.style.display = "block";
+        img.style.margin = "0 auto";
+
+        img.onload = () => {
+            img.classList.remove("mj-blur");
+            img.classList.add("mj-ready");
+        };
+
+        img.addEventListener("click", () => {
+            const modal = document.getElementById("image-modal");
+            const modalImg = document.getElementById("modal-image");
+            const dlLink = document.getElementById("modal-download-link");
+
+            if (modal && modalImg && dlLink) {
+                modalImg.src = img.src;
+                dlLink.href = img.src;
+                dlLink.download = filename;
+                modal.style.display = "flex";
             }
-            ws.close();
+        });
+
+        resultArea.appendChild(img);
+
+        const metaSeed = document.getElementById("meta-seed");
+        const metaSteps = document.getElementById("meta-steps");
+        const metaCfg = document.getElementById("meta-cfg");
+        const metaSampler = document.getElementById("meta-sampler");
+
+        if (metaSeed) metaSeed.textContent = "–";
+        if (metaSteps) metaSteps.textContent = "–";
+        if (metaCfg) metaCfg.textContent = "–";
+        if (metaSampler) metaSampler.textContent = "–";
+
+        if (lastGenerationStartTime) {
+            const diffMs = Date.now() - lastGenerationStartTime;
+            const sec = (diffMs / 1000).toFixed(1);
+            const timeTakenEl = document.getElementById("time-taken");
+            if (timeTakenEl) timeTakenEl.textContent = `${sec}s`;
         }
-    };
 
-    ws.onerror = () => {
-        if (doneTimeout) clearTimeout(doneTimeout);
-        toggleForm(false);
-        setError("Erreur connexion WebSocket");
-    };
+        setError("");
 
-    ws.onclose = () => {
-        log("WS fermé");
-        if (doneTimeout) clearTimeout(doneTimeout);
-        checkForResult(promptId);
-    };
+    } catch (e) {
+        console.error("Erreur fetchResult:", e);
+        setError("Erreur lors de la récupération de l’image générée.");
+    }
 }
 
+// =========================================================
+// ENVOI DU FORMULAIRE → /generate
+// =========================================================
 
-// -----------------------------
-// Carrousel boutons
-// -----------------------------
-function getWorkflowGridElement() {
-    return document.querySelector(".workflow-grid");
-}
-
-if (workflowCarouselLeft) {
-    workflowCarouselLeft.addEventListener("click", () => {
-        const grid = getWorkflowGridElement();
-        if (grid) {
-            grid.scrollBy({ left: -200, behavior: "smooth" });
-        }
-    });
-}
-
-if (workflowCarouselRight) {
-    workflowCarouselRight.addEventListener("click", () => {
-        const grid = getWorkflowGridElement();
-        if (grid) {
-            grid.scrollBy({ left: 200, behavior: "smooth" });
-        }
-    });
-}
-
-
-// -----------------------------
-// Submit génération
-// -----------------------------
-form.addEventListener("submit", async e => {
+async function startGeneration(e) {
     e.preventDefault();
-    if (isGenerating) return;
 
-    clearError();
+    setError("");
 
-    const workflowName = workflowSelect.value;
-    if (!workflowName) {
-        setError("Sélectionne un workflow.");
+    const formEl = document.getElementById("generation-form");
+    if (!formEl) return;
+
+    const formData = new FormData(formEl);
+
+    const wfName = document.getElementById("workflow-select")?.value;
+    if (!wfName) {
+        setError("Veuillez sélectionner un workflow.");
         return;
     }
 
-    const formData = new FormData();
+    log("Début de la séquence de génération réelle (Max 3 tentatives)...");
 
-    const prompt = document.getElementById("prompt").value;
-    const negative_prompt = ""; 
-    
-    // Valeurs par défaut forcées
-    const steps = 10; 
-    const cfg_scale = 1.0;
-    const sampler = "euler"; 
-
-    // LOGIQUE SEED : utilise la valeur -1 si Aléatoire est cochée (par défaut)
-    let seed;
-    if (seedRandomToggle.checked) {
-        seed = -1;
-    } else {
-        const fixedSeed = parseInt(seedInput.value, 10);
-        seed = fixedSeed;
-        if (isNaN(seed)) {
-            // Fallback si la saisie fixe est vide
-            seed = DEFAULT_FIXED_SEED;
-            seedInput.value = seed;
-        }
+    const generateBtn = document.getElementById("generate-button");
+    if (generateBtn) {
+        generateBtn.disabled = true;
+        generateBtn.querySelector(".dot").style.background = "#fbbf24";
+        generateBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
     }
 
-    // ⭐ CORRECTION: Lit les valeurs des inputs cachés (widthInput, heightInput), 
-    // qui sont mises à jour par les formats rapides et initialisées à 1080.
-    const width = parseInt(widthInput.value, 10); 
-    const height = parseInt(heightInput.value, 10); 
-    
-    // Assurer que les valeurs sont numériques (au cas où)
-    const finalWidth = isNaN(width) ? 1080 : width;
-    const finalHeight = isNaN(height) ? 1080 : height;
-    
-    const input_image_path = inputImagePathHidden.value;
-    const duration = parseFloat(durationInput ? durationInput.value : "0");
-    const ratio = ratioSelect ? ratioSelect.value : ""; 
+    lastGenerationStartTime = Date.now();
+    showProgressOverlay(true, "Initialisation…");
+    fakeProgress = 0;
 
-    lastUsedParams = {
-        workflow: workflowName,
-        prompt: prompt,
-        negative_prompt: negative_prompt,
-        steps: steps, // 10
-        cfg_scale: cfg_scale, // 1.0
-        seed: seed, // Seed finale
-        sampler: sampler, // "euler"
-        width: finalWidth,
-        height: finalHeight
-    };
-
-    formData.append("prompt", prompt);
-    formData.append("negative_prompt", negative_prompt);
-    formData.append("steps", steps);
-    formData.append("cfg_scale", cfg_scale);
-    formData.append("seed", seed);
-    formData.append("sampler", sampler);
-    formData.append("width", finalWidth); // Utilisation de la valeur lue ou par défaut (1080)
-    formData.append("height", finalHeight); // Utilisation de la valeur lue ou par défaut (1080)
-    
-    if (input_image_path) {
-        formData.append("input_image_path", input_image_path);
+    const statusPill = document.getElementById("job-status-pill");
+    if (statusPill) {
+        statusPill.textContent = "PENDING";
+        statusPill.classList.remove("pill-green");
+        statusPill.classList.add("pill");
     }
 
-    if (!Number.isNaN(duration)) formData.append("duration", duration);
-    if (ratio) formData.append("ratio", ratio);
+    const maxAttempts = 3;
+    let attempt = 0;
+    let success = false;
+    let finalPromptId = null;
 
-    toggleForm(true);
-    setJobStatus("RUNNING");
-    updateProgress(0, "Envoi…");
-
-    const startTime = performance.now();
-
-    try {
-        const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${workflowName}`, {
-            method: "POST",
-            body: formData
-        });
-
-        const data = await resp.json();
-        if (data.status === "processing_started") {
-            connectWebSocket(data.prompt_id);
-        } else {
-            toggleForm(false);
-            setError(data.detail || "Erreur bridge.");
-        }
-
-        const endTime = performance.now();
-        const seconds = ((endTime - startTime) / 1000).toFixed(1);
-        timeTakenDisplay.textContent = seconds + " s";
-        // Mise à jour des métadonnées avec les valeurs forcées/déterminées
-        metaSeed.textContent = seed;
-        metaSteps.textContent = steps;
-        metaCfg.textContent = cfg_scale;
-        metaSampler.textContent = sampler;
-
-    } catch (err) {
-        console.error(err);
-        toggleForm(false);
-        setError("Erreur bridge.");
-    }
-});
-
-
-// -----------------------------
-// Upload image
-// -----------------------------
-if (inputImageBrowseBtn) {
-    inputImageBrowseBtn.addEventListener("click", () => {
-        inputImageFile.click();
-    });
-
-    inputImageFile.addEventListener("change", async () => {
-        const file = inputImageFile.files[0];
-        if (!file) return;
-
-        inputImageLabel.textContent = "Upload…";
-
-        const fd = new FormData();
-        fd.append("file", file);
-
+    while (attempt < maxAttempts && !success) {
+        attempt++;
         try {
-            const resp = await fetch(`${API_BASE_URL}/upload/image`, {
+            log(`[Tentative ${attempt}/${maxAttempts}] Envoi de la requête de génération.`);
+
+            const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, {
                 method: "POST",
-                body: fd
+                body: formData
             });
 
+            if (!resp.ok) {
+                log(`Tentative ${attempt} → HTTP ${resp.status}`);
+                if (attempt < maxAttempts) {
+                    await new Promise(r => setTimeout(r, 5000));
+                    continue;
+                } else {
+                    throw new Error("Échec après plusieurs tentatives.");
+                }
+            }
+
             const data = await resp.json();
-            inputImagePathHidden.value = data.comfy_path;
-            inputImageLabel.textContent = data.local_path;
+            if (!data.prompt_id) {
+                throw new Error("Réponse invalide de /generate (missing prompt_id)");
+            }
 
-        } catch {
-            inputImageLabel.textContent = "Échec upload";
+            success = true;
+            finalPromptId = data.prompt_id;
+
+        } catch (err) {
+            console.error(`Erreur tentative ${attempt}:`, err);
+            log(`Tentative ${attempt}/${maxAttempts} : Échec. Ré-essai dans 5 secondes...`);
+
+            if (attempt >= maxAttempts) {
+                setError("Échec de l’envoi de la génération après plusieurs tentatives.");
+            }
+
+            await new Promise(r => setTimeout(r, 5000));
         }
-    });
+    }
+
+    if (success && finalPromptId) {
+        currentPromptId = finalPromptId;
+        log("Prompt ID final:", finalPromptId);
+        pollProgress(finalPromptId);
+    }
+
+    if (generateBtn) {
+        generateBtn.disabled = false;
+        generateBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
+        generateBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
+    }
 }
 
+// =========================================================
+// INIT GLOBAL (DOMContentLoaded)
+// =========================================================
 
-// -----------------------------
-// Bouton "Copier paramètres"
-// -----------------------------
-if (copyParamsBtn) {
-    copyParamsBtn.addEventListener("click", () => {
-        const txt = JSON.stringify(lastUsedParams, null, 2);
-        navigator.clipboard.writeText(txt).then(() => {
-            log("Paramètres copiés dans le presse-papiers.");
+document.addEventListener("DOMContentLoaded", () => {
+    const formEl = document.getElementById("generation-form");
+    if (formEl) {
+        formEl.addEventListener("submit", startGeneration);
+    }
+
+    const modal = document.getElementById("image-modal");
+    const modalClose = document.querySelector(".modal-close-btn");
+
+    if (modalClose && modal) {
+        modalClose.addEventListener("click", () => {
+            modal.style.display = "none";
         });
-    });
-}
+    }
+    if (modal) {
+        modal.addEventListener("click", (ev) => {
+            if (ev.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+    }
 
+    const copyBtn = document.getElementById("copy-params-btn");
+    if (copyBtn) {
+        copyBtn.addEventListener("click", () => {
+            const wfName = document.getElementById("workflow-select")?.value || "–";
+            const width = document.getElementById("width-input")?.value || "–";
+            const height = document.getElementById("height-input")?.value || "–";
+            const steps = document.getElementById("steps-slider")?.value || "–";
+            const cfg = document.getElementById("cfg_scale-slider")?.value || "–";
+            const sampler = document.getElementById("sampler")?.value || "–";
+            const seed = document.getElementById("seed-input")?.value || "–";
 
-// -----------------------------
-// INIT
-// -----------------------------
-(async function init() {
-    log("Initialisation…");
-    await loadWorkflows();
-    await loadCheckpoints();
-    await loadGPU();
-    gpuInterval = setInterval(loadGPU, 6000);
-})();
+            const txt = `Workflow: ${wfName}\nResolution: ${width}x${height}\nSteps: ${steps}\nCFG: ${cfg}\nSampler: ${sampler}\nSeed: ${seed}`;
+            navigator.clipboard.writeText(txt).then(() => {
+                log("Paramètres copiés dans le presse-papiers.");
+            });
+        });
+    }
 
-// Steeve quick format icons
-document.querySelectorAll(".fmt-icon").forEach(icon=>{
-   icon.addEventListener("click",()=>{
-      const w=parseInt(icon.dataset.w), h=parseInt(icon.dataset.h);
-      const wi=document.getElementById("width-input");
-      const hi=document.getElementById("height-input");
-      if(wi) wi.value=w;
-      if(hi) hi.value=h;
-      const preset=document.getElementById("image-size-preset");
-      if(preset) preset.value = `${w}x${h}`;
-      log(`Format: ${w}x${h}`);
-   });
-});
+    const btnPrompt = document.getElementById("affiche-generate-btn");
+    if (btnPrompt) {
+        btnPrompt.addEventListener("click", () => {
+            btnPrompt.classList.add("clicked");
+            btnPrompt.innerHTML = "✨ Génération...";
+            setTimeout(() => {
+                btnPrompt.classList.remove("clicked");
+                btnPrompt.innerHTML = "✨ Générer le prompt de l’affiche";
+            }, 600);
+        });
+    }
 
+    setInterval(refreshGPU, 10000);
+    refreshGPU();
 
-// === Quick format icons ===
-document.querySelectorAll(".fmt-icon").forEach(icon=>{
-    icon.addEventListener("click", ()=>{
-        const w = icon.dataset.w;
-        const h = icon.dataset.h;
-        const widthInput = document.getElementById("width-input");
-        const heightInput = document.getElementById("height-input");
-        if(widthInput && heightInput){
-            widthInput.value = w;
-            heightInput.value = h;
-        }
-        console.log("Format sélectionné:", w, h);
-    });
+    loadWorkflows();
 });
