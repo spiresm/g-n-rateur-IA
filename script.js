@@ -2,7 +2,7 @@
 // CONFIGURATION (FRONTEND)
 // =========================================================
 
-const API_BASE_URL = "/api"; // CORRECTION 1: Utilisation du chemin proxy Netlify pour le CORS
+const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
 
 // =========================================================
 // CONFIGURATION DU POLLING HTTP (NOUVEAU SYSTEME SANS WS)
