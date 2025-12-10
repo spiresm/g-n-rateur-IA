@@ -716,10 +716,9 @@ async function startGeneration(e) {
         try {
             log(`[Tentative ${attempt}/${maxAttempts}] Envoi de la requête de génération.`);
 
-            // CORRECTION 2: Remplacement de l'endpoint /generate par /prompt
-            const resp = await fetch(`${API_BASE_URL}/prompt?workflow_name=${encodeURIComponent(wfName)}`, { 
-                method: "POST",
-                body: formData
+            // CORRECTION 2
+            const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { method: "POST",
+        body: formData
             });
 
             if (!resp.ok) {
