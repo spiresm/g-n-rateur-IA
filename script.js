@@ -2,7 +2,7 @@
 // CONFIGURATION (FRONTEND)
 // =========================================================
 
-const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
+const API_BASE_URL = "https://znkv2fu1aefv7l-8188.proxy.runpod.net";
 
 // =========================================================
 // CONFIGURATION DU POLLING HTTP (NOUVEAU SYSTEME SANS WS)
