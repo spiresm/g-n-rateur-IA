@@ -558,29 +558,35 @@ async function pollProgress(promptId) {
 
         // Test direct si le résultat est disponible
         try {
-            const resCheck = await fetch(`${API_BASE_URL}/result/${promptId}`);
+            // CORRECTION 1: Utiliser /progress pour le statut au lieu de /result
+            const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`); 
 
             if (resCheck.ok) {
-                clearInterval(pollingProgressInterval);
-                pollingProgressInterval = null;
+                const data = await resCheck.json();
+                
+                // Vérifier si le statut indique que la génération est terminée (comme attendu par l'API)
+                if (data.status && data.status.completed) {
+                    clearInterval(pollingProgressInterval);
+                    pollingProgressInterval = null;
 
-                if (percentSpan) percentSpan.textContent = "100%";
-                if (innerBar) innerBar.style.width = "100%";
+                    if (percentSpan) percentSpan.textContent = "100%";
+                    if (innerBar) innerBar.style.width = "100%";
 
-                showProgressOverlay(false);
+                    showProgressOverlay(false);
 
-                if (statusPill) {
-                    statusPill.textContent = "DONE";
-                    statusPill.classList.remove("pill");
-                    statusPill.classList.add("pill-green");
+                    if (statusPill) {
+                        statusPill.textContent = "DONE";
+                        statusPill.classList.remove("pill");
+                        statusPill.classList.add("pill-green");
+                    }
+
+                    fetchResult(promptId); // Appelle la fonction qui va chercher l'image finale
+                    return;
                 }
-
-                fetchResult(promptId);
-                return;
             }
 
         } catch (e) {
-            // Pas encore prêt → on continue
+            // Pas encore prêt ou erreur de parsing JSON → on continue
         }
 
     }, POLLING_INTERVAL_MS);
@@ -593,7 +599,8 @@ async function pollProgress(promptId) {
 async function fetchResult(promptId) {
     try {
         log("Récupération du résultat pour:", promptId);
-        const resp = await fetch(`${API_BASE_URL}/progress/${promptId}`);
+        // CORRECTION 2: Utiliser /result pour l'image finale
+        const resp = await fetch(`${API_BASE_URL}/result/${promptId}`); 
         if (!resp.ok) {
             log("Result HTTP non OK:", resp.status);
             setError("Impossible de récupérer le résultat pour l’instant.");
