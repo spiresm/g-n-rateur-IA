@@ -593,7 +593,7 @@ async function pollProgress(promptId) {
 async function fetchResult(promptId) {
     try {
         log("Récupération du résultat pour:", promptId);
-        const resp = await fetch(`${API_BASE_URL}/result/${promptId}`);
+        const resp = await fetch(`${API_BASE_URL}/progress/${promptId}`);
         if (!resp.ok) {
             log("Result HTTP non OK:", resp.status);
             setError("Impossible de récupérer le résultat pour l’instant.");
