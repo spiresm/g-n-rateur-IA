@@ -2,7 +2,7 @@
 // CONFIGURATION (FRONTEND)
 // =========================================================
 
-const API_BASE_URL = "https://znkv2fu1aefv7l-8188.proxy.runpod.net";
+const API_BASE_URL = "/api"; // CORRECTION 1: Utilisation du chemin proxy Netlify pour le CORS
 
 // =========================================================
 // CONFIGURATION DU POLLING HTTP (NOUVEAU SYSTEME SANS WS)
@@ -716,7 +716,8 @@ async function startGeneration(e) {
         try {
             log(`[Tentative ${attempt}/${maxAttempts}] Envoi de la requête de génération.`);
 
-            const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, {
+            // CORRECTION 2: Remplacement de l'endpoint /generate par /prompt
+            const resp = await fetch(`${API_BASE_URL}/prompt?workflow_name=${encodeURIComponent(wfName)}`, { 
                 method: "POST",
                 body: formData
             });
