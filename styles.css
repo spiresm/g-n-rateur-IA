@@ -244,6 +244,9 @@ label {
     border: 1px solid #2c2c2c;
     cursor: pointer;
     transition: .15s;
+    /* Correction de la largeur pour les selects */
+    width: 100% !important; 
+    min-width: 100% !important;
 }
 
 .ui-select:hover { border-color: var(--accent); }
@@ -260,6 +263,7 @@ label {
     border: 1px solid #2a2a2a;
     color: var(--text);
     font-size: 14px;
+    width: 100%; /* S'assurer qu'il prend toute la largeur */
 }
 
 .ui-input:focus {
@@ -455,11 +459,6 @@ label {
     width: 100% !important;
 }
 
-.ui-select {
-    width: 100% !important;
-    min-width: 100% !important;
-}
-
 /* =========================================================
    LAYOUT 2 COLONNES PREMIUM
 ========================================================= */
@@ -487,4 +486,62 @@ label {
     border-color: var(--accent) !important;
     transform: translateY(-4px);
     box-shadow: 0 0 20px rgba(212,175,55,0.25);
+}
+
+/* =========================================================
+   VIGNETTES (Quick Format Icons) NOUVEAUX STYLES
+========================================================= */
+.quick-format-icons {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.fmt-icon {
+    flex: 1; /* Permet aux vignettes de se répartir l'espace */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    background: #1f1f1f;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    height: 45px; /* Hauteur fixe pour une meilleure cohérence */
+    position: relative;
+    overflow: hidden;
+}
+
+.fmt-icon:hover {
+    border-color: var(--accent);
+    background: #2a2a2a;
+}
+
+/* Styles pour simuler les vignettes */
+.fmt-icon::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    opacity: 0.8;
+}
+
+/* Vignette Paysage (Wide) */
+.wide-format::before {
+    width: 80%;
+    height: 40%;
+}
+
+/* Vignette Portrait (Tall) */
+.tall-format::before {
+    width: 40%;
+    height: 80%;
 }
