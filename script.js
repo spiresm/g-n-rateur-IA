@@ -331,11 +331,10 @@ function stripAccents(str) {
 }
 
 // =========================================================
-// GÉNÉRATION DU PROMPT POUR LE MODE AFFICHE
+// GÉNÉRATION DU PROMPT POUR LE MODE AFFICHE (CORRIGÉ ET NOMMÉ)
 // =========================================================
 
-document.getElementById("affiche-generate-btn")?.addEventListener("click", () => {
-
+function generateAffichePrompt() {
     const titre = document.getElementById("aff_titre")?.value.trim() || "";
     const sousTitre = document.getElementById("aff_sous_titre")?.value.trim() || "";
     const tagline = document.getElementById("aff_tagline")?.value.trim() || "";
@@ -382,7 +381,6 @@ Rules for text:
   Do NOT apply this style to the characters, environment, rendering,
   lighting, textures, materials, or the overall image.
   The global visual style of the poster must remain independent.
-
 `;
     }
 
@@ -411,10 +409,12 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     const promptArea = document.getElementById("prompt");
     if (promptArea) {
         promptArea.value = prompt;
+        // 🔥 CRUCIAL: Déclenche un événement 'input' pour que la soumission du formulaire lise la nouvelle valeur.
+        promptArea.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
-    log("🎨 prompt affiche généré (version anti-texte parasite)");
-});
+    console.log("🎨 prompt affiche généré (version anti-texte parasite)");
+}
 
 // =========================================================
 // RANDOM AFFICHE — CHARGEMENT + GÉNÉRATION AUTOMATIQUE
@@ -894,9 +894,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // 🔥 CORRECTION ICI : Appel de la logique de prompt AVANT l'animation.
     const btnPrompt = document.getElementById("affiche-generate-btn");
     if (btnPrompt) {
         btnPrompt.addEventListener("click", () => {
+            
+            generateAffichePrompt(); // <-- APPEL DE LA FONCTION NOMMÉE
+            
             btnPrompt.classList.add("clicked");
             btnPrompt.innerHTML = "✨ Génération...";
             setTimeout(() => {
