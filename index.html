@@ -5,7 +5,6 @@
     <title>Génération de contenu Démonstration</title>
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="styles (6).css"> 
 </head>
 <body>
 <div class="app-shell">
@@ -86,7 +85,7 @@
                     </select>
                 </div>
 
-                <div id="affiche-menu" class="section" style="display:none; margin-top:20px;">
+                <div id="affiche-menu" class="section" style="display:block; margin-top:20px;">
 
     <h3 style="margin-bottom:15px;">🎨 Générateur d’Affiche Ludique</h3>
 
@@ -367,7 +366,7 @@
             </div>
             
             <div style="margin-bottom: 12px;">
-                <button id="generate-button" type="submit" class="btn-main" form="generation-form" style="width: 100%;">
+                <button id="generate-button" type="submit" class="btn-main" form="generation-form" style="width: 100%; display: none;">
                     <span class="dot"></span>
                     Démarrer la génération
                 </button>
@@ -413,7 +412,7 @@
                 </div>
             </div>
             
-            <div class="section" id="prompt-section" title="Le texte décrivant l'image que vous voulez générer. Soyez le plus précis possible.">
+            <div class="section" id="prompt-section" title="Le texte décrivant l'image que vous voulez générer. Soyez le plus précis possible;">
                 <label for="prompt">Prompt</label>
                 <textarea id="prompt" name="prompt" placeholder="Décris précisément l’image à générer…" class="ui-input textarea"></textarea>
             </div>
@@ -444,7 +443,6 @@
     </div>
 </div>
 
-<script src="script (29).js"></script> 
 <script src="script.js"></script>
 
 </body>
