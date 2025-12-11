@@ -444,4 +444,14 @@ label {
     border-color: var(--accent) !important;
     transform: translateY(-4px);
     box-shadow: 0 0 20px rgba(212,175,55,0.25);
+   /* FIX LARGEUR SELECTS */
+.dual-field select.ui-select {
+    width: 100% !important;
+}
+
+.ui-select {
+    width: 100% !important;
+    min-width: 100% !important;
+}
+
 }
