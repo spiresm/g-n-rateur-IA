@@ -632,18 +632,14 @@ async function startGeneration(e) {
     log("Début de la séquence de génération réelle (Max 3 tentatives)...");
 
     const generateBtn = document.getElementById("generate-button");
-    // NOTE: On utilise le bouton approprié en fonction du mode actif
-    const afficheBtn = document.getElementById("affiche-generate-btn");
-    const currentBtn = (generateBtn && generateBtn.style.display !== 'none') ? generateBtn : afficheBtn;
+    // NOTE: Le bouton affiche-generate-btn n'est plus concerné par la désactivation ici.
+    const currentBtn = generateBtn;
 
     if (currentBtn) {
         currentBtn.disabled = true;
-        // La gestion de l'animation/texte est déjà faite par le click listener pour affiche
-        // Pour le bouton générique (Mode Image), on le met en état 'Génération en cours...'
-        if (currentBtn === generateBtn) {
-            currentBtn.querySelector(".dot").style.background = "#fbbf24";
-            currentBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
-        }
+        // Animation du bouton générique
+        currentBtn.querySelector(".dot").style.background = "#fbbf24";
+        currentBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
     }
 
 
@@ -710,10 +706,8 @@ async function startGeneration(e) {
     if (currentBtn) {
         currentBtn.disabled = false;
         // Réinitialise le texte du bouton générique
-        if (currentBtn === generateBtn) {
-            currentBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
-            currentBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
-        }
+        currentBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
+        currentBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
     }
 }
 
@@ -881,7 +875,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     // =========================================================
-    // RANDOM AFFICHE BUTTON LISTENER (CORRIGÉ FINAL : REMPLISSAGE SEUL)
+    // RANDOM AFFICHE BUTTON LISTENER (CORRIGÉ : REMPLISSAGE SEUL)
     // =========================================================
 
     const randomBtn = document.getElementById("affiche-random-btn");
@@ -922,9 +916,7 @@ document.addEventListener("DOMContentLoaded", () => {
             fillAfficheFieldsFromRandom(randomObj);
             generateAffichePrompt(); // 1. Génère le prompt (met à jour le champ caché)
             
-            // 🚨 Le formulaire N'EST PAS soumis ici. Le bouton s'arrête au remplissage.
-            
-            // 2. Animation du bouton pour indiquer le remplissage des champs
+            // 2. Animation du bouton pour indiquer le remplissage des champs (NE LANCE PLUS LA GÉNÉRATION)
             randomBtn.classList.add("clicked");
             randomBtn.innerHTML = "🎲 Champs remplis !";
             setTimeout(() => {
@@ -937,7 +929,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================================
-    // GENERATE PROMPT BUTTON LISTENER (CORRIGÉ) - LANCE la soumission
+    // GENERATE PROMPT BUTTON LISTENER (CORRIGÉ : PROMPT SEUL)
     // =========================================================
 
     const btnPrompt = document.getElementById("affiche-generate-btn");
@@ -947,21 +939,21 @@ document.addEventListener("DOMContentLoaded", () => {
             
             generateAffichePrompt(); // 1. Génère le prompt et met à jour le champ caché
             
-            // 2. Déclenche la soumission du formulaire (c'est le rôle de ce bouton !)
-            formEl.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); 
-            
-            // 3. Animation du bouton
+            // 2. ANIMATION SEULE (NE LANCE PLUS LA GÉNÉRATION)
             btnPrompt.classList.add("clicked");
-            btnPrompt.innerHTML = "✨ Génération...";
+            btnPrompt.innerHTML = "✨ Prompt généré !"; // Texte mis à jour pour être clair
             setTimeout(() => {
                 btnPrompt.classList.remove("clicked");
                 btnPrompt.innerHTML = "✨ Générer le prompt de l’affiche";
             }, 600);
+            
+            // NOTE IMPORTANTE: Le bouton "Démarrer la génération" doit être cliqué
+            // manuellement après cela pour lancer l'API.
         });
     }
 
     // =========================================================
-    // ACTIVATION DES MENUS & BOUTONS (AFFICHE / IMAGE) - CORRIGÉ
+    // ACTIVATION DES MENUS & BOUTONS (AFFICHE / IMAGE) - CORRECTION VISIBILITÉ
     // =========================================================
     const modeCards = document.querySelectorAll(".mode-card");
     const afficheMenu = document.getElementById("affiche-menu");
@@ -982,8 +974,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 afficheMenu.style.display = "block";
                 selectWorkflow("affiche.json"); 
 
-                // LOGIQUE DE BOUTON : Masquer le bouton Générique, Afficher le conteneur Affiche
-                if (generateButton) generateButton.style.display = 'none';
+                // LOGIQUE DE BOUTON AFFICHE : On affiche les boutons Affiche + le bouton de Lancement générique
+                if (generateButton) generateButton.style.display = 'block'; // <<< CORRIGÉ : BOUTON DE LANCEMENT VISIBLE
                 if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
 
             } else { // Mode Image
@@ -991,8 +983,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 afficheMenu.style.display = "none";
                 // L'appel selectWorkflow("default_image.json"); peut être ajouté ici
 
-                // LOGIQUE DE BOUTON : Afficher le bouton Générique, Masquer le conteneur Affiche
-                if (generateButton) generateButton.style.display = 'block'; // <-- CECI REND LE BOUTON VISIBLE
+                // LOGIQUE DE BOUTON IMAGE : Afficher le bouton Générique SEUL
+                if (generateButton) generateButton.style.display = 'block'; // CECI REND LE BOUTON VISIBLE EN MODE IMAGE
                 if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
             }
         });
