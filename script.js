@@ -276,9 +276,7 @@ function selectWorkflow(workflowName) {
 
     log("Workflow sélectionné:", workflowName);
 
-    const checkpointWrapper = document.getElementById("checkpoint-wrapper");
     const videoParamsSection = document.getElementById("video-params-section");
-    const inputImageSection = document.getElementById("input-image-section");
     const groupSteps = document.getElementById("group-steps");
     const groupCfg = document.getElementById("group-cfg");
     const groupSampler = document.getElementById("group-sampler");
@@ -289,6 +287,8 @@ function selectWorkflow(workflowName) {
 
     if (workflowName === "affiche.json") {
         if (afficheMenu) afficheMenu.style.display = "block";
+        
+        // Mise à jour de la résolution pour l'affiche (format vertical 9:16)
         const wInput = document.getElementById("width-input");
         const hInput = document.getElementById("height-input");
         if (wInput) wInput.value = "1080";
@@ -311,6 +311,14 @@ function selectWorkflow(workflowName) {
 
     } else {
         if (afficheMenu) afficheMenu.style.display = "none";
+        
+        // Afficher les options avancées en mode normal (si elles existent)
+        if (groupSteps) groupSteps.style.display = "block";
+        if (groupCfg) groupCfg.style.display = "block";
+        if (groupSampler) groupSampler.style.display = "block";
+        if (seedSection) seedSection.style.display = "block";
+        if (sdxlPanel) sdxlPanel.style.display = "block";
+
     }
 
     if (workflowName.includes("video")) {
@@ -428,11 +436,10 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     const promptArea = document.getElementById("prompt");
     if (promptArea) {
         promptArea.value = prompt;
-        // 🔥 CORRECTION 1 : Ligne dispatchEvent retirée pour stabilité
-        // promptArea.dispatchEvent(new Event('input', { bubbles: true }));
+        // La ligne dispatchEvent a été retirée pour améliorer la stabilité.
     }
 
-    console.log("🎨 prompt affiche généré (version anti-texte parasite)");
+    log("🎨 prompt affiche généré (version anti-texte parasite)");
 }
 
 
@@ -481,7 +488,7 @@ async function pollProgress(promptId) {
                     clearInterval(pollingProgressInterval);
                     pollingProgressInterval = null;
 
-                    // 🔥 MODIFICATION ICI : On délègue la récupération finale au gestionnaire
+                    // On délègue la récupération finale au gestionnaire
                     handleCompletion(promptId); 
                     return;
                 }
@@ -535,7 +542,7 @@ async function handleCompletion(promptId) {
     if (statusPill) {
         statusPill.textContent = "FETCHING";
         statusPill.classList.remove("pill", "pill-green", "pill-danger");
-        statusPill.classList.add("pill-warning"); // Le style .pill-warning doit exister ou le base .pill est utilisé
+        statusPill.classList.add("pill-warning"); 
     }
     if (percentSpan) percentSpan.textContent = "92%";
     if (innerBar) innerBar.style.width = "92%";
@@ -713,14 +720,14 @@ async function startGeneration(e) {
             throw new Error("No workflow selected."); 
         }
 
-        // 🔥 CORRECTION 2 : LOGIQUE CRUCIALE. Générer le prompt juste avant FormData.
+        // 🔥 CORRECTION CRUCIALE : Générer le prompt juste avant FormData.
         if (wfName === "affiche.json") {
             log("Workflow Affiche détecté. Génération automatique du prompt avant envoi.");
-            generateAffichePrompt(); // Ceci met à jour la valeur du <textarea name="prompt">
+            generateAffichePrompt(); // CECI MET À JOUR promptArea.value AVANT FormData
         }
         
-        // CRÉATION DE FORMDATA MAINTENANT QUE LE PROMPT EST MIS À JOUR
-        formData = new FormData(formEl); // C'est ici que le formulaire lit le prompt !
+        // CRÉATION DE FORMDATA MAINTENANT QUE LE PROMPT EST GARANTI À JOUR
+        formData = new FormData(formEl); // DOIT LIRE LA NOUVELLE VALEUR CORRECTE.
 
 
         log("Début de la séquence de génération réelle (Max 3 tentatives)...");
@@ -920,6 +927,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const formEl = document.getElementById("generation-form");
     if (formEl) {
+        // L'événement submit appelle startGeneration (déclenché par le bouton type="submit")
         formEl.addEventListener("submit", startGeneration);
     }
 
@@ -959,7 +967,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     // =========================================================
-    // RANDOM AFFICHE BUTTON LISTENER (CORRIGÉ : REMPLISSAGE SEUL)
+    // RANDOM AFFICHE — CHARGEMENT + REMPLISSAGE SEUL
     // =========================================================
 
     const randomBtn = document.getElementById("affiche-random-btn");
@@ -970,7 +978,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await loadRandomAfficheJSON();
             if (!data) return;
 
-            // ... (logique de pioche aléatoire) ...
+            // Logique de pioche aléatoire
             const theme = pickRandom(data.themes);
             const ambiance = pickRandom(data.ambiances);
             const perso = pickRandom(data.personnages);
@@ -998,9 +1006,9 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             fillAfficheFieldsFromRandom(randomObj);
-            generateAffichePrompt(); // 1. Génère le prompt (met à jour le champ caché)
+            generateAffichePrompt(); // Met à jour le prompt une fois les champs remplis
             
-            // 2. Animation du bouton pour indiquer le remplissage des champs (NE LANCE PLUS LA GÉNÉRATION)
+            // Animation du bouton pour indiquer le remplissage des champs (NE LANCE PAS LA GÉNÉRATION)
             randomBtn.classList.add("clicked");
             randomBtn.innerHTML = "🎲 Champs remplis !";
             setTimeout(() => {
@@ -1013,17 +1021,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================================
-    // GENERATE PROMPT BUTTON LISTENER (CORRIGÉ : PROMPT SEUL)
+    // GENERATE PROMPT BUTTON LISTENER (PROMPT SEUL)
     // =========================================================
 
     const btnPrompt = document.getElementById("affiche-generate-btn");
-    // formEl est disponible dans ce scope
     if (btnPrompt && formEl) {
         btnPrompt.addEventListener("click", () => {
             
             generateAffichePrompt(); // 1. Génère le prompt et met à jour le champ caché
             
-            // 2. ANIMATION SEULE (NE LANCE PLUS LA GÉNÉRATION)
+            // 2. ANIMATION SEULE (NE LANCE PAS LA GÉNÉRATION)
             btnPrompt.classList.add("clicked");
             btnPrompt.innerHTML = "✨ Prompt généré !"; // Texte mis à jour pour être clair
             setTimeout(() => {
@@ -1034,11 +1041,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================================
-    // ACTIVATION DES MENUS & BOUTONS (AFFICHE / IMAGE) - CORRECTION VISIBILITÉ
+    // ACTIVATION DES MENUS & BOUTONS (AFFICHE / IMAGE) - CORRECTION DE VISIBILITÉ
     // =========================================================
     const modeCards = document.querySelectorAll(".mode-card");
     const afficheMenu = document.getElementById("affiche-menu");
-    const generateButton = document.getElementById("generate-button"); // Le bouton standard
+    const generateButton = document.getElementById("generate-button"); // Le bouton standard (SUBMIT)
     const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper"); // Le conteneur du bouton Affiche
 
 
@@ -1055,8 +1062,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 afficheMenu.style.display = "block";
                 selectWorkflow("affiche.json"); 
 
-                // LOGIQUE DE BOUTON AFFICHE : On affiche les boutons Affiche + le bouton de Lancement générique
-                if (generateButton) generateButton.style.display = 'block'; // CECI REND LE BOUTON VISIBLE
+                // 🔥 CORRECTION : Le bouton SUBMIT et le wrapper AFFICHE sont visibles
+                if (generateButton) generateButton.style.display = 'block'; 
                 if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
 
             } else { // Mode Image
@@ -1064,14 +1071,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 afficheMenu.style.display = "none";
                 // L'appel selectWorkflow("default_image.json"); peut être ajouté ici
 
-                // LOGIQUE DE BOUTON IMAGE : Afficher le bouton Générique SEUL
-                if (generateButton) generateButton.style.display = 'block'; // CECI REND LE BOUTON VISIBLE EN MODE IMAGE
+                // Le bouton SUBMIT est visible, le wrapper AFFICHE est masqué
+                if (generateButton) generateButton.style.display = 'block'; 
                 if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
             }
         });
     });
     // =========================================================
-    // INITIALISATION FINAL (CORRECTION POUR AFFICHER LES BOUTONS AU CHARGEMENT)
+    // INITIALISATION FINAL (SIMULER UN CLIC POUR INITIALISER L'AFFICHAGE)
     // =========================================================
     
     // Simuler un clic sur la carte active par défaut pour initialiser l'affichage
