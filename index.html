@@ -57,7 +57,7 @@
                     <span class="icon">⚙️</span>
                     <div>
                         Paramètres de génération
-                        <div class="panel-sub">Sélectionne un workflow, puis ajuste le prompt & paramètres.</div>
+                        <div class="panel-sub">Ajuste le prompt & les paramètres.</div>
                     </div>
                 </div>
                 <span class="pill">Mode : Workflow only</span>
@@ -65,25 +65,6 @@
 
             <form id="generation-form">
                 
-                <div class="section" title="Le workflow (séquence de tâches) à exécuter.">
-                    <label>Workflow (obligatoire)</label>
-                    <div class="workflow-carousel-wrapper">
-                        <button type="button" class="carousel-btn left" id="workflow-carousel-left">‹</button>
-                        <button type="button" class="carousel-btn right" id="workflow-carousel-right">›</button>
-                        <div id="workflow-groups-container" class="workflow-groups-flex">
-                            <span style="font-size:12px;color:#9ca3af;">Chargement des workflows…</span>
-                        </div>
-                    </div>
-                    <input type="hidden" id="workflow-select" name="workflow" value="" />
-                </div>
-
-                <div class="section" id="checkpoint-wrapper" title="Le modèle de base (Checkpoint) utilisé pour la génération, si le workflow le supporte.">
-                    <label for="checkpoint-select">Checkpoint (si le workflow utilise {{checkpoint}})</label>
-                    <select id="checkpoint-select" name="checkpoint" class="ui-select">
-                        <option value="">Chargement des checkpoints…</option>
-                    </select>
-                </div>
-
                 <div id="affiche-menu" class="section" style="display:none; margin-top:20px;">
 
                     <div class="menu-premium">
@@ -388,7 +369,7 @@
                 </div>
             </div>
 
-            <div id="affiche-generate-btn-wrapper" style="margin-bottom: 12px; display:none;">
+            <div id="affiche-generate-btn-wrapper" style="margin-bottom: 12px;">
                 <button type="button" id="affiche-generate-btn" class="btn-main" 
                         style="font-size:15px; padding:12px; margin-top:0;">
                     ✨ Générer le prompt de l’affiche
@@ -416,7 +397,7 @@
 
                 <div id="result-placeholder">
                     <p style="font-size:12px;color:var(--muted);text-align:center;">
-                        Aucune image encore générée. Configure ton workflow à gauche et clique sur
+                        Aucune image encore générée. Configure tes paramètres à gauche et clique sur
                         <strong>"Démarrer la génération"</strong>.
                     </p>
                 </div>
@@ -458,8 +439,6 @@
 
 <div id="workflow-popover" class="workflow-popover">
     <div class="popover-content">
-        <h4 id="popover-title">Nom du Workflow</h4>
-        <p id="popover-description">Description du modèle...</p>
         <span class="popover-tip"></span>
     </div>
 </div>
