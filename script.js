@@ -916,7 +916,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================
 
     const btnPrompt = document.getElementById("affiche-generate-btn");
-// Le formulaire est déjà dans formEl, défini plus tôt dans DOMContentLoaded
 const formEl = document.getElementById("generation-form");
 
 if (btnPrompt && formEl) {
@@ -925,17 +924,15 @@ if (btnPrompt && formEl) {
         generateAffichePrompt(); // 1. Génère le prompt et met à jour le champ caché
         
         // 2. Déclenche la soumission du formulaire pour démarrer la génération
-        // L'événement submit est intercepté par startGeneration(e)
         formEl.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); 
         
-        // 3. Animation du bouton (état visuel de transition)
+        // 3. Animation du bouton
         btnPrompt.classList.add("clicked");
         btnPrompt.innerHTML = "✨ Génération...";
         setTimeout(() => {
             btnPrompt.classList.remove("clicked");
             btnPrompt.innerHTML = "✨ Générer le prompt de l’affiche";
         }, 600);
-        // L'état `disabled` sera géré par la fonction `startGeneration` elle-même.
     });
 }
 
