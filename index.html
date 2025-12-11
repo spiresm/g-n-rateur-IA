@@ -5,6 +5,7 @@
     <title>Génération de contenu Démonstration</title>
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles (6).css"> 
 </head>
 <body>
 <div class="app-shell">
@@ -42,399 +43,265 @@
 
     <div class="mode-selector">
         
-        <div class="mode-card active-mode" data-mode="image" id="mode-image">
-            <img src="vignettes/vignette-image.png" alt="Vignette Image Generation">
-        </div>
-
-        <div class="mode-card" data-mode="affiche" id="mode-affiche">
-            <img src="vignettes/vignette-affiche.png" alt="Vignette Poster Generation">
+        <div class="mode-card active-mode" data-mode="affiche">
+            <span class="mode-icon">🖼️</span>
+            <h4>Affiche/Post</h4>
+            <p>Générateur structuré</p>
         </div>
         
-    </div>
-    <div class="layout">
-        <div class="panel">
-            <div class="panel-header">
-                <div class="panel-title">
-                    <span class="icon">⚙️</span>
-                    <div>
-                        Paramètres de génération
-                        <div class="panel-sub">Sélectionne un workflow, puis ajuste le prompt & paramètres.</div>
-                    </div>
-                </div>
-                <span class="pill">Mode : Workflow only</span>
-            </div>
-
-            <form id="generation-form">
-                
-                <div class="section" title="Le workflow (séquence de tâches) à exécuter." style="display:none;">
-                    <label>Workflow (obligatoire)</label>
-                    <div class="workflow-carousel-wrapper">
-                        <button type="button" class="carousel-btn left" id="workflow-carousel-left">‹</button>
-                        <button type="button" class="carousel-btn right" id="workflow-carousel-right">›</button>
-                        <div id="workflow-groups-container" class="workflow-groups-flex">
-                            <span style="font-size:12px;color:#9ca3af;">Chargement des workflows…</span>
-                        </div>
-                    </div>
-                    <input type="hidden" id="workflow-select" name="workflow" value="" />
-                </div>
-
-                <div class="section" id="checkpoint-wrapper" title="Le modèle de base (Checkpoint) utilisé pour la génération, si le workflow le supporte." style="display:none;">
-                    <label for="checkpoint-select">Checkpoint (si le workflow utilise {{checkpoint}})</label>
-                    <select id="checkpoint-select" name="checkpoint">
-                        <option value="">Chargement des checkpoints…</option>
-                    </select>
-                </div>
-
-                <div id="affiche-menu" class="section" style="display:none; margin-top:20px;">
-
-    <h3 style="margin-bottom:15px;">🎨 Générateur d’Affiche Ludique</h3>
-
-    <button type="button" id="affiche-random-btn" 
-        class="btn-secondary" 
-        style="margin-bottom:20px; width:100%; font-weight:600; background:#6a40a0; border-color:#7d51b3; color:#fff;">
-        🎲 Générer une affiche aléatoire
-    </button>
-
-    <label for="aff_titre">Titre de l’affiche (optionnel)</label>
-<input id="aff_titre" type="text" placeholder="Ex : LA GRANDE AVENTURE" class="ui-input custom-field">
-
-<label for="aff_sous_titre">Sous-titre (optionnel)</label>
-<input id="aff_sous_titre" type="text" placeholder="Ex : Nuit magique, édition spéciale…" class="ui-input">
-
-<label for="aff_tagline">Tagline (texte en bas de l’affiche – optionnel)</label>
-<input id="aff_tagline" type="text" placeholder="Ex : Une aventure inoubliable…" class="ui-input">
-
-
-    <label for="aff_theme">Occasion / Thème</label>
-    <div class="input-group-row">
-        <select id="aff_theme" class="ui-select">
-            <option value="">Choisir…</option>
-            <option>Anniversaire</option>
-            <option>Noël</option>
-            <option>Halloween</option>
-            <option>Saint Nicolas</option>
-            <option>Nouvel an</option>
-            <option>Saint-Valentin</option>
-            <option>Carnaval</option>
-            <option>Pâques</option>
-            <option>Fête des mères</option>
-            <option>Fête des pères</option>
-        </select>
-        <input id="aff_theme_custom" type="text" placeholder="Ou écrire votre propre thème…" class="ui-input">
-    </div>
-
-    <label for="aff_ambiance" style="margin-top: 15px;">Ambiance générale</label>
-    <div class="input-group-row">
-        <select id="aff_ambiance" class="ui-select">
-            <option value="">Choisir…</option>
-            <option>festive et colorée</option>
-            <option>magique et lumineuse</option>
-            <option>sombre et mystérieuse</option>
-            <option>épique et dramatique</option>
-            <option>humoristique et décalée</option>
-            <option>cosy et chaleureuse</option>
-            <option>futuriste et technologique</option>
-            <option>vintage années 80</option>
-            <option>féerique et enchantée</option>
-            <option>cartoon fun et exagéré</option>
-        </select>
-        <input id="aff_ambiance_custom" type="text" placeholder="Ou écrire une ambiance personnalisée…" class="ui-input">
-    </div>
-
-    <label for="aff_perso_sugg" style="margin-top: 15px;">Personnage principal</label>
-    <div class="input-group-row">
-        <select id="aff_perso_sugg" class="ui-select">
-            <option value="">Choisir…</option>
-            <option>un enfant joyeux</option>
-            <option>un père Noël souriant</option>
-            <option>une sorcière amusante</option>
-            <option>un super-héros dynamique</option>
-            <option>un animal mignon anthropomorphisé</option>
-            <option>un robot stylisé</option>
-            <option>un monstre rigolo</option>
-            <option>une mascotte cartoon</option>
-            <option>un guerrier épique</option>
-            <option>une princesse magique</option>
-        </select>
-        <input id="aff_perso_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input">
-    </div>
-
-    <label for="aff_env_sugg" style="margin-top: 15px;">Environnement</label>
-    <div class="input-group-row">
-        <select id="aff_env_sugg" class="ui-select">
-            <option value="">Choisir…</option>
-            <option>un décor enneigé</option>
-            <option>une salle de fête décorée</option>
-            <option>un château hanté</option>
-            <option>une scène de rue nocturne</option>
-            <option>un salon cosy éclairé aux bougies</option>
-            <option>un paysage futuriste néon</option>
-            <option>une forêt enchantée</option>
-            <option>une ville miniature style maquette</option>
-            <option>une plage tropicale festive</option>
-        </select>
-        <input id="aff_env_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input">
-    </div>
-
-    <label for="aff_action_sugg" style="margin-top: 15px;">Action du personnage</label>
-    <div class="input-group-row">
-        <select id="aff_action_sugg" class="ui-select">
-            <option value="">Choisir…</option>
-            <option>souffle les bougies</option>
-            <option>ouvre un cadeau</option>
-            <option>danse joyeusement</option>
-            <option>lance des confettis</option>
-            <option>vole dans le ciel</option>
-            <option>fait un tour de magie</option>
-            <option>explore un lieu mystérieux</option>
-            <option>combat un monstre rigolo</option>
-            <option>joue d’un instrument de musique</option>
-        </select>
-        <input id="aff_action_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input">
-    </div>
-
-    <label for="aff_details" style="margin-top: 15px;">Détails supplémentaires</label>
-    <textarea id="aff_details" placeholder="Ex: feux d’artifice, neige légère, ballons colorés…" class="ui-input textarea"></textarea>
-
-    <label for="aff_palette" style="margin-top: 15px;">Palette de couleurs</label>
-    <div class="input-group-row">
-        <select id="aff_palette" class="ui-select">
-            <option value="">Choisir…</option>
-            <optgroup label="Simples">
-                <option>couleurs chaudes (rouge, orange, jaune)</option>
-                <option>couleurs froides (bleu, violet, turquoise)</option>
-                <option>pastels doux (rose, pêche, lavande)</option>
-                <option>contraste fort (noir, rouge, or)</option>
-            </optgroup>
-            <optgroup label="Dégradés">
-                <option>dégradé bleu → violet</option>
-                <option>dégradé rouge → orange</option>
-                <option>dégradé rose → bleu</option>
-                <option>dégradé or → noir</option>
-                <option>dégradé turquoise → vert</option>
-            </optgroup>
-        </select>
-        <input id="aff_palette_custom" type="text" placeholder="Ou définir votre propre palette…" class="ui-input">
-    </div>
-
-    <label for="aff_style_titre" style="margin-top: 15px;">Style du titre</label>
-    <div class="input-group-row">
-        <select id="aff_style_titre" class="ui-select">
-            <option value="">Choisir…</option>
-            <optgroup label="Styles Suggérés">
-                <option>blockbuster dramatique</option>
-                <option>cartoon arrondi</option>
-                <option>style manuscrit élégant</option>
-                <option>métallique chromé</option>
-                <option>vintage rétro</option>
-                <option>style horreur</option>
-                <option>minimaliste moderne</option>
-            </optgroup>
-            <optgroup label="Effets de Texte">
-                <option>Texte sanglant dégoulinant</option>
-                <option>Néon cyberpunk</option>
-                <option>Typographie givrée / glace</option>
-                <option>Lettrage en bois sculpté</option>
-                <option>Texte métallique gravé</option>
-                <option>Style cartoon / bulle</option>
-                <option>Effet slasher sanglant</option>
-                <option>Lettrage en cristal / gemme</option>
-                <option>Runes de pierre anciennes</option>
-                <option>Texte en flammes</option>
-                <option>Texte liquide / eau</option>
-                <option>Titre doré royal</option>
-                <option>Graffiti urbain</option>
-                <option>Hologramme futuriste</option>
-                <option>Gothique médiéval</option>
-                <option>Style pâte à modeler (stop motion)</option>
-                <option>Découpe papier / collage</option>
-                <option>Cosmique / nébuleuse</option>
-                <option>Steampunk en laiton</option>
-                <option>Texte glitch numérique</option>
-            </optgroup>
-        </select>
-        <input id="aff_style_titre_custom" type="text" placeholder="Ou écrire votre propre style…" class="ui-input">
-    </div>
-    
-    </div>
-                <div class="section" id="input-image-section" style="display:none; margin-top: 4px;" title="Image de référence utilisée par certains workflows (ex: Image to Image, ControlNet).">
-                    <label>Image d'entrée (optionnelle)</label>
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <button type="button" class="btn-secondary" id="input-image-browse-btn">
-                            Choisir une image…
-                        </button>
-                        <span id="input-image-label" style="font-size:12px;color:#9ca3af;">
-                            Aucune image sélectionnée
-                        </span>
-                    </div>
-                    <input type="file" id="input-image-file" accept="image/*" style="display:none;">
-                    <input type="hidden" id="input_image_path" name="input_image_path">
-                </div>
-
-                <div class="section">
-                    <div id="group-steps" style="display: none;" title="Le nombre d'étapes d'échantillonnage (sampling).">
-                        <label for="steps-slider">Steps: <span id="steps-value">30</span></label>
-                        <input type="range" id="steps-slider" name="steps" min="10" max="100" value="30" />
-                    </div>
-                    <div id="group-cfg" style="display: none; margin-top: 10px;" title="Classifier Free Guidance. Contrôle la fidélité de l'image au prompt.">
-                        <label for="cfg_scale-slider">CFG Scale: <span id="cfg_scale-value">7.0</span></label>
-                        <input type="range" id="cfg_scale-slider" name="cfg_scale" min="1" max="20" step="0.5" value="7" />
-                    </div>
-                    
-                    <div class="section" id="group-seed" style="display:none !important; margin-top: 10px;">
-                        <label for="seed-input">Seed:</label>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="number" id="seed-input" name="seed_value" value="42" style="flex-grow: 1;" class="ui-input" />
-                            
-                            <input type="checkbox" id="seed-random-toggle" name="seed_random" style="width: auto; margin-left: 0;" />
-                            <label for="seed-random-toggle" style="margin-left: -5px; display: flex; align-items: center; cursor: pointer;">
-                                Aléatoire ℹ️
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section">
-                    <label>Format rapide</label>
-                    <div class="quick-format-icons">
-                        <span class="fmt-icon" data-w="1920" data-h="1080">🖥️</span>
-                        <span class="fmt-icon" data-w="1080" data-h="1920">📱</span>
-                        <span class="fmt-icon" data-w="1080" data-h="1080">⬛</span>
-                    </div>
-                </div>
-
-                <div class="section row" style="margin-top: 15px; display: none !important;">
-                    <div id="group-width" style="display:none;" title="La largeur de l'image à générer.">
-                        <label for="width-input">Width</label>
-                        <input type="number" id="width-input" name="width" value="1024" class="ui-input" />
-                    </div>
-                    <div id="group-height" style="display:none;" title="La hauteur de l'image à générer.">
-                        <label for="height-input">Height</label>
-                        <input type="number" id="height-input" name="height" value="1024" class="ui-input" />
-                    </div>
-                </div>
-
-                <div class="section">
-                    <div id="group-sampler" style="display: none;" title="L'algorithme d'échantillonnage (sampler) utilisé pour créer l'image.">
-                        <label for="sampler">Sampler</label>
-                        <select id="sampler" name="sampler" class="ui-select">
-                            <option value="euler">Euler</option>
-                            <option value="euler_a">Euler a</option>
-                            <option value="ddim">DDIM</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="section" id="video-params-section" style="display:none; margin-top: 4px;">
-                    <label>Paramètres vidéo</label>
-                    <div class="row">
-                        <div>
-                            <label for="duration">Durée (secondes)</label>
-                            <input type="number" id="duration" name="duration" value="5" min="1" class="ui-input" />
-                        </div>
-                        <div>
-                            <label for="ratio">Ratio</label>
-                            <select id="ratio" name="ratio" class="ui-select">
-                                <option value="1280:720">1280 × 720 (paysage)</option>
-                                <option value="720:1280">720 × 1280 (portrait)</option>
-                                <option value="1920:1080">1920 × 1080 (paysage large)</option>
-                                <option value="1080:1920">1080 × 1920 (portrait large)</option>
-                                <option value="1024:576">1024 × 576 (standard)</option>
-                                <option value="576:1024">576 × 1024 (portrait standard)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section" id="sdxl-panel" style="display:none; margin-top:10px;">
-                    <h3 style="margin:0 0 8px;font-size:14px;">⚙️ Paramètres SDXL (Refiner)</h3>
-
-                    <label for="sdxl_mode" title="Choix du mode pour le processus de raffinement (Refiner) de l'image.">Mode Refiner</label>
-                    <select id="sdxl_mode" class="ui-select">
-                        <option value="standard">Standard</option>
-                        <option value="detail">Détail boost</option>
-                        <option value="soft">Soft</option>
-                    </select>
-
-                    <div class="row" style="margin-top:8px;">
-                        <div title="Le pourcentage des étapes (steps) auxquelles le processus de raffinement doit commencer.">
-                            <label for="sdxl_start-slider">Refiner Start (%): <span id="sdxl_start-value">60</span></label>
-                            <input type="range" id="sdxl_start-slider" min="0" max="100" value="60" />
-                        </div>
-                        <div title="Le pourcentage des étapes (steps) auxquelles le processus de raffinement doit se terminer.">
-                            <label for="sdxl_end-slider">Refiner End (%): <span id="sdxl_end-value">100</span></label>
-                            <input type="range" id="sdxl_end-slider" min="1" max="100" value="100" />
-                        </div>
-                    </div>
-
-                    <label for="sdxl_quality" style="margin-top:8px;" title="Ajuste la qualité globale de l'image, agissant sur le nombre de steps par défaut.">Qualité globale</label>
-                    <select id="sdxl_quality" class="ui-select">
-                        <option value="normal">Normal</option>
-                        <option value="high">Haute qualité</option>
-                        <option value="ultra">Ultra</option>
-                    </select>
-                </div>
-            </form>
-
-            <div class="log-box" id="log-box"></div>
+        <div class="mode-card" data-mode="image">
+            <span class="mode-icon">✨</span>
+            <h4>Image Libre</h4>
+            <p>Génération rapide / Prompt pur</p>
+        </div>
+        
         </div>
 
-        <div class="panel">
+
+    <div class="main-content-grid">
+        
+        <div class="control-panel">
+
             <div class="panel-header">
-                <div class="panel-title">
-                    <span class="icon">🖼️</span>
-                    <div>
-                        Résultat & preview
-                        <div class="panel-sub">Prévisualisation temps réel et image finale.</div>
-                    </div>
+                <h3>Contrôles de Génération</h3>
+                <div class="panel-pills">
+                    <span id="job-status-pill" class="pill pill-green">READY</span>
+                    <span>Temps pris: <strong id="time-taken">–</strong></span>
                 </div>
-                <span class="pill-green" id="job-status-pill">READY</span>
             </div>
 
-            <div id="affiche-generate-button-wrapper" style="margin-bottom: 12px;"> 
-                <button type="button" id="affiche-generate-btn" class="btn-main" style="font-size:15px; padding:12px; width: 100%;">
-                    ✨ Générer le prompt de l’affiche
-                </button>
-            </div>
-            
-            <div style="margin-bottom: 12px;">
-                <button id="generate-button" type="submit" class="btn-main" form="generation-form" style="width: 100%;">
-                    <span class="dot"></span>
-                    Démarrer la génération
-                </button>
-            </div>
-            
-            <div id="result-area">
-                <div id="progress-overlay">
-                    <div id="progress-spinner"></div>
-                    <div id="progress-meta">
-                        <span id="progress-label">En attente…</span>
-                        <span id="progress-percent">0%</span>
+            <form id="generation-form" action="#" method="POST">
+                
+                <input type="hidden" id="workflow-select" name="workflow_name" value="affiche.json">
+
+
+                <div id="affiche-menu" class="menu-section">
+                    <h4>Créateur d'Affiches Cinématiques</h4>
+
+                    <div class="two-col-grid">
+                        <div class="input-group">
+                            <label for="aff_titre">Titre Principal</label>
+                            <input type="text" id="aff_titre" name="aff_titre" placeholder="Titre (ex: L'Ombre du Cosmos)">
+                        </div>
+                        <div class="input-group">
+                            <label for="aff_sous_titre">Sous-titre / Date</label>
+                            <input type="text" id="aff_sous_titre" name="aff_sous_titre" placeholder="Sous-titre (ex: 15 Février)">
+                        </div>
                     </div>
-                    <div class="progress-bar-large">
-                        <div class="progress-inner-large" id="progress-inner"></div>
+                    
+                    <div class="input-group">
+                        <label for="aff_tagline">Accroche / Tagline (Bas de page)</label>
+                        <input type="text" id="aff_tagline" name="aff_tagline" placeholder="Accroche (ex: Le futur est sombre)">
                     </div>
-                </div>
 
-                <div id="result-placeholder">
-                    <p style="font-size:12px;color:var(--muted);text-align:center;">
-                        Aucune image encore générée. Configure ton workflow à gauche et clique sur
-                        <strong>"Démarrer la génération"</strong>.
-                    </p>
-                </div>
+                    <div class="section-divider"></div>
 
-            </div>
+                    <div class="two-col-grid">
+                        <div class="input-group">
+                            <label for="aff_theme">Thème Principal (Genre)</label>
+                            <select id="aff_theme" class="select-full">
+                                <option value="">Choisir...</option>
+                                <option value="science-fiction épique">Science-Fiction Épique</option>
+                                <option value="fantasy médiévale sombre">Fantasy Médiévale Sombre</option>
+                                <option value="horreur cosmique à la Lovecraft">Horreur Cosmique (Lovecraft)</option>
+                                <option value="thriller cyberpunk néo-noir">Thriller Cyberpunk Néo-Noir</option>
+                                <option value="aventure post-apocalyptique">Aventure Post-Apocalyptique</option>
+                            </select>
+                            <input type="text" id="aff_theme_custom" placeholder="... ou thème personnalisé (ex: western fantastique)" class="input-full">
+                        </div>
+                        <div class="input-group">
+                            <label for="aff_ambiance">Ambiance (Mood)</label>
+                            <select id="aff_ambiance" class="select-full">
+                                <option value="">Choisir...</option>
+                                <option value="sensationnel, haute tension, dramatique">Haute Tension Dramatique</option>
+                                <option>mystérieux, nébuleux, silencieux</option>
+                                <option>sombre, oppressant, inquiétant</option>
+                                <option>coloré, onirique, surréaliste</option>
+                                <option>industriel, délabré, froid</option>
+                            </select>
+                            <input type="text" id="aff_ambiance_custom" placeholder="... ou ambiance personnalisée (ex: mélancolie douce et pluvieuse)" class="input-full">
+                        </div>
+                    </div>
 
-            <div id="result-footer" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border);">
-                <div class="row" style="margin-bottom: 8px; justify-content: space-between;">
-                    <span style="font-size:12px; color:var(--muted); display:flex; align-items:center; gap: 4px;">
-                        ⏱️ Temps de génération : <strong id="time-taken">–</strong>
-                    </span>
-                    <button type="button" id="copy-params-btn" class="btn-secondary" style="padding: 4px 10px; font-size: 12px;">
-                        📋 Copier les paramètres
+                    <div class="two-col-grid">
+                        <div class="input-group">
+                            <label for="aff_perso_sugg">Personnage Principal</label>
+                            <select id="aff_perso_sugg" class="select-full">
+                                <option value="">Choisir un archétype...</option>
+                                <option value="un guerrier solitaire, armure rouillée">Guerrier solitaire</option>
+                                <option value="une femme cyborg au regard perçant, dans la pluie">Cyborg solitaire</option>
+                                <option value="une créature Lovecraftienne, massif et tentaculaire">Créature Cosmique</option>
+                                <option value="un détective des années 40, trench-coat">Détective Néo-Noir</option>
+                                <option value="un enfant avec un robot jouet cassé">Enfant et Robot</option>
+                            </select>
+                            <input type="text" id="aff_perso_desc" name="aff_perso_desc" placeholder="... ou décrivez (ex: jeune femme avec des cheveux électriques bleus)" class="input-full">
+                        </div>
+                        <div class="input-group">
+                            <label for="aff_env_sugg">Environnement / Lieu</label>
+                            <select id="aff_env_sugg" class="select-full">
+                                <option value="">Choisir un lieu...</option>
+                                <option value="un canyon rouge désertique, nuit étoilée">Canyon Désertique</option>
+                                <option value="une rue mouillée de Tokyo, enseignes au néon">Rue Cyberpunk</option>
+                                <option value="un château en ruine, brouillard épais">Château Médiéval</option>
+                                <option value="l'espace profond, nébuleuse rouge et noir">Nébuleuse Cosmique</option>
+                            </select>
+                            <input type="text" id="aff_env_desc" name="aff_env_desc" placeholder="... ou décrivez (ex: intérieur d'un vaisseau abandonné)" class="input-full">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="aff_action_sugg">Action / Point Focal</label>
+                        <select id="aff_action_sugg" class="select-full">
+                            <option value="">Choisir l'action...</option>
+                            <option value="regardant une ville en feu de haut, silhouette dramatique">Regardant la ville en feu</option>
+                            <option value="faisant face à une force inconnue, arme à la main">Faisant face à l'ennemi</option>
+                            <option value="immobile, la lumière d'un projecteur sur elle">Immobile, sous un projecteur</option>
+                        </select>
+                        <input type="text" id="aff_action_desc" name="aff_action_desc" placeholder="... ou décrivez l'action (ex: courant vers l'horizon, avec une explosion derrière)" class="input-full">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="aff_details">Détails supplémentaires (Atmosphère, Effets spéciaux)</label>
+                        <input type="text" id="aff_details" name="aff_details" placeholder="Ex: particules de poussière en suspension, pluie acide, lueur verte mystérieuse" class="input-full">
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <div class="two-col-grid">
+                        <div class="input-group">
+                            <label for="aff_palette">Palette de Couleurs</label>
+                            <select id="aff_palette" class="select-full">
+                                <option value="">Choisir...</option>
+                                <option value="palette de couleurs froides, dominance de bleu et de magenta">Froide / Bleu & Magenta</option>
+                                <option value="palette chaude, dominance orange et rouge">Chaude / Orange & Rouge</option>
+                                <option value="noir et blanc, fort contraste, grain cinématographique">Noir & Blanc Cinématique</option>
+                                <option value="couleurs primaires saturées, ambiance pop-art">Saturée / Pop-Art</option>
+                            </select>
+                            <input type="text" id="aff_palette_custom" placeholder="... ou couleur personnalisée (ex: vert poison et noir jais)" class="input-full">
+                        </div>
+                        <div class="input-group">
+                            <label for="aff_style_titre">Style du texte (Typographie / Matériau)</label>
+                            <select id="aff_style_titre" class="select-full">
+                                </select>
+                            <input type="text" id="aff_style_titre_custom" name="aff_style_titre_custom_prompt" placeholder="... ou style personnalisé : (ex: titre en lave noire craquelée, effet cinématique)" class="input-full">
+                        </div>
+                    </div>
+
+                    <div class="section-divider"></div>
+
+                    <button type="button" id="affiche-random-btn" class="btn-secondary btn-random-affiche">
+                        <span class="icon-random">🎲</span> Remplissage Aléatoire
                     </button>
+                    
+                    <button type="button" id="affiche-generate-btn" class="btn-secondary">
+                        ✨ Générer le prompt de l’affiche
+                    </button>
+
+                </div> 
+                
+                <div id="image-menu" class="menu-section" style="display:none;">
+                    <h4>Paramètres d'Image Libre</h4>
+                    </div>
+
+
+                <div class="section">
+                    <h4 style="margin-top: 15px;">Paramètres Communs</h4>
+
+                    <div class="two-col-grid">
+                        <div class="input-group">
+                            <label for="width-input">Largeur (px)</label>
+                            <input type="number" id="width-input" name="width" value="1080" min="256" max="2048" step="64" class="input-full">
+                        </div>
+                        <div class="input-group">
+                            <label for="height-input">Hauteur (px)</label>
+                            <input type="number" id="height-input" name="height" value="1920" min="256" max="2048" step="64" class="input-full">
+                        </div>
+                    </div>
+
+                    <div class="format-selection">
+                        <div class="fmt-icon selected-format" data-w="1080" data-h="1920">9:16 (Story/Portrait)</div>
+                        <div class="fmt-icon" data-w="1920" data-h="1080">16:9 (Cinéma/Paysage)</div>
+                        <div class="fmt-icon" data-w="1024" data-h="1024">1:1 (Carré)</div>
+                    </div>
+                </div>
+
+                <div class="section" id="group-steps" style="display:none;">
+                    <label for="steps-slider">Étapes de Sampling (Steps): <strong id="steps-value">30</strong></label>
+                    <input type="range" id="steps-slider" name="steps" value="30" min="10" max="100" class="slider">
+                </div>
+
+                <div class="section" id="group-cfg" style="display:none;">
+                    <label for="cfg_scale-slider">Guidage CFG (Creativity): <strong id="cfg_scale-value">7.0</strong></label>
+                    <input type="range" id="cfg_scale-slider" name="cfg_scale" value="7.0" min="1.0" max="30.0" step="0.5" class="slider">
+                </div>
+
+                <div class="section" id="group-sampler" style="display:none;">
+                    <label for="sampler">Sampler</label>
+                    <select id="sampler" name="sampler" class="select-full">
+                        <option value="euler">Euler</option>
+                        <option value="euler_ancestral">Euler Ancestral</option>
+                        <option value="dpmpp_2m_sde">DPM++ 2M SDE</option>
+                        <option value="dpmpp_2m_sde_gpu" selected>DPM++ 2M SDE GPU</option>
+                        </select>
+                </div>
+
+                <div class="section" id="group-seed" style="display:none;">
+                    <label for="seed-input">Graine (Seed)</label>
+                    <input type="text" id="seed-input" name="seed" placeholder="-1 (Aléatoire)" value="-1" class="input-full">
+                </div>
+
+                <div class="section">
+                    <label for="checkpoint-select">Modèle Checkpoint (Optionnel)</label>
+                    <select id="checkpoint-select" name="checkpoint_name" class="select-full">
+                        <option value="">Aucun (par défaut du workflow)</option>
+                    </select>
+                </div>
+
+
+                <button type="submit" id="generate-button" class="btn-primary">
+                    <span class="dot"></span>Démarrer la génération
+                </button>
+                
+                <div class="log-box" id="log-box"></div>
+
+            </form>
+        </div>
+
+
+        <div class="result-panel">
+
+            <div class="section">
+                <h3 style="margin-bottom: 10px;">Aperçu des Workflows</h3>
+                <div id="workflow-groups-container" class="workflow-groups-container">
+                    </div>
+            </div>
+
+            <div class="section">
+                <h3 style="margin: 0 0 5px; font-size: 14px; color: var(--text);">Résultat</h3>
+                
+                <div id="progress-overlay" class="progress-overlay">
+                    <div class="progress-content">
+                        <p id="progress-label" class="progress-label">Initialisation…</p>
+                        <div class="progress-bar-container">
+                            <div id="progress-inner" class="progress-bar-inner" style="width: 0%;"></div>
+                        </div>
+                        <span id="progress-percent" class="progress-percent">0%</span>
+                    </div>
+                </div>
+
+                <div id="result-area" class="result-area">
+                    <div id="result-placeholder" class="result-placeholder">
+                        Votre image générée apparaîtra ici.
+                    </div>
                 </div>
                 
+                <button type="button" id="copy-params-btn" class="btn-secondary" style="margin-top: 10px;">
+                    Copier les paramètres du dernier job
+                </button>
+                
+            </div>
+
+            <div class="section">
                 <h3 style="margin: 0 0 5px; font-size: 14px; color: var(--text);">Paramètres (Info)</h3>
                 <div id="metadata-display" class="metadata-grid">
                     <span title="Seed">Seed: <strong id="meta-seed">–</strong></span>
@@ -442,11 +309,6 @@
                     <span title="CFG Scale">CFG: <strong id="meta-cfg">–</strong></span>
                     <span title="Sampler">Sampler: <strong id="meta-sampler">–</strong></span>
                 </div>
-            </div>
-            
-            <div class="section" id="prompt-section" title="Le texte décrivant l'image que vous voulez générer. Soyez le plus précis possible.">
-                <label for="prompt">Prompt</label>
-                <textarea id="prompt" name="prompt" placeholder="Décris précisément l’image à générer…" class="ui-input textarea"></textarea>
             </div>
             
             <div id="error-box" class="error-text" style="display:none;"></div>
@@ -464,17 +326,7 @@
     </div>
 </div>
 
-<div id="workflow-popover" class="workflow-popover">
-    <div class="popover-content">
-        <h4 id="popover-title">Nom du Workflow</h4>
-        <div class="workflow-image-wrapper">
-            <img id="popover-image" src="" alt="Aperçu du Workflow">
-        </div>
-        <p id="popover-description">Description du modèle...</p>
-        <span class="popover-tip"></span>
-    </div>
-</div>
+<script src="script (29).js"></script>
 
-<script src="script.js"></script>
 </body>
 </html>
