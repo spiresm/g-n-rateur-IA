@@ -914,31 +914,29 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshGPU();
     loadWorkflows();
 
-    // =========================================================
-    // ACTIVATION DES MENUS (AFFICHE / IMAGE) VIA LES VIGNETTES
-    // =========================================================
-    const modeCards = document.querySelectorAll(".mode-card");
-    const afficheMenu = document.getElementById("affiche-menu");
-    const imageMenu = document.getElementById("image-menu");
+// =========================================================
+// ACTIVATION DES MENUS (AFFICHE / IMAGE)
+// =========================================================
+const modeCards = document.querySelectorAll(".mode-card");
+const afficheMenu = document.getElementById("affiche-menu");
+const imageMenu = document.getElementById("image-menu");
 
-    modeCards.forEach(card => {
-        card.addEventListener("click", () => {
-            const mode = card.dataset.mode;
+modeCards.forEach(card => {
+    card.addEventListener("click", () => {
+        const mode = card.dataset.mode;
 
-            // Effet visuel
-            modeCards.forEach(c => c.classList.remove("active-mode"));
-            card.classList.add("active-mode");
+        // visuel actif
+        modeCards.forEach(c => c.classList.remove("active-mode"));
+        card.classList.add("active-mode");
 
-            // Affichage du bon menu
-            if (mode === "affiche") {
-                afficheMenu.style.display = "block";
-                imageMenu.style.display = "none";
-            } else if (mode === "image") {
-                afficheMenu.style.display = "none";
-                imageMenu.style.display = "block";
-            }
-        });
+        if (mode === "affiche") {
+            afficheMenu.style.display = "block";
+            imageMenu.style.display = "none";
+        } else {
+            afficheMenu.style.display = "none";
+            imageMenu.style.display = "block";
+        }
     });
-
+    
 });  //  ← NE PAS TOUCHER
 
