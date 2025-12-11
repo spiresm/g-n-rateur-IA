@@ -664,7 +664,7 @@ function displayImageAndMetadata(data) {
 
 
 // =========================================================
-// ENVOI DU FORMULAIRE → /generate
+// ENVOI DU FORMULAIRE → /generate (CORRECTION DU PROMPT)
 // =========================================================
 
 async function startGeneration(e) {
@@ -699,9 +699,12 @@ async function startGeneration(e) {
     let success = false;
     let finalPromptId = null;
 
+    // Déclaration de formData en dehors du try pour qu'il soit accessible
+    let formData; 
+
     // 2. Le bloc try/finally garantit la réactivation du bouton.
     try {
-        const formData = new FormData(formEl);
+        
         const wfName = document.getElementById("workflow-select")?.value;
 
         if (!wfName) {
@@ -709,6 +712,16 @@ async function startGeneration(e) {
             // Lancer une erreur force l'exécution du bloc 'catch' puis 'finally'.
             throw new Error("No workflow selected."); 
         }
+
+        // 🔥 NOUVEAU BLOC DE CORRECTION : Garantir que le prompt du mode affiche est généré et mis à jour.
+        if (wfName === "affiche.json") {
+            log("Workflow Affiche détecté. Génération automatique du prompt avant envoi.");
+            generateAffichePrompt(); // Ceci met à jour la valeur du <textarea name="prompt">
+        }
+        
+        // CRÉATION DE FORMDATA MAINTENANT QUE LE PROMPT EST MIS À JOUR
+        formData = new FormData(formEl);
+
 
         log("Début de la séquence de génération réelle (Max 3 tentatives)...");
         if (currentBtn) currentBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
