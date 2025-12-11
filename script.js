@@ -3,8 +3,9 @@
 // =========================================================
 
 const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
+
 // =========================================================
-// 🆕 LISTE DES STYLES DE TITRE (NOUVEAU BLOC)
+// 🆕 LISTE DES STYLES DE TITRE
 // =========================================================
 
 const STYLE_TITRE_OPTIONS = [
@@ -37,8 +38,6 @@ const STYLE_TITRE_OPTIONS = [
 document.addEventListener("DOMContentLoaded", () => {
     const styleSelect = document.getElementById("aff_style_titre");
     if (styleSelect) {
-        // Nettoyage avant l'injection, au cas où il y aurait déjà des options
-        // Cette boucle est correcte pour les options suggérées
         STYLE_TITRE_OPTIONS.forEach(opt => {
             const o = document.createElement("option");
             o.value = opt.value;
@@ -55,8 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
 const POLLING_INTERVAL_MS = 900;
 let pollingProgressInterval = null;
 let fakeProgress = 0;
-let pollingFailureCount = 0; // Compteur de tentatives ratées (Pour la robustesse)
-const MAX_POLLING_FAILURES = 5; // Limite d'erreurs avant l'arrêt
+let pollingFailureCount = 0;
+const MAX_POLLING_FAILURES = 5;
 
 // =========================================================
 // VARIABLES GLOBALES
@@ -178,6 +177,7 @@ async function loadWorkflows() {
 
         container.innerHTML = "";
 
+        // On peut filtrer ici si besoin, pour l'instant on prend tout
         const groupsConfig = [
             {
                 label: "ComfyUI",
@@ -276,7 +276,9 @@ function selectWorkflow(workflowName) {
 
     log("Workflow sélectionné:", workflowName);
 
+    const checkpointWrapper = document.getElementById("checkpoint-wrapper");
     const videoParamsSection = document.getElementById("video-params-section");
+    const inputImageSection = document.getElementById("input-image-section");
     const groupSteps = document.getElementById("group-steps");
     const groupCfg = document.getElementById("group-cfg");
     const groupSampler = document.getElementById("group-sampler");
@@ -303,6 +305,7 @@ function selectWorkflow(workflowName) {
             }
         });
 
+        // Masquer les options inutiles pour l'affiche
         if (groupSteps) groupSteps.style.display = "none";
         if (groupCfg) groupCfg.style.display = "none";
         if (groupSampler) groupSampler.style.display = "none";
@@ -318,7 +321,6 @@ function selectWorkflow(workflowName) {
         if (groupSampler) groupSampler.style.display = "block";
         if (seedSection) seedSection.style.display = "block";
         if (sdxlPanel) sdxlPanel.style.display = "block";
-
     }
 
     if (workflowName.includes("video")) {
@@ -329,7 +331,7 @@ function selectWorkflow(workflowName) {
 }
 
 // =========================================================
- // OUTILS POUR LES CHAMPS (SETVALUE + MERGE SELECT/CUSTOM)
+ // OUTILS POUR LES CHAMPS
  // =========================================================
 
 function setValue(id, val) {
@@ -347,14 +349,6 @@ function mergeSelectAndCustom(selectId, customId) {
     // Sinon, on retourne la valeur du select
     if (s) return s;
     return "";
-}
-
-function stripAccents(str) {
-    try {
-        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    } catch {
-        return str;
-    }
 }
 
 // =========================================================
@@ -436,7 +430,6 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     const promptArea = document.getElementById("prompt");
     if (promptArea) {
         promptArea.value = prompt;
-        // La ligne dispatchEvent a été retirée pour améliorer la stabilité.
     }
 
     log("🎨 prompt affiche généré (version anti-texte parasite)");
@@ -498,29 +491,23 @@ async function pollProgress(promptId) {
                 log(`[POLL ERROR] HTTP non OK: ${resCheck.status}. Tentative d'arrêt ${pollingFailureCount}/${MAX_POLLING_FAILURES}`);
                 
                 if (pollingFailureCount >= MAX_POLLING_FAILURES) {
-                    // Arrêt du polling après trop d'échecs
                     clearInterval(pollingProgressInterval);
                     pollingProgressInterval = null;
                     showProgressOverlay(false);
-
-                    // MESSAGE DIAGNOSTIC AMÉLIORÉ
-                    setError(`La tâche ${promptId} a été perdue par le serveur (HTTP ${resCheck.status}). La génération a échoué. Le serveur a pu redémarrer ou la tâche est en erreur.`);
+                    setError(`La tâche ${promptId} a été perdue par le serveur (HTTP ${resCheck.status}).`);
                     return;
                 }
             }
 
         } catch (e) {
-            // Erreur de réseau ou JSON (serveur injoignable)
             pollingFailureCount++;
-            log(`[POLL ERROR] Erreur réseau/JSON: ${e.message}. Tentative d'arrêt ${pollingFailureCount}/${MAX_POLLING_FAILURES}`);
+            log(`[POLL ERROR] Erreur réseau/JSON: ${e.message}.`);
 
             if (pollingFailureCount >= MAX_POLLING_FAILURES) {
-                // Arrêt du polling après trop d'échecs
                 clearInterval(pollingProgressInterval);
                 pollingProgressInterval = null;
                 showProgressOverlay(false);
-                 // MESSAGE DIAGNOSTIC AMÉLIORÉ
-                setError(`Échec de la connexion au serveur API (${API_BASE_URL}) après plusieurs tentatives. Vérifiez que le serveur est démarré.`);
+                setError(`Échec de la connexion au serveur API (${API_BASE_URL}).`);
                 return;
             }
         }
@@ -529,7 +516,7 @@ async function pollProgress(promptId) {
 }
 
 // =========================================================
-// GESTIONNAIRE DE COMPLÉTION AVEC RETRY (NOUVEAU)
+// GESTIONNAIRE DE COMPLÉTION AVEC RETRY
 // =========================================================
 
 async function handleCompletion(promptId) {
@@ -576,19 +563,17 @@ async function handleCompletion(promptId) {
                 return; // FINISHED SUCCESSFULLY
             } 
             
-            // HTTP NOT OK (404, 500, etc.) - The server is not ready yet.
+            // HTTP NOT OK
             log(`[FETCH RESULT] HTTP non OK: ${resp.status}. Ré-essai dans ${RETRY_DELAY_MS / 1000}s.`);
             
             if (attempt === MAX_FETCH_ATTEMPTS) {
-                throw new Error(`Échec de la récupération du résultat après ${MAX_FETCH_ATTEMPTS} tentatives (Dernier statut: ${resp.status}). Le serveur n'a pas rendu l'image disponible.`);
+                throw new Error(`Échec de la récupération du résultat après ${MAX_FETCH_ATTEMPTS} tentatives.`);
             }
             
             await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
 
         } catch (e) {
             console.error("Erreur fetchResult/handleCompletion:", e);
-            
-            // FATAL UI FAILURE
             showProgressOverlay(false);
             setError(e.message || "Erreur lors de la récupération de l’image générée.");
             if (statusPill) {
@@ -596,14 +581,14 @@ async function handleCompletion(promptId) {
                 statusPill.classList.remove("pill", "pill-green", "pill-warning");
                 statusPill.classList.add("pill-danger");
             }
-            return; // EXIT ON FATAL ERROR
+            return; 
         }
     }
 }
 
 
 // =========================================================
-// AFFICHAGE DU RÉSULTAT ET DES METADATAS (Anciennement fetchResult)
+// AFFICHAGE DU RÉSULTAT ET DES METADATAS
 // =========================================================
 
 function displayImageAndMetadata(data) {
@@ -652,10 +637,6 @@ function displayImageAndMetadata(data) {
     const metaCfg = document.getElementById("meta-cfg");
     const metaSampler = document.getElementById("meta-sampler");
 
-    // Les métadonnées ne sont pas dans le JSON de l'image, mais sont mises à jour ici.
-    // Si elles venaient du JSON de l'image:
-    // if (metaSeed) metaSeed.textContent = data.seed || "–";
-    // ...
     if (metaSeed) metaSeed.textContent = "–";
     if (metaSteps) metaSteps.textContent = "–";
     if (metaCfg) metaCfg.textContent = "–";
@@ -671,7 +652,7 @@ function displayImageAndMetadata(data) {
 
 
 // =========================================================
-// ENVOI DU FORMULAIRE → /generate (CORRECTION CRUCIALE DU PROMPT)
+// ENVOI DU FORMULAIRE → /generate (CORRIGÉ COMPLET)
 // =========================================================
 
 async function startGeneration(e) {
@@ -705,32 +686,28 @@ async function startGeneration(e) {
 
     let success = false;
     let finalPromptId = null;
-
-    // Déclaration de formData en dehors du try pour qu'il soit accessible
     let formData; 
 
     // 2. Le bloc try/finally garantit la réactivation du bouton.
     try {
-        
         const wfName = document.getElementById("workflow-select")?.value;
 
         if (!wfName) {
             setError("Veuillez sélectionner un workflow.");
-            // Lancer une erreur force l'exécution du bloc 'catch' puis 'finally'.
             throw new Error("No workflow selected."); 
         }
 
-        // 🔥 CORRECTION CRUCIALE : Générer le prompt juste avant FormData.
+        // 🔥 CORRECTION CRUCIALE : Générer le prompt D'ABORD
         if (wfName === "affiche.json") {
-            log("Workflow Affiche détecté. Génération automatique du prompt avant envoi.");
-            generateAffichePrompt(); // CECI MET À JOUR promptArea.value AVANT FormData
+            log("Workflow Affiche détecté. Génération automatique du prompt.");
+            generateAffichePrompt(); // Mise à jour du <textarea id="prompt">
         }
         
-        // CRÉATION DE FORMDATA MAINTENANT QUE LE PROMPT EST GARANTI À JOUR
-        formData = new FormData(formEl); // DOIT LIRE LA NOUVELLE VALEUR CORRECTE.
+        // 🔥 CORRECTION CRUCIALE : Lire le formulaire ENSUITE
+        formData = new FormData(formEl); // Maintenant, formData contient le bon prompt
 
 
-        log("Début de la séquence de génération réelle (Max 3 tentatives)...");
+        log("Début de la séquence de génération réelle...");
         if (currentBtn) currentBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
 
         const maxAttempts = 3;
@@ -763,10 +740,10 @@ async function startGeneration(e) {
 
             } catch (err) {
                 console.error(`Erreur tentative ${attempt}:`, err);
-                log(`Tentative ${attempt}/${maxAttempts} : Échec. Ré-essai dans 5 secondes...`);
+                log(`Tentative ${attempt}/${maxAttempts} : Échec.`);
 
                 if (attempt >= maxAttempts) {
-                    setError(`❌ Échec de l’envoi initial de la tâche au serveur API après 3 tentatives. Vérifiez la console pour les détails du réseau.`);
+                    setError(`❌ Échec de l’envoi initial de la tâche au serveur API.`);
                 }
 
                 await new Promise(r => setTimeout(r, 5000));
@@ -778,24 +755,19 @@ async function startGeneration(e) {
             log("Prompt ID final:", finalPromptId);
             pollProgress(finalPromptId);
         } else {
-            // Échec final de la boucle
             showProgressOverlay(false);
         }
 
     } catch (globalErr) {
-        // Gère les erreurs synchrones ou le 'throw' pour sortie prématurée (comme l'absence de workflow).
         console.warn("Generation stopped early:", globalErr.message);
-        // Si l'erreur n'a pas déjà été affichée (comme le manque de workflow), affiche un message générique
         if (!document.getElementById("error-box")?.textContent) {
             setError(`Erreur d'initialisation : ${globalErr.message}`);
         }
         showProgressOverlay(false);
         
     } finally {
-        // 3. Réactiver le bouton DANS TOUS LES CAS
         if (currentBtn) {
             currentBtn.disabled = false;
-            // Réinitialise le texte du bouton générique
             currentBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
             currentBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
         }
@@ -927,7 +899,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const formEl = document.getElementById("generation-form");
     if (formEl) {
-        // L'événement submit appelle startGeneration (déclenché par le bouton type="submit")
         formEl.addEventListener("submit", startGeneration);
     }
 
@@ -978,7 +949,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await loadRandomAfficheJSON();
             if (!data) return;
 
-            // Logique de pioche aléatoire
             const theme = pickRandom(data.themes);
             const ambiance = pickRandom(data.ambiances);
             const perso = pickRandom(data.personnages);
@@ -1006,9 +976,8 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             fillAfficheFieldsFromRandom(randomObj);
-            generateAffichePrompt(); // Met à jour le prompt une fois les champs remplis
+            generateAffichePrompt(); 
             
-            // Animation du bouton pour indiquer le remplissage des champs (NE LANCE PAS LA GÉNÉRATION)
             randomBtn.classList.add("clicked");
             randomBtn.innerHTML = "🎲 Champs remplis !";
             setTimeout(() => {
@@ -1028,11 +997,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnPrompt && formEl) {
         btnPrompt.addEventListener("click", () => {
             
-            generateAffichePrompt(); // 1. Génère le prompt et met à jour le champ caché
+            generateAffichePrompt(); // Met à jour le champ
             
-            // 2. ANIMATION SEULE (NE LANCE PAS LA GÉNÉRATION)
             btnPrompt.classList.add("clicked");
-            btnPrompt.innerHTML = "✨ Prompt généré !"; // Texte mis à jour pour être clair
+            btnPrompt.innerHTML = "✨ Prompt généré !";
             setTimeout(() => {
                 btnPrompt.classList.remove("clicked");
                 btnPrompt.innerHTML = "✨ Générer le prompt de l’affiche";
