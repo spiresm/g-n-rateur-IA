@@ -373,15 +373,25 @@ ${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
 
 Rules for text:
 - Only the items above are permitted.
-- No additional text, no hallucinated wording.
-- No extra letters, no random symbols.
-- No decorative scribbles resembling handwriting.
-- TEXT STYLE / MATERIAL (APPLIES ONLY TO LETTERING):
-  ${styleTitre || "cinematic, elegant contrast"}.
-- IMPORTANT: The text style applies ONLY to the lettering.
-  Do NOT apply this style to the characters, environment, rendering,
-  lighting, textures, materials, or the overall image.
-  The global visual style of the poster must remain independent.
+- No additional text, no hallucinations, no symbols.
+- No decorative scribbles.
+
+TEXT RENDERING INSTRUCTIONS (VERY IMPORTANT):
+- The text must use the following MATERIAL or SURFACE STYLE ONLY for the LETTERING:
+  "${styleTitre || "cinematic, elegant contrast"}".
+
+STRICT STYLE ISOLATION:
+- The text style applies EXCLUSIVELY to the glyph shapes of the letters.
+- DO NOT apply this style to characters, props, environment, lighting, shading, materials,
+  or any other part of the visual scene.
+- The global image must retain a realistic cinematic rendering.
+- Characters, objects, and backgrounds must NOT inherit, reflect, or resemble the text style.
+
+TECHNICAL ENFORCEMENT:
+- Render the text in a separate compositing layer from the rest of the scene.
+- Do NOT match global rendering style to the text style.
+- Do NOT harmonize the text style with the image style.
+- Treat the text style as an isolated material override.
 
 `;
     }
