@@ -255,17 +255,8 @@
         </select>
         <input id="aff_style_titre_custom" type="text" placeholder="Ou écrire votre propre style…" class="ui-input">
     </div>
-
-    <button type="button" id="affiche-generate-btn" class="btn-main" style="margin-top:20px; font-size:15px; padding:12px; width: 100%;">
-        ✨ Générer le prompt de l’affiche
-    </button>
-
-</div>
-                <div class="section" title="Le texte décrivant l'image que vous voulez générer. Soyez le plus précis possible.">
-                    <label for="prompt">Prompt</label>
-                    <textarea id="prompt" name="prompt" placeholder="Décris précisément l’image à générer…" class="ui-input textarea"></textarea>
-                </div>
-
+    
+    </div>
                 <div class="section" id="input-image-section" style="display:none; margin-top: 4px;" title="Image de référence utilisée par certains workflows (ex: Image to Image, ControlNet).">
                     <label>Image d'entrée (optionnelle)</label>
                     <div style="display:flex;align-items:center;gap:10px;">
@@ -400,6 +391,12 @@
                 <span class="pill-green" id="job-status-pill">READY</span>
             </div>
 
+            <div id="affiche-generate-button-wrapper" style="margin-bottom: 12px; display: none;">
+                <button type="button" id="affiche-generate-btn" class="btn-main" style="font-size:15px; padding:12px; width: 100%;">
+                    ✨ Générer le prompt de l’affiche
+                </button>
+            </div>
+            
             <div style="margin-bottom: 12px;">
                 <button id="generate-button" type="submit" class="btn-main" form="generation-form" style="width: 100%;">
                     <span class="dot"></span>
@@ -446,6 +443,12 @@
                     <span title="Sampler">Sampler: <strong id="meta-sampler">–</strong></span>
                 </div>
             </div>
+            
+            <div class="section" id="prompt-section" title="Le texte décrivant l'image que vous voulez générer. Soyez le plus précis possible.">
+                <label for="prompt">Prompt</label>
+                <textarea id="prompt" name="prompt" placeholder="Décris précisément l’image à générer…" class="ui-input textarea"></textarea>
+            </div>
+            
             <div id="error-box" class="error-text" style="display:none;"></div>
         </div>
     </div>
