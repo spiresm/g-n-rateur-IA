@@ -641,8 +641,8 @@ async function startGeneration(e) {
         // La gestion de l'animation/texte est déjà faite par le click listener pour affiche
         // Pour le bouton générique (Mode Image), on le met en état 'Génération en cours...'
         if (currentBtn === generateBtn) {
-            generateBtn.querySelector(".dot").style.background = "#fbbf24";
-            generateBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
+            currentBtn.querySelector(".dot").style.background = "#fbbf24";
+            currentBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
         }
     }
 
@@ -711,8 +711,8 @@ async function startGeneration(e) {
         currentBtn.disabled = false;
         // Réinitialise le texte du bouton générique
         if (currentBtn === generateBtn) {
-            generateBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
-            generateBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
+            currentBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
+            currentBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
         }
     }
 }
@@ -881,7 +881,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     // =========================================================
-    // RANDOM AFFICHE BUTTON LISTENER (CORRIGÉ FINAL)
+    // RANDOM AFFICHE BUTTON LISTENER (CORRIGÉ FINAL : REMPLISSAGE SEUL)
     // =========================================================
 
     const randomBtn = document.getElementById("affiche-random-btn");
@@ -920,14 +920,13 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             fillAfficheFieldsFromRandom(randomObj);
-            generateAffichePrompt(); // 1. Génère le prompt immédiatement après le remplissage
+            generateAffichePrompt(); // 1. Génère le prompt (met à jour le champ caché)
             
-            // 2. Déclenche la soumission du formulaire pour démarrer la génération
-            formEl.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            // 🚨 Le formulaire N'EST PAS soumis ici. Le bouton s'arrête au remplissage.
             
-            // 3. Animation du bouton
+            // 2. Animation du bouton pour indiquer le remplissage des champs
             randomBtn.classList.add("clicked");
-            randomBtn.innerHTML = "🎲 Génération...";
+            randomBtn.innerHTML = "🎲 Champs remplis !";
             setTimeout(() => {
                 randomBtn.classList.remove("clicked");
                 randomBtn.innerHTML = "🎲 Aléatoire";
@@ -938,7 +937,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================================
-    // GENERATE PROMPT BUTTON LISTENER (CORRIGÉ)
+    // GENERATE PROMPT BUTTON LISTENER (CORRIGÉ) - LANCE la soumission
     // =========================================================
 
     const btnPrompt = document.getElementById("affiche-generate-btn");
@@ -948,7 +947,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             generateAffichePrompt(); // 1. Génère le prompt et met à jour le champ caché
             
-            // 2. Déclenche la soumission du formulaire pour démarrer la génération
+            // 2. Déclenche la soumission du formulaire (c'est le rôle de ce bouton !)
             formEl.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); 
             
             // 3. Animation du bouton
