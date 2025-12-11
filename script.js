@@ -428,8 +428,8 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     const promptArea = document.getElementById("prompt");
     if (promptArea) {
         promptArea.value = prompt;
-        // 🔥 CRUCIAL: Déclenche un événement 'input' pour que la soumission du formulaire lise la nouvelle valeur.
-        promptArea.dispatchEvent(new Event('input', { bubbles: true }));
+        // Ligne RETIRÉE : Retire le déclenchement d'événement qui peut être instable.
+        // promptArea.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
     console.log("🎨 prompt affiche généré (version anti-texte parasite)");
@@ -1030,9 +1030,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 btnPrompt.classList.remove("clicked");
                 btnPrompt.innerHTML = "✨ Générer le prompt de l’affiche";
             }, 600);
-            
-            // NOTE IMPORTANTE: Le bouton "Démarrer la génération" doit être cliqué
-            // manuellement après cela pour lancer l'API.
         });
     }
 
