@@ -40,6 +40,16 @@
         </div>
     </header>
 
+    <div class="mode-selector">
+        <div class="mode-card active-mode" data-mode="image" id="mode-image">
+            <h2>🖼️ Génération d'Image</h2>
+            <p>Générer une image libre via prompt texte.</p>
+        </div>
+        <div class="mode-card" data-mode="affiche" id="mode-affiche">
+            <h2>🎬 Affiche Ludique (Premium)</h2>
+            <p>Générateur d'affiche cinématographique personnalisée.</p>
+        </div>
+    </div>
     <div class="layout">
         <div class="panel">
             <div class="panel-header">
@@ -69,7 +79,7 @@
 
                 <div class="section" id="checkpoint-wrapper" title="Le modèle de base (Checkpoint) utilisé pour la génération, si le workflow le supporte.">
                     <label for="checkpoint-select">Checkpoint (si le workflow utilise {{checkpoint}})</label>
-                    <select id="checkpoint-select" name="checkpoint">
+                    <select id="checkpoint-select" name="checkpoint" class="ui-select">
                         <option value="">Chargement des checkpoints…</option>
                     </select>
                 </div>
@@ -80,11 +90,13 @@
                         <h3 class="menu-title">🎨 Générateur d’Affiche Ludique</h3>
                         <p class="menu-sub">Créez une affiche de style cinématographique personnalisée pour votre événement.</p>
 
-                        <button type="button" id="affiche-random-btn" 
-                            class="btn-secondary" 
-                            style="margin-bottom:20px; width:100%; font-weight:600;">
-                            🎲 Générer une affiche aléatoire
-                        </button>
+                        <div class="field-group">
+                            <button type="button" id="affiche-random-btn" 
+                                class="btn-secondary" 
+                                style="margin-bottom:0px; width:100%; font-weight:600;">
+                                🎲 Générer une affiche aléatoire
+                            </button>
+                        </div>
 
                         <div class="field-group">
                             <label for="aff_titre">Titre de l’affiche (optionnel)</label>
@@ -284,11 +296,11 @@
                 </div>
 
                 <div class="section">
-                    <label>Format rapide (Vignettes)</label>
+                    <label>Format rapide</label>
                     <div class="quick-format-icons">
-                        <span class="fmt-icon wide-format" data-w="1920" data-h="1080" title="Format Paysage (16:9)">Paysage</span>
-                        <span class="fmt-icon tall-format" data-w="1080" data-h="1920" title="Format Portrait (9:16)">Portrait</span>
-                        <span class="fmt-icon" data-w="1080" data-h="1080" style="display:none;">⬛</span>
+                        <span class="fmt-icon" data-w="1920" data-h="1080">🖥️</span>
+                        <span class="fmt-icon" data-w="1080" data-h="1920">📱</span>
+                        <span class="fmt-icon" data-w="1080" data-h="1080">⬛</span>
                     </div>
                 </div>
 
