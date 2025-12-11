@@ -942,4 +942,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });  //  ← NE PAS TOUCHER
 
-});
