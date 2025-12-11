@@ -31,12 +31,14 @@ const STYLE_TITRE_OPTIONS = [
 ];
 
 // =========================================================
-// 🆕 INJECTION AUTOMATIQUE DANS LE SELECT (NOUVEAU)
+// 🆕 INJECTION AUTOMATIQUE DANS LE SELECT
 // =========================================================
 
 document.addEventListener("DOMContentLoaded", () => {
     const styleSelect = document.getElementById("aff_style_titre");
     if (styleSelect) {
+        // Nettoyage avant l'injection, au cas où il y aurait déjà des options
+        // Cette boucle est correcte pour les options suggérées
         STYLE_TITRE_OPTIONS.forEach(opt => {
             const o = document.createElement("option");
             o.value = opt.value;
@@ -48,11 +50,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // =========================================================
-// CONFIGURATION DU POLLING HTTP (NOUVEAU SYSTEME SANS WS)
+// CONFIGURATION DU POLLING HTTP
 // =========================================================
 const POLLING_INTERVAL_MS = 900;
 let pollingProgressInterval = null;
 let fakeProgress = 0;
+let pollingFailureCount = 0; // Compteur de tentatives ratées (Pour la robustesse)
+const MAX_POLLING_FAILURES = 5; // Limite d'erreurs avant l'arrêt
 
 // =========================================================
 // VARIABLES GLOBALES
@@ -78,13 +82,27 @@ function log(...args) {
 
 function setError(msg) {
     const errBox = document.getElementById("error-box");
+    const statusPill = document.getElementById("job-status-pill");
+    
     if (!errBox) return;
+
     if (msg) {
         errBox.style.display = "block";
         errBox.textContent = msg;
+        if (statusPill) {
+             statusPill.textContent = "FAILED";
+             statusPill.classList.remove("pill", "pill-green");
+             statusPill.classList.add("pill-danger"); 
+        }
+
     } else {
         errBox.style.display = "none";
         errBox.textContent = "";
+        if (statusPill && statusPill.textContent === "FAILED") {
+            statusPill.textContent = "READY";
+            statusPill.classList.remove("pill-danger");
+            statusPill.classList.add("pill-green");
+        }
     }
 }
 
@@ -316,9 +334,10 @@ function mergeSelectAndCustom(selectId, customId) {
     const s = document.getElementById(selectId)?.value.trim() || "";
     const c = document.getElementById(customId)?.value.trim() || "";
 
-    if (s && c) return `${s}, ${c}`;
-    if (s) return s;
+    // Si le champ custom est rempli, il prend le pas
     if (c) return c;
+    // Sinon, on retourne la valeur du select
+    if (s) return s;
     return "";
 }
 
@@ -331,7 +350,7 @@ function stripAccents(str) {
 }
 
 // =========================================================
-// GÉNÉRATION DU PROMPT POUR LE MODE AFFICHE (CORRIGÉ ET NOMMÉ)
+// GÉNÉRATION DU PROMPT POUR LE MODE AFFICHE (FINAL)
 // =========================================================
 
 function generateAffichePrompt() {
@@ -416,172 +435,16 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     console.log("🎨 prompt affiche généré (version anti-texte parasite)");
 }
 
-// =========================================================
-// RANDOM AFFICHE — CHARGEMENT + GÉNÉRATION AUTOMATIQUE
-// =========================================================
-
-let RANDOM_AFFICHE_DATA = null;
-
-// Charge le fichier JSON une seule fois
-async function loadRandomAfficheJSON() {
-    if (RANDOM_AFFICHE_DATA) return RANDOM_AFFICHE_DATA;
-
-    try {
-        const resp = await fetch("random_affiche_data.json");
-        if (!resp.ok) {
-            console.error("❌ Fichier random_affiche_data.json introuvable !");
-            return null;
-        }
-
-        RANDOM_AFFICHE_DATA = await resp.json();
-        console.log("📁 random_affiche_data.json chargé !");
-        return RANDOM_AFFICHE_DATA;
-
-    } catch (e) {
-        console.error("Erreur lors du chargement JSON random :", e);
-        return null;
-    }
-}
-
-// Pioche aléatoire
-function pickRandom(arr) {
-    if (!arr || !arr.length) return "";
-    const idx = Math.floor(Math.random() * arr.length);
-    return arr[idx];
-}
-
-// Injection massive dans les champs
-function fillAfficheFieldsFromRandom(randomObj) {
-    if (!randomObj) return;
-
-    setValue("aff_titre", randomObj.titre || "");
-    setValue("aff_sous_titre", randomObj.sous_titre || "");
-    setValue("aff_tagline", randomObj.tagline || "");
-
-    if (randomObj.theme) {
-        setValue("aff_theme_custom", randomObj.theme);
-        const s = document.getElementById("aff_theme");
-        if (s) s.value = "";
-    }
-
-    if (randomObj.ambiance) {
-        setValue("aff_ambiance_custom", randomObj.ambiance);
-        const s = document.getElementById("aff_ambiance");
-        if (s) s.value = "";
-    }
-
-    if (randomObj.personnage) {
-        setValue("aff_perso_desc", randomObj.personnage);
-        const s = document.getElementById("aff_perso_sugg");
-        if (s) s.value = "";
-    }
-
-    if (randomObj.environnement) {
-        setValue("aff_env_desc", randomObj.environnement);
-        const s = document.getElementById("aff_env_sugg");
-        if (s) s.value = "";
-    }
-
-    if (randomObj.action) {
-        setValue("aff_action_desc", randomObj.action);
-        const s = document.getElementById("aff_action_sugg");
-        if (s) s.value = "";
-    }
-
-    if (randomObj.details) {
-        setValue("aff_details", randomObj.details);
-    }
-
-    if (randomObj.palette) {
-        setValue("aff_palette_custom", randomObj.palette);
-        const s = document.getElementById("aff_palette");
-        if (s) s.value = "";
-    }
-
-    if (randomObj.style_titre) {
-        setValue("aff_style_titre_custom", randomObj.style_titre);
-        const s = document.getElementById("aff_style_titre");
-        if (s) s.value = "";
-    }
-}
-
-// DOMContentLoaded → branche le bouton random
-document.addEventListener("DOMContentLoaded", () => {
-
-    const randomBtn = document.getElementById("affiche-random-btn");
-    if (!randomBtn) return;
-
-    randomBtn.addEventListener("click", async () => {
-        console.log("🎲 Clic random détecté !");
-
-        const data = await loadRandomAfficheJSON();
-        if (!data) return;
-
-        const theme = pickRandom(data.themes);
-        const ambiance = pickRandom(data.ambiances);
-        const perso = pickRandom(data.personnages);
-        const env = pickRandom(data.environnements);
-        const action = pickRandom(data.actions);
-        const palette = pickRandom(data.palettes);
-        const styleTitre = pickRandom(data.styles_titre);
-        const details = pickRandom(data.details);
-        const titre = pickRandom(data.titres);
-        const sousTitre = pickRandom(data.sous_titres);
-        const tagline = pickRandom(data.taglines || []);
-
-        const randomObj = {
-            titre,
-            sous_titre: sousTitre,
-            tagline,
-            theme,
-            ambiance,
-            personnage: perso,
-            environnement: env,
-            action,
-            palette,
-            style_titre: styleTitre,
-            details
-        };
-
-        fillAfficheFieldsFromRandom(randomObj);
-
-        console.log("🎲 Champs affiche remplis aléatoirement:", randomObj);
-    });
-});
 
 // =========================================================
-// GESTION FORMATS RAPIDES
+// PROGRESSION FAKE + DÉTECTION AUTO /result (CORRIGÉ)
 // =========================================================
 
-document.addEventListener("DOMContentLoaded", () => {
-    const fmtIcons = document.querySelectorAll(".fmt-icon");
-    const widthInput = document.getElementById("width-input");
-    const heightInput = document.getElementById("height-input");
-
-    fmtIcons.forEach(icon => {
-        icon.addEventListener("click", () => {
-            const w = icon.dataset.w;
-            const h = icon.dataset.h;
-            if (!w || !h) return;
-
-            fmtIcons.forEach(i => i.classList.remove("selected-format"));
-            icon.classList.add("selected-format");
-
-            if (widthInput) widthInput.value = w;
-            if (heightInput) heightInput.value = h;
-
-            log(`Format rapide sélectionné: ${w}x${h}`);
-        });
-    });
-});
-
-// =========================================================
-// PROGRESSION FAKE + DÉTECTION AUTO /result
-// =========================================================
 async function pollProgress(promptId) {
     if (!promptId) return;
 
     fakeProgress = 0;
+    pollingFailureCount = 0; // Réinitialisation du compteur
     showProgressOverlay(true, "Génération en cours…");
 
     if (pollingProgressInterval) {
@@ -594,7 +457,7 @@ async function pollProgress(promptId) {
 
     if (statusPill) {
         statusPill.textContent = "RUNNING";
-        statusPill.classList.remove("pill-green");
+        statusPill.classList.remove("pill-green", "pill-danger");
         statusPill.classList.add("pill");
     }
 
@@ -607,13 +470,13 @@ async function pollProgress(promptId) {
 
         // Test direct si le résultat est disponible
         try {
-            // CORRECTION 1: Utiliser /progress pour le statut au lieu de /result
-            const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`); 
+            const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`);
 
             if (resCheck.ok) {
+                // Succès : Réinitialise le compteur d'erreurs et vérifie la fin
+                pollingFailureCount = 0;
                 const data = await resCheck.json();
                 
-                // Vérifier si le statut indique que la génération est terminée (comme attendu par l'API)
                 if (data.status && data.status.completed) {
                     clearInterval(pollingProgressInterval);
                     pollingProgressInterval = null;
@@ -625,17 +488,42 @@ async function pollProgress(promptId) {
 
                     if (statusPill) {
                         statusPill.textContent = "DONE";
-                        statusPill.classList.remove("pill");
+                        statusPill.classList.remove("pill", "pill-danger");
                         statusPill.classList.add("pill-green");
                     }
 
                     fetchResult(promptId); // Appelle la fonction qui va chercher l'image finale
                     return;
                 }
+            } else {
+                // Si la réponse HTTP n'est pas OK (ex: 404, 500)
+                pollingFailureCount++;
+                log(`[POLL ERROR] HTTP non OK: ${resCheck.status}. Tentative d'arrêt ${pollingFailureCount}/${MAX_POLLING_FAILURES}`);
+                
+                if (pollingFailureCount >= MAX_POLLING_FAILURES) {
+                    // Arrêt du polling après trop d'échecs
+                    clearInterval(pollingProgressInterval);
+                    pollingProgressInterval = null;
+                    showProgressOverlay(false);
+
+                    setError(`La tâche ${promptId} a été perdue par le serveur (Erreur ${resCheck.status}). La génération a échoué.`);
+                    return;
+                }
             }
 
         } catch (e) {
-            // Pas encore prêt ou erreur de parsing JSON → on continue
+            // Erreur de réseau ou JSON (serveur injoignable)
+            pollingFailureCount++;
+            log(`[POLL ERROR] Erreur réseau/JSON: ${e.message}. Tentative d'arrêt ${pollingFailureCount}/${MAX_POLLING_FAILURES}`);
+
+            if (pollingFailureCount >= MAX_POLLING_FAILURES) {
+                // Arrêt du polling après trop d'échecs
+                clearInterval(pollingProgressInterval);
+                pollingProgressInterval = null;
+                showProgressOverlay(false);
+                setError(`Échec de la connexion au serveur après plusieurs tentatives. Vérifiez l'URL de l'API (${API_BASE_URL}).`);
+                return;
+            }
         }
 
     }, POLLING_INTERVAL_MS);
@@ -648,7 +536,6 @@ async function pollProgress(promptId) {
 async function fetchResult(promptId) {
     try {
         log("Récupération du résultat pour:", promptId);
-        // CORRECTION 2: Utiliser /result pour l'image finale
         const resp = await fetch(`${API_BASE_URL}/result/${promptId}`); 
         if (!resp.ok) {
             log("Result HTTP non OK:", resp.status);
@@ -758,7 +645,7 @@ async function startGeneration(e) {
     const statusPill = document.getElementById("job-status-pill");
     if (statusPill) {
         statusPill.textContent = "PENDING";
-        statusPill.classList.remove("pill-green");
+        statusPill.classList.remove("pill-green", "pill-danger");
         statusPill.classList.add("pill");
     }
 
@@ -772,10 +659,7 @@ async function startGeneration(e) {
         try {
             log(`[Tentative ${attempt}/${maxAttempts}] Envoi de la requête de génération.`);
 
-            // CORRECTION 2
-            const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { method: "POST",
-        body: formData
-            });
+            const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { method: "POST", body: formData });
 
             if (!resp.ok) {
                 log(`Tentative ${attempt} → HTTP ${resp.status}`);
@@ -821,6 +705,95 @@ async function startGeneration(e) {
 }
 
 // =========================================================
+// RANDOM AFFICHE — CHARGEMENT + GÉNÉRATION AUTOMATIQUE
+// =========================================================
+
+let RANDOM_AFFICHE_DATA = null;
+
+// Charge le fichier JSON une seule fois
+async function loadRandomAfficheJSON() {
+    if (RANDOM_AFFICHE_DATA) return RANDOM_AFFICHE_DATA;
+
+    try {
+        const resp = await fetch("random_affiche_data.json");
+        if (!resp.ok) {
+            console.error("❌ Fichier random_affiche_data.json introuvable !");
+            return null;
+        }
+
+        RANDOM_AFFICHE_DATA = await resp.json();
+        console.log("📁 random_affiche_data.json chargé !");
+        return RANDOM_AFFICHE_DATA;
+
+    } catch (e) {
+        console.error("Erreur lors du chargement JSON random :", e);
+        return null;
+    }
+}
+
+// Pioche aléatoire
+function pickRandom(arr) {
+    if (!arr || !arr.length) return "";
+    const idx = Math.floor(Math.random() * arr.length);
+    return arr[idx];
+}
+
+// Injection massive dans les champs
+function fillAfficheFieldsFromRandom(randomObj) {
+    if (!randomObj) return;
+
+    setValue("aff_titre", randomObj.titre || "");
+    setValue("aff_sous_titre", randomObj.sous_titre || "");
+    setValue("aff_tagline", randomObj.tagline || "");
+
+    if (randomObj.theme) {
+        setValue("aff_theme_custom", randomObj.theme);
+        const s = document.getElementById("aff_theme");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.ambiance) {
+        setValue("aff_ambiance_custom", randomObj.ambiance);
+        const s = document.getElementById("aff_ambiance");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.personnage) {
+        setValue("aff_perso_desc", randomObj.personnage);
+        const s = document.getElementById("aff_perso_sugg");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.environnement) {
+        setValue("aff_env_desc", randomObj.environnement);
+        const s = document.getElementById("aff_env_sugg");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.action) {
+        setValue("aff_action_desc", randomObj.action);
+        const s = document.getElementById("aff_action_sugg");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.details) {
+        setValue("aff_details", randomObj.details);
+    }
+
+    if (randomObj.palette) {
+        setValue("aff_palette_custom", randomObj.palette);
+        const s = document.getElementById("aff_palette");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.style_titre) {
+        setValue("aff_style_titre_custom", randomObj.style_titre);
+        const s = document.getElementById("aff_style_titre");
+        if (s) s.value = "";
+    }
+}
+
+// =========================================================
 // INIT GLOBAL (DOMContentLoaded)
 // =========================================================
 
@@ -851,7 +824,7 @@ document.addEventListener("DOMContentLoaded", () => {
     autoClearOnSelect("aff_palette", "aff_palette_custom");
 
     // =========================================================
-    // (TON INIT GLOBAL NORMAL)
+    // LISTENERS GÉNÉRAUX
     // =========================================================
 
     const formEl = document.getElementById("generation-form");
@@ -893,13 +866,60 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     }
+    
+    // =========================================================
+    // RANDOM AFFICHE BUTTON LISTENER
+    // =========================================================
 
-    // 🔥 CORRECTION ICI : Appel de la logique de prompt AVANT l'animation.
+    const randomBtn = document.getElementById("affiche-random-btn");
+    if (randomBtn) {
+        randomBtn.addEventListener("click", async () => {
+            console.log("🎲 Clic random détecté !");
+
+            const data = await loadRandomAfficheJSON();
+            if (!data) return;
+
+            const theme = pickRandom(data.themes);
+            const ambiance = pickRandom(data.ambiances);
+            const perso = pickRandom(data.personnages);
+            const env = pickRandom(data.environnements);
+            const action = pickRandom(data.actions);
+            const palette = pickRandom(data.palettes);
+            const styleTitre = pickRandom(data.styles_titre);
+            const details = pickRandom(data.details);
+            const titre = pickRandom(data.titres);
+            const sousTitre = pickRandom(data.sous_titres);
+            const tagline = pickRandom(data.taglines || []);
+
+            const randomObj = {
+                titre,
+                sous_titre: sousTitre,
+                tagline,
+                theme,
+                ambiance,
+                personnage: perso,
+                environnement: env,
+                action,
+                palette,
+                style_titre: styleTitre,
+                details
+            };
+
+            fillAfficheFieldsFromRandom(randomObj);
+            generateAffichePrompt(); // Génère le prompt immédiatement après le remplissage
+            console.log("🎲 Champs affiche remplis aléatoirement:", randomObj);
+        });
+    }
+
+    // =========================================================
+    // GENERATE PROMPT BUTTON LISTENER (CORRIGÉ)
+    // =========================================================
+
     const btnPrompt = document.getElementById("affiche-generate-btn");
     if (btnPrompt) {
         btnPrompt.addEventListener("click", () => {
             
-            generateAffichePrompt(); // <-- APPEL DE LA FONCTION NOMMÉE
+            generateAffichePrompt(); // <-- APPEL DE LA FONCTION DE GÉNÉRATION
             
             btnPrompt.classList.add("clicked");
             btnPrompt.innerHTML = "✨ Génération...";
@@ -910,37 +930,43 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // =========================================================
+    // ACTIVATION DES MENUS (AFFICHE / IMAGE)
+    // =========================================================
+    const modeCards = document.querySelectorAll(".mode-card");
+    const afficheMenu = document.getElementById("affiche-menu");
+    // NOTE: imageMenu n'est pas utilisé dans le HTML, mais conservé pour la logique
+    // const imageMenu = document.getElementById("image-menu"); 
+
+    modeCards.forEach(card => {
+        card.addEventListener("click", () => {
+            const mode = card.dataset.mode;
+
+            // visuel actif
+            modeCards.forEach(c => c.classList.remove("active-mode"));
+            card.classList.add("active-mode");
+
+            // Le mode AFFICHE affiche le menu Affiche
+            if (mode === "affiche") {
+                afficheMenu.style.display = "block";
+                // L'autre menu (Image) n'existe pas dans le HTML, donc on le gère indirectement.
+                // Ici, on pourrait appeler selectWorkflow pour s'assurer que le workflow 'affiche.json' est sélectionné.
+                selectWorkflow("affiche.json"); 
+
+            } else {
+                // Si ce n'est pas le mode AFFICHE, on le masque
+                afficheMenu.style.display = "none";
+                // Logique pour sélectionner un autre workflow par défaut peut être ajoutée ici
+                // selectWorkflow("default_image.json");
+            }
+        });
+    });
+
+    // =========================================================
+    // INITIALISATION FINAL
+    // =========================================================
     setInterval(refreshGPU, 10000);
     refreshGPU();
-
-    loadWorkflows();
-        setInterval(refreshGPU, 10000);
-    refreshGPU();
     loadWorkflows();
 
-// =========================================================
-// ACTIVATION DES MENUS (AFFICHE / IMAGE)
-// =========================================================
-const modeCards = document.querySelectorAll(".mode-card");
-const afficheMenu = document.getElementById("affiche-menu");
-const imageMenu = document.getElementById("image-menu");
-
-modeCards.forEach(card => {
-    card.addEventListener("click", () => {
-        const mode = card.dataset.mode;
-
-        // visuel actif
-        modeCards.forEach(c => c.classList.remove("active-mode"));
-        card.classList.add("active-mode");
-
-        if (mode === "affiche") {
-            afficheMenu.style.display = "block";
-            imageMenu.style.display = "none";
-        } else {
-            afficheMenu.style.display = "none";
-            imageMenu.style.display = "block";
-        }
-    });
 });
-
-});  //  ← NE PAS TOUCHER
