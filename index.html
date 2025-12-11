@@ -42,18 +42,15 @@
 
     <div class="mode-selector">
         
-        <div class="mode-card active-mode" data-mode="affiche" id="mode-affiche">
-            <h2>✨ Affiche / Poster</h2>
-            <p>Générez un poster de film ou d'événement basé sur des paramètres créatifs.</p>
+        <div class="mode-card active-mode" data-mode="image" id="mode-image">
+            <img src="vignettes/vignette-image.png" alt="Vignette Image Generation">
         </div>
 
-        <div class="mode-card" data-mode="image" id="mode-image">
-            <h2>📷 Image simple</h2>
-            <p>Générez une image simple à partir d'un prompt texte unique.</p>
+        <div class="mode-card" data-mode="affiche" id="mode-affiche">
+            <img src="vignettes/vignette-affiche.png" alt="Vignette Poster Generation">
         </div>
         
     </div>
-
     <div class="layout">
         <div class="panel">
             <div class="panel-header">
@@ -64,10 +61,10 @@
                         <div class="panel-sub">Sélectionne un workflow, puis ajuste le prompt & paramètres.</div>
                     </div>
                 </div>
-                <span class="pill">Mode : Affiche / Poster</span>
+                <span class="pill">Mode : Workflow only</span>
             </div>
 
-            <form id="generation-form" onsubmit="startGeneration(event)">
+            <form id="generation-form">
                 
                 <div class="section" title="Le workflow (séquence de tâches) à exécuter." style="display:none;">
                     <label>Workflow (obligatoire)</label>
@@ -78,7 +75,7 @@
                             <span style="font-size:12px;color:#9ca3af;">Chargement des workflows…</span>
                         </div>
                     </div>
-                    <input type="hidden" id="workflow-select" name="workflow" value="affiche.json" />
+                    <input type="hidden" id="workflow-select" name="workflow" value="" />
                 </div>
 
                 <div class="section" id="checkpoint-wrapper" title="Le modèle de base (Checkpoint) utilisé pour la génération, si le workflow le supporte." style="display:none;">
@@ -90,303 +87,328 @@
 
                 <div id="affiche-menu" class="section" style="display:block; margin-top:20px;">
 
-                    <h3 style="margin-bottom:15px;">🎨 Générateur d’Affiche Ludique</h3>
+    <h3 style="margin-bottom:15px;">🎨 Générateur d’Affiche Ludique</h3>
 
-                    <button type="button" id="affiche-random-btn" 
-                        class="btn-secondary btn-random-aff" 
-                        style="margin-bottom:20px; width:100%; font-weight:600;">
-                        🎲 Générer une affiche aléatoire
-                    </button>
+    <button type="button" id="affiche-random-btn" 
+        class="btn-secondary btn-random-aff" 
+        style="margin-bottom:20px; width:100%; font-weight:600;">
+        🎲 Générer une affiche aléatoire
+    </button>
 
-                    <label for="aff_titre">Titre de l’affiche (optionnel)</label>
-                    <input id="aff_titre" type="text" placeholder="Ex : LA GRANDE AVENTURE" class="ui-input custom-field">
+    <label for="aff_titre">Titre de l’affiche (optionnel)</label>
+<input id="aff_titre" type="text" placeholder="Ex : LA GRANDE AVENTURE" class="ui-input custom-field">
 
-                    <label for="aff_sous_titre">Sous-titre (optionnel)</label>
-                    <input id="aff_sous_titre" type="text" placeholder="Ex : Nuit magique, édition spéciale…" class="ui-input">
+<label for="aff_sous_titre">Sous-titre (optionnel)</label>
+<input id="aff_sous_titre" type="text" placeholder="Ex : Nuit magique, édition spéciale…" class="ui-input">
 
-                    <label for="aff_tagline">Tagline (texte en bas de l’affiche – optionnel)</label>
-                    <input id="aff_tagline" type="text" placeholder="Ex : Une aventure inoubliable…" class="ui-input">
+<label for="aff_tagline">Tagline (texte en bas de l’affiche – optionnel)</label>
+<input id="aff_tagline" type="text" placeholder="Ex : Une aventure inoubliable…" class="ui-input">
 
 
-                    <label for="aff_theme" style="margin-top: 15px;">Occasion / Thème</label>
-                    <div class="aff-controls-line">
-                        <select id="aff_theme" class="ui-input menu-select">
-                            <option value="">(Sélectionner un thème)</option>
-                            <option value="Anniversaire">Anniversaire</option>
-                            <option value="Noël">Noël</option>
-                            <option value="Halloween">Halloween</option>
-                            <option value="Saint Nicolas">Saint Nicolas</option>
-                            <option value="Nouvel an">Nouvel an</option>
-                            <option value="Saint-Valentin">Saint-Valentin</option>
-                            <option value="Carnaval">Carnaval</option>
-                            <option value="Pâques">Pâques</option>
-                            <option value="Fête des mères">Fête des mères</option>
-                            <option value="Fête des pères">Fête des pères</option>
-                            <option value="custom">Autre (Texte libre)</option>
-                        </select>
-                        <button type="button" class="btn-reset" data-target-id="aff_theme_custom" data-select-id="aff_theme" title="Effacer le champ personnalisé">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h6"/><path d="M3 12a9 9 0 0 1 15-6l-3 3"/></svg>
+    <label for="aff_theme">Occasion / Thème</label>
+    <div class="input-group-row">
+        <select id="aff_theme" class="ui-select">
+            <option value="">Choisir…</option>
+            <option>Anniversaire</option>
+            <option>Noël</option>
+            <option>Halloween</option>
+            <option>Saint Nicolas</option>
+            <option>Nouvel an</option>
+            <option>Saint-Valentin</option>
+            <option>Carnaval</option>
+            <option>Pâques</option>
+            <option>Fête des mères</option>
+            <option>Fête des pères</option>
+        </select>
+        <input id="aff_theme_custom" type="text" placeholder="Ou écrire votre propre thème…" class="ui-input">
+    </div>
+
+    <label for="aff_ambiance" style="margin-top: 15px;">Ambiance générale</label>
+    <div class="input-group-row">
+        <select id="aff_ambiance" class="ui-select">
+            <option value="">Choisir…</option>
+            <option>festive et colorée</option>
+            <option>magique et lumineuse</option>
+            <option>sombre et mystérieuse</option>
+            <option>épique et dramatique</option>
+            <option>humoristique et décalée</option>
+            <option>cosy et chaleureuse</option>
+            <option>futuriste et technologique</option>
+            <option>vintage années 80</option>
+            <option>féerique et enchantée</option>
+            <option>cartoon fun et exagéré</option>
+        </select>
+        <input id="aff_ambiance_custom" type="text" placeholder="Ou écrire une ambiance personnalisée…" class="ui-input">
+    </div>
+
+    <label for="aff_perso_sugg" style="margin-top: 15px;">Personnage principal</label>
+    <div class="input-group-row">
+        <select id="aff_perso_sugg" class="ui-select">
+            <option value="">Choisir…</option>
+            <option>un enfant joyeux</option>
+            <option>un père Noël souriant</option>
+            <option>une sorcière amusante</option>
+            <option>un super-héros dynamique</option>
+            <option>un animal mignon anthropomorphisé</option>
+            <option>un robot stylisé</option>
+            <option>un monstre rigolo</option>
+            <option>une mascotte cartoon</option>
+            <option>un guerrier épique</option>
+            <option>une princesse magique</option>
+        </select>
+        <input id="aff_perso_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input">
+    </div>
+
+    <label for="aff_env_sugg" style="margin-top: 15px;">Environnement</label>
+    <div class="input-group-row">
+        <select id="aff_env_sugg" class="ui-select">
+            <option value="">Choisir…</option>
+            <option>un décor enneigé</option>
+            <option>une salle de fête décorée</option>
+            <option>un château hanté</option>
+            <option>une scène de rue nocturne</option>
+            <option>un salon cosy éclairé aux bougies</option>
+            <option>un paysage futuriste néon</option>
+            <option>une forêt enchantée</option>
+            <option>une ville miniature style maquette</option>
+            <option>une plage tropicale festive</option>
+        </select>
+        <input id="aff_env_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input">
+    </div>
+
+    <label for="aff_action_sugg" style="margin-top: 15px;">Action du personnage</label>
+    <div class="input-group-row">
+        <select id="aff_action_sugg" class="ui-select">
+            <option value="">Choisir…</option>
+            <option>souffle les bougies</option>
+            <option>ouvre un cadeau</option>
+            <option>danse joyeusement</option>
+            <option>lance des confettis</option>
+            <option>vole dans le ciel</option>
+            <option>fait un tour de magie</option>
+            <option>explore un lieu mystérieux</option>
+            <option>combat un monstre rigolo</option>
+            <option>joue d’un instrument de musique</option>
+        </select>
+        <input id="aff_action_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input">
+    </div>
+
+    <label for="aff_details" style="margin-top: 15px;">Détails supplémentaires</label>
+    <textarea id="aff_details" placeholder="Ex: feux d’artifice, neige légère, ballons colorés…" class="ui-input textarea"></textarea>
+
+    <label for="aff_palette" style="margin-top: 15px;">Palette de couleurs</label>
+    <div class="input-group-row">
+        <select id="aff_palette" class="ui-select">
+            <option value="">Choisir…</option>
+            <optgroup label="Simples">
+                <option>couleurs chaudes (rouge, orange, jaune)</option>
+                <option>couleurs froides (bleu, violet, turquoise)</option>
+                <option>pastels doux (rose, pêche, lavande)</option>
+                <option>contraste fort (noir, rouge, or)</option>
+            </optgroup>
+            <optgroup label="Dégradés">
+                <option>dégradé bleu → violet</option>
+                <option>dégradé rouge → orange</option>
+                <option>dégradé rose → bleu</option>
+                <option>dégradé or → noir</option>
+                <option>dégradé turquoise → vert</option>
+            </optgroup>
+        </select>
+        <input id="aff_palette_custom" type="text" placeholder="Ou définir votre propre palette…" class="ui-input">
+    </div>
+
+    <label for="aff_style_titre" style="margin-top: 15px;">Style du titre</label>
+    <div class="input-group-row">
+        <select id="aff_style_titre" class="ui-select">
+            </select>
+        <input id="aff_style_titre_custom" type="text" placeholder="Ou écrire votre propre style…" class="ui-input">
+    </div>
+    
+    </div>
+                <div class="section" id="input-image-section" style="display:none; margin-top: 4px;" title="Image de référence utilisée par certains workflows (ex: Image to Image, ControlNet).">
+                    <label>Image d'entrée (optionnelle)</label>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <button type="button" class="btn-secondary" id="input-image-browse-btn">
+                            Choisir une image…
                         </button>
-                        <input id="aff_theme_custom" type="text" placeholder="Ou écrire votre propre thème…" class="ui-input custom-input">
+                        <span id="input-image-label" style="font-size:12px;color:#9ca3af;">
+                            Aucune image sélectionnée
+                        </span>
                     </div>
+                    <input type="file" id="input-image-file" accept="image/*" style="display:none;">
+                    <input type="hidden" id="input_image_path" name="input_image_path">
+                </div>
 
-
-                    <label for="aff_ambiance" style="margin-top: 15px;">Ambiance générale</label>
-                    <div class="aff-controls-line">
-                        <select id="aff_ambiance" class="ui-input menu-select">
-                            <option value="">(Sélectionner une ambiance)</option>
-                            <option value="festive et colorée">festive et colorée</option>
-                            <option value="magique et lumineuse">magique et lumineuse</option>
-                            <option value="sombre et mystérieuse">sombre et mystérieuse</option>
-                            <option value="épique et dramatique">épique et dramatique</option>
-                            <option value="humoristique et décalée">humoristique et décalée</option>
-                            <option value="cosy et chaleureuse">cosy et chaleureuse</option>
-                            <option value="futuriste et technologique">futuriste et technologique</option>
-                            <option value="vintage années 80">vintage années 80</option>
-                            <option value="féerique et enchantée">féerique et enchantée</option>
-                            <option value="cartoon fun et exagéré">cartoon fun et exagéré</option>
-                            <option value="custom">Autre (Texte libre)</option>
-                        </select>
-                        <button type="button" class="btn-reset" data-target-id="aff_ambiance_custom" data-select-id="aff_ambiance" title="Effacer le champ personnalisé">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h6"/><path d="M3 12a9 9 0 0 1 15-6l-3 3"/></svg>
-                        </button>
-                        <input id="aff_ambiance_custom" type="text" placeholder="Ou écrire une ambiance personnalisée…" class="ui-input custom-input">
+                <div class="section">
+                    <div id="group-steps" style="display: none;" title="Le nombre d'étapes d'échantillonnage (sampling).">
+                        <label for="steps-slider">Steps: <span id="steps-value">30</span></label>
+                        <input type="range" id="steps-slider" name="steps" min="10" max="100" value="30" />
                     </div>
-
-                    <label for="aff_perso_sugg" style="margin-top: 15px;">Personnage principal</label>
-                    <div class="aff-controls-line">
-                        <select id="aff_perso_sugg" class="ui-input menu-select">
-                            <option value="">(Sélectionner un type)</option>
-                            <option value="un enfant joyeux">un enfant joyeux</option>
-                            <option value="un père Noël souriant">un père Noël souriant</option>
-                            <option value="une sorcière amusante">une sorcière amusante</option>
-                            <option value="un super-héros dynamique">un super-héros dynamique</option>
-                            <option value="un animal mignon anthropomorphisé">un animal mignon anthropomorphisé</option>
-                            <option value="un robot stylisé">un robot stylisé</option>
-                            <option value="un monstre rigolo">un monstre rigolo</option>
-                            <option value="une mascotte cartoon">une mascotte cartoon</option>
-                            <option value="un guerrier épique">un guerrier épique</option>
-                            <option value="une princesse magique">une princesse magique</option>
-                            <option value="custom">Autre (Texte libre)</option>
-                        </select>
-                        <button type="button" class="btn-reset" data-target-id="aff_perso_desc" data-select-id="aff_perso_sugg" title="Effacer le champ personnalisé">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h6"/><path d="M3 12a9 9 0 0 1 15-6l-3 3"/></svg>
-                        </button>
-                        <input id="aff_perso_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input custom-input">
-                    </div>
-
-                    <label for="aff_env_sugg" style="margin-top: 15px;">Environnement</label>
-                    <div class="aff-controls-line">
-                        <select id="aff_env_sugg" class="ui-input menu-select">
-                            <option value="">(Sélectionner un lieu)</option>
-                            <option value="un décor enneigé">un décor enneigé</option>
-                            <option value="une salle de fête décorée">une salle de fête décorée</option>
-                            <option value="un château hanté">un château hanté</option>
-                            <option value="une scène de rue nocturne">une scène de rue nocturne</option>
-                            <option value="un salon cosy éclairé aux bougies">un salon cosy éclairé aux bougies</option>
-                            <option value="un paysage futuriste néon">un paysage futuriste néon</option>
-                            <option value="une forêt enchantée">une forêt enchantée</option>
-                            <option value="une ville miniature style maquette">une ville miniature style maquette</option>
-                            <option value="une plage tropicale festive">une plage tropicale festive</option>
-                            <option value="custom">Autre (Texte libre)</option>
-                        </select>
-                        <button type="button" class="btn-reset" data-target-id="aff_env_desc" data-select-id="aff_env_sugg" title="Effacer le champ personnalisé">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h6"/><path d="M3 12a9 9 0 0 1 15-6l-3 3"/></svg>
-                        </button>
-                        <input id="aff_env_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input custom-input">
-                    </div>
-
-
-                    <label for="aff_action_sugg" style="margin-top: 15px;">Action du personnage</label>
-                    <div class="aff-controls-line">
-                        <select id="aff_action_sugg" class="ui-input menu-select">
-                            <option value="">(Sélectionner une action)</option>
-                            <option value="en train de danser joyeusement">en train de danser joyeusement</option>
-                            <option value="en pleine course épique">en pleine course épique</option>
-                            <option value="ouvrant un cadeau magique">ouvrant un cadeau magique</option>
-                            <option value="en train de chanter sous la pluie">en train de chanter sous la pluie</option>
-                            <option value="volant dans le ciel étoilé">volant dans le ciel étoilé</option>
-                            <option value="en train de cuisiner des gâteaux">en train de cuisiner des gâteaux</option>
-                            <option value="face à un miroir magique">face à un miroir magique</option>
-                            <option value="custom">Autre (Texte libre)</option>
-                        </select>
-                        <button type="button" class="btn-reset" data-target-id="aff_action_desc" data-select-id="aff_action_sugg" title="Effacer le champ personnalisé">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h6"/><path d="M3 12a9 9 0 0 1 15-6l-3 3"/></svg>
-                        </button>
-                        <input id="aff_action_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input custom-input">
-                    </div>
-
-
-                    <label for="aff_palette" style="margin-top: 15px;">Palette de couleurs dominante</label>
-                    <div class="aff-controls-line">
-                        <select id="aff_palette" class="ui-input menu-select">
-                            <option value="">(Sélectionner une palette)</option>
-                            <option value="tons vifs, rouge, vert et or">tons vifs, rouge, vert et or</option>
-                            <option value="bleu nuit et argent froid">bleu nuit et argent froid</option>
-                            <option value="tons pastel, rose et jaune doux">tons pastel, rose et jaune doux</option>
-                            <option value="couleurs terre et feu orangé">couleurs terre et feu orangé</option>
-                            <option value="monochrome bleu et violet">monochrome bleu et violet</option>
-                            <option value="custom">Autre (Texte libre)</option>
-                        </select>
-                        <button type="button" class="btn-reset" data-target-id="aff_palette_custom" data-select-id="aff_palette" title="Effacer le champ personnalisé">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h6"/><path d="M3 12a9 9 0 0 1 15-6l-3 3"/></svg>
-                        </button>
-                        <input id="aff_palette_custom" type="text" placeholder="Couleur personnalisée (optionnel)" class="ui-input custom-input">
-                    </div>
-
-
-                    <label for="aff_style_titre" style="margin-top: 15px;">Style de Typographie du Titre (CRITIQUE)</label>
-                    <div class="aff-controls-line">
-                        <select id="aff_style_titre" class="ui-input menu-select" name="aff_style_titre_select">
-                            </select>
-                        <button type="button" class="btn-reset" data-target-id="aff_style_titre_custom" data-select-id="aff_style_titre" title="Effacer le champ personnalisé">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h6"/><path d="M3 12a9 9 0 0 1 15-6l-3 3"/></svg>
-                        </button>
-                        <input type="text" id="aff_style_titre_custom" class="ui-input custom-input" placeholder="Style personnalisé ou 'aleatoire' si non sélectionné...">
-                    </div>
-
-
-                    <label for="aff_details" style="margin-top: 15px;">Détails de rendu (ex: 'photo réaliste', 'dessin')</label>
-                    <input id="aff_details" type="text" placeholder="Ex: 'photo réaliste', 'low poly', 'pastel', etc." class="ui-input">
-
-                    <label for="aff_random_seed" style="margin-top: 15px;">Seed (Laissez vide pour Aléatoire)</label>
-                    <input type="number" id="aff_random_seed" name="aff_random_seed" placeholder="Ex: 12345" class="ui-input" />
-                    
-                    
-                    <div id="affiche-generate-btn-wrapper" style="display: block; margin-top: 15px;">
-                        <button type="submit" id="generate-button" class="btn-primary" style="width: 100%;">
-                            <span class="dot"></span>Démarrer la génération
-                        </button>
-                    </div>
-                </div> <div id="image-menu" style="display:none;">
-
-                    <div class="section">
-                        <label for="prompt">Prompt (Texte)</label>
-                        <textarea id="prompt-image-mode" name="prompt_image_mode" placeholder="Décris précisément l’image à générer…" class="ui-input textarea"></textarea>
-                    </div>
-
-                    <div class="section">
-                        <h4>Paramètres</h4>
-                        
-                        <div id="group-sampler" style="margin-top: 10px;">
-                            <label for="sampler">Sampler:</label>
-                            <select id="sampler" name="sampler">
-                                <option value="euler_a">euler_a</option>
-                                <option value="euler">euler</option>
-                                <option value="dpmpp_2m">dpmpp_2m</option>
-                                <option value="dpmpp_2m_sde">dpmpp_2m_sde</option>
-                                <option value="dpmpp_2s_a">dpmpp_2s_a</option>
-                            </select>
-                        </div>
-                        
-                        <div id="group-steps" style="margin-top: 10px;">
-                            <label for="steps-slider">Steps: <span id="steps-value">30</span></label>
-                            <input type="range" id="steps-slider" name="steps" min="10" max="100" value="30" />
-                        </div>
-
-                        <div id="group-cfg" style="margin-top: 10px;" title="Classifier Free Guidance. Contrôle la fidélité de l'image au prompt.">
-                            <label for="cfg_scale-slider">CFG Scale: <span id="cfg_scale-value">7.0</span></label>
-                            <input type="range" id="cfg_scale-slider" name="cfg_scale" min="1" max="20" step="0.5" value="7" />
-                        </div>
-                        
-                        <div class="section" id="group-seed" style="margin-top: 10px;">
-                            <label for="seed-input">Seed:</label>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <input type="number" id="seed-input" name="seed_value" value="42" style="flex-grow: 1;" class="ui-input" />
-                                <input type="checkbox" id="seed-random-toggle" name="seed_random" style="width: auto; margin-left: 0;" />
-                                <label for="seed-random-toggle" style="margin-left: -5px; display: flex; align-items: center; cursor: pointer;"> Aléatoire ℹ️ </label>
-                            </div>
-                        </div>
-
-                        <div class="section">
-                            <label>Format rapide</label>
-                            <div class="quick-format-icons">
-                                <span class="fmt-icon" data-w="1920" data-h="1080">🖥️</span>
-                                <span class="fmt-icon" data-w="1080" data-h="1920">📱</span>
-                                <span class="fmt-icon" data-w="1080" data-h="1080">🖼️</span>
-                                <span class="fmt-icon" data-w="1536" data-h="640">▭</span>
-                            </div>
-                            <div class="input-group-row" style="margin-top: 15px;">
-                                <div class="input-group">
-                                    <label for="width-input">Largeur</label>
-                                    <input type="number" id="width-input" name="width" value="1080" class="ui-input" />
-                                </div>
-                                <div class="input-group">
-                                    <label for="height-input">Hauteur</label>
-                                    <input type="number" id="height-input" name="height" value="1080" class="ui-input" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="input-group" style="margin-top: 15px;">
-                            <label for="sdxl_quality" title="Définit le nombre de steps par défaut.">Qualité globale</label>
-                            <select id="sdxl_quality" class="ui-select">
-                                <option value="normal">Normal</option>
-                                <option value="high">Haute qualité</option>
-                                <option value="ultra">Ultra</option>
-                            </select>
-                        </div>
+                    <div id="group-cfg" style="display: none; margin-top: 10px;" title="Classifier Free Guidance. Contrôle la fidélité de l'image au prompt.">
+                        <label for="cfg_scale-slider">CFG Scale: <span id="cfg_scale-value">7.0</span></label>
+                        <input type="range" id="cfg_scale-slider" name="cfg_scale" min="1" max="20" step="0.5" value="7" />
                     </div>
                     
-                    <button type="submit" id="generate-button-image" class="btn-primary" style="width: 100%; margin-top: 15px; display: none;">
-                        <span class="dot"></span>Démarrer la génération (Mode Image)
-                    </button>
-                </div> </form>
-            
-            <div class="log-box" id="log-box"></div>
-            <div id="error-box" class="error-text" style="display:none;"></div>
-
-        </div> <div class="panel results-panel">
-            <div id="status-card" class="section status-card">
-                <div class="status-main">
-                    <div class="status-title-group">
-                        <span class="status-label">ÉTAT DE LA TÂCHE</span>
-                        <div id="job-status-pill" class="pill">READY</div>
-                    </div>
-                    <div class="status-details-grid">
-                        <div class="status-detail">
-                            <span class="detail-label">PROMPT ID:</span>
-                            <strong id="job-id">–</strong>
-                        </div>
-                        <div class="status-detail">
-                            <span class="detail-label">PROGRESSION:</span>
-                            <strong id="job-progress">0%</strong>
-                        </div>
-                        <div class="status-detail">
-                            <span class="detail-label">TEMPS ESTIMÉ:</span>
-                            <strong id="job-eta">–</strong>
+                    <div class="section" id="group-seed" style="display:none !important; margin-top: 10px;">
+                        <label for="seed-input">Seed:</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="number" id="seed-input" name="seed_value" value="42" style="flex-grow: 1;" class="ui-input" />
+                            
+                            <input type="checkbox" id="seed-random-toggle" name="seed_random" style="width: auto; margin-left: 0;" />
+                            <label for="seed-random-toggle" style="margin-left: -5px; display: flex; align-items: center; cursor: pointer;">
+                                Aléatoire ℹ️
+                            </label>
                         </div>
                     </div>
                 </div>
-                <div id="status-progress-bar" class="progress-bar"></div>
+
+                <div class="section">
+                    <label>Format rapide</label>
+                    <div class="quick-format-icons">
+                        <span class="fmt-icon" data-w="1920" data-h="1080">🖥️</span>
+                        <span class="fmt-icon" data-w="1080" data-h="1920">📱</span>
+                        <span class="fmt-icon" data-w="1080" data-h="1080">⬛</span>
+                    </div>
+                </div>
+
+                <div class="section row" style="margin-top: 15px; display: none !important;">
+                    <div id="group-width" style="display:none;" title="La largeur de l'image à générer.">
+                        <label for="width-input">Width</label>
+                        <input type="number" id="width-input" name="width" value="1024" class="ui-input" />
+                    </div>
+                    <div id="group-height" style="display:none;" title="La hauteur de l'image à générer.">
+                        <label for="height-input">Height</label>
+                        <input type="number" id="height-input" name="height" value="1024" class="ui-input" />
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div id="group-sampler" style="display: none;" title="L'algorithme d'échantillonnage (sampler) utilisé pour créer l'image.">
+                        <label for="sampler">Sampler</label>
+                        <select id="sampler" name="sampler" class="ui-select">
+                            <option value="euler">Euler</option>
+                            <option value="euler_a">Euler a</option>
+                            <option value="ddim">DDIM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section" id="video-params-section" style="display:none; margin-top: 4px;">
+                    <label>Paramètres vidéo</label>
+                    <div class="row">
+                        <div>
+                            <label for="duration">Durée (secondes)</label>
+                            <input type="number" id="duration" name="duration" value="5" min="1" class="ui-input" />
+                        </div>
+                        <div>
+                            <label for="ratio">Ratio</label>
+                            <select id="ratio" name="ratio" class="ui-select">
+                                <option value="1280:720">1280 × 720 (paysage)</option>
+                                <option value="720:1280">720 × 1280 (portrait)</option>
+                                <option value="1920:1080">1920 × 1080 (paysage large)</option>
+                                <option value="1080:1920">1080 × 1920 (portrait large)</option>
+                                <option value="1024:576">1024 × 576 (standard)</option>
+                                <option value="576:1024">576 × 1024 (portrait standard)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section" id="sdxl-panel" style="display:none; margin-top:10px;">
+                    <h3 style="margin:0 0 8px;font-size:14px;">⚙️ Paramètres SDXL (Refiner)</h3>
+
+                    <label for="sdxl_mode" title="Choix du mode pour le processus de raffinement (Refiner) de l'image.">Mode Refiner</label>
+                    <select id="sdxl_mode" class="ui-select">
+                        <option value="standard">Standard</option>
+                        <option value="detail">Détail boost</option>
+                        <option value="soft">Soft</option>
+                    </select>
+
+                    <div class="row" style="margin-top:8px;">
+                        <div title="Le pourcentage des étapes (steps) auxquelles le processus de raffinement doit commencer.">
+                            <label for="sdxl_start-slider">Refiner Start (%): <span id="sdxl_start-value">60</span></label>
+                            <input type="range" id="sdxl_start-slider" min="0" max="100" value="60" />
+                        </div>
+                        <div title="Le pourcentage des étapes (steps) auxquelles le processus de raffinement doit se terminer.">
+                            <label for="sdxl_end-slider">Refiner End (%): <span id="sdxl_end-value">100</span></label>
+                            <input type="range" id="sdxl_end-slider" min="1" max="100" value="100" />
+                        </div>
+                    </div>
+
+                    <label for="sdxl_quality" style="margin-top:8px;" title="Ajuste la qualité globale de l'image, agissant sur le nombre de steps par défaut.">Qualité globale</label>
+                    <select id="sdxl_quality" class="ui-select">
+                        <option value="normal">Normal</option>
+                        <option value="high">Haute qualité</option>
+                        <option value="ultra">Ultra</option>
+                    </select>
+                </div>
+            </form>
+
+            <div class="log-box" id="log-box"></div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span class="icon">🖼️</span>
+                    <div>
+                        Résultat & preview
+                        <div class="panel-sub">Prévisualisation temps réel et image finale.</div>
+                    </div>
+                </div>
+                <span class="pill-green" id="job-status-pill">READY</span>
             </div>
 
-            <div id="affiche-generate-button-wrapper" style="margin-bottom: 12px; display: none;">
-                <button type="button" id="affiche-generate-btn" class="btn-primary" style="width: 100%; font-weight: bold;">
+            <div id="affiche-generate-button-wrapper" style="margin-bottom: 12px;"> 
+                <button type="button" id="affiche-generate-btn" class="btn-main" style="font-size:15px; padding:12px; width: 100%;">
                     ✨ Générer le prompt de l’affiche
                 </button>
             </div>
             
-            <div class="image-preview-wrapper" id="image-preview-wrapper">
-                <img id="image-preview" src="" alt="Aperçu de l'image générée" class="image-preview" style="display:none;">
-                <div id="placeholder-message" class="placeholder-message">
-                    <p>Votre image générée apparaîtra ici.</p>
+            <div style="margin-bottom: 12px;">
+                <button id="generate-button" type="submit" class="btn-main" form="generation-form" style="width: 100%; display: none;">
+                    <span class="dot"></span>
+                    Démarrer la génération
+                </button>
+            </div>
+            
+            <div id="result-area">
+                <div id="progress-overlay">
+                    <div id="progress-spinner"></div>
+                    <div id="progress-meta">
+                        <span id="progress-label">En attente…</span>
+                        <span id="progress-percent">0%</span>
+                    </div>
+                    <div class="progress-bar-large">
+                        <div class="progress-inner-large" id="progress-inner"></div>
+                    </div>
                 </div>
-                <div id="download-group" class="download-group" style="display:none;">
-                    <a id="download-link" href="#" download="generated_image.png" class="btn-secondary">
-                        Télécharger l'image
-                    </a>
+
+                <div id="result-placeholder">
+                    <p style="font-size:12px;color:var(--muted);text-align:center;">
+                        Aucune image encore générée. Configure ton workflow à gauche et clique sur
+                        <strong>"Démarrer la génération"</strong>.
+                    </p>
                 </div>
+
             </div>
 
-            <div class="section" id="meta-section">
+            <div id="result-footer" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border);">
+                <div class="row" style="margin-bottom: 8px; justify-content: space-between;">
+                    <span style="font-size:12px; color:var(--muted); display:flex; align-items:center; gap: 4px;">
+                        ⏱️ Temps de génération : <strong id="time-taken">–</strong>
+                    </span>
+                    <button type="button" id="copy-params-btn" class="btn-secondary" style="padding: 4px 10px; font-size: 12px;">
+                        📋 Copier les paramètres
+                    </button>
+                </div>
+                
                 <h3 style="margin: 0 0 5px; font-size: 14px; color: var(--text);">Paramètres (Info)</h3>
                 <div id="metadata-display" class="metadata-grid">
                     <span title="Seed">Seed: <strong id="meta-seed">–</strong></span>
                     <span title="Steps">Steps: <strong id="meta-steps">–</strong></span>
                     <span title="CFG Scale">CFG: <strong id="meta-cfg">–</strong></span>
                     <span title="Sampler">Sampler: <strong id="meta-sampler">–</strong></span>
-                    <button type="button" id="copy-params-btn" class="btn-copy-sm">📋 Copier</button>
                 </div>
             </div>
             
@@ -394,7 +416,13 @@
                 <label for="prompt">Prompt</label>
                 <textarea id="prompt" name="prompt" placeholder="Décris précisément l’image à générer…" class="ui-input textarea"></textarea>
             </div>
-        </div> </div> </div> <div id="image-modal" class="modal">
+            
+            <div id="error-box" class="error-text" style="display:none;"></div>
+        </div>
+    </div>
+</div>
+
+<div id="image-modal" class="modal">
     <div class="modal-content">
         <span class="modal-close-btn">&times;</span>
         <img id="modal-image" src="" alt="Image en taille réelle" />
@@ -415,11 +443,7 @@
     </div>
 </div>
 
-<div id="progress-overlay" class="progress-overlay" style="display:none;">
-    <div class="spinner"></div>
-    <p id="progress-message">Initialisation...</p>
-</div>
-
 <script src="script.js"></script>
+
 </body>
 </html>
