@@ -105,7 +105,7 @@ header {
 }
 
 /* =========================================================
-   MODE SELECTOR
+   MODE SELECTOR (CARDS COTE À CÔTE)
 ========================================================= */
 
 .mode-selector {
@@ -129,11 +129,6 @@ header {
     border-color: var(--accent);
     transform: translateY(-4px);
     box-shadow: 0 12px 25px rgba(212,175,55,0.18);
-}
-
-.mode-icon {
-    font-size: 46px;
-    margin-bottom: 10px;
 }
 
 .mode-card h2 {
@@ -244,7 +239,7 @@ label {
     border: 1px solid #2c2c2c;
     cursor: pointer;
     transition: .15s;
-    /* Correction de la largeur pour les selects */
+    /* FIX pour la largeur du select */
     width: 100% !important; 
     min-width: 100% !important;
 }
@@ -305,24 +300,6 @@ label {
 .btn-main:hover {
     transform: translateY(-2px);
     box-shadow: 0 16px 40px rgba(212,175,55,0.45);
-}
-
-/* RANDOM BUTTON */
-.btn-random {
-    width: 100%;
-    padding: 12px;
-    border-radius: 12px;
-    background: #1d1d1d;
-    border: 1px solid #333;
-    color: var(--accent);
-    cursor: pointer;
-    font-weight: 600;
-    transition: .18s;
-}
-
-.btn-random:hover {
-    border-color: var(--accent);
-    background: #2a2a2a;
 }
 
 /* Secondary button */
@@ -459,6 +436,11 @@ label {
     width: 100% !important;
 }
 
+.ui-select {
+    width: 100% !important;
+    min-width: 100% !important;
+}
+
 /* =========================================================
    LAYOUT 2 COLONNES PREMIUM
 ========================================================= */
@@ -489,7 +471,7 @@ label {
 }
 
 /* =========================================================
-   VIGNETTES (Quick Format Icons) NOUVEAUX STYLES
+   VIGNETTES (Quick Format Icons) - Styles basiques
 ========================================================= */
 .quick-format-icons {
     display: flex;
@@ -503,17 +485,14 @@ label {
     justify-content: center;
     align-items: center;
     padding: 8px 0;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 20px; 
     color: var(--text);
     background: #1f1f1f;
     border: 1px solid #3a3a3a;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
-    height: 60px; /* Augmenté légèrement pour une meilleure visibilité de la vignette */
-    position: relative;
-    overflow: hidden;
+    height: 40px; 
 }
 
 .fmt-icon:hover {
@@ -521,37 +500,10 @@ label {
     background: #2a2a2a;
 }
 
-/* Styles pour simuler les vignettes (le petit rectangle) */
-.fmt-icon::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: var(--accent-soft);
-    border: 1px solid var(--accent);
-    border-radius: 3px;
-    /* Rendre le fond légèrement plus visible que le texte */
-    opacity: 0.9; 
-}
+/* =========================================================
+   MASQUER LES ÉLÉMENTS SPÉCIFIQUES DEMANDÉS (vignettes de workflow)
+========================================================= */
 
-/* Vignette Paysage (Wide) */
-.wide-format::before {
-    width: 80%; /* Largeur de la forme */
-    height: 40%; /* Hauteur de la forme */
-}
-/* Texte aligné pour ne pas masquer la forme */
-.wide-format {
-    padding-top: 30px; 
-}
-
-
-/* Vignette Portrait (Tall) */
-.tall-format::before {
-    width: 40%; /* Largeur de la forme */
-    height: 80%; /* Hauteur de la forme */
-}
-/* Texte aligné pour ne pas masquer la forme */
-.tall-format {
-    padding-top: 30px;
+.workflow-thumb {
+    display: none !important;
 }
