@@ -753,3 +753,11 @@ input[type=range]::-webkit-slider-thumb {
     background-color: #7d51b3;
     border-color: #6a40a0;
 }
+/* =========================================================
+   STATUT JOB PILLS (pour pollProgress)
+========================================================= */
+
+.pill-danger {
+    background-color: var(--danger); /* Utilise la variable --danger: #ff4f4f */
+    color: var(--bg);
+}
