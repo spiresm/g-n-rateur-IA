@@ -373,25 +373,15 @@ ${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
 
 Rules for text:
 - Only the items above are permitted.
-- No additional text, no hallucinations, no symbols.
-- No decorative scribbles.
-
-TEXT RENDERING INSTRUCTIONS (VERY IMPORTANT):
-- The text must use the following MATERIAL or SURFACE STYLE ONLY for the LETTERING:
-  "${styleTitre || "cinematic, elegant contrast"}".
-
-STRICT STYLE ISOLATION:
-- The text style applies EXCLUSIVELY to the glyph shapes of the letters.
-- DO NOT apply this style to characters, props, environment, lighting, shading, materials,
-  or any other part of the visual scene.
-- The global image must retain a realistic cinematic rendering.
-- Characters, objects, and backgrounds must NOT inherit, reflect, or resemble the text style.
-
-TECHNICAL ENFORCEMENT:
-- Render the text in a separate compositing layer from the rest of the scene.
-- Do NOT match global rendering style to the text style.
-- Do NOT harmonize the text style with the image style.
-- Treat the text style as an isolated material override.
+- No additional text, no hallucinated wording.
+- No extra letters, no random symbols.
+- No decorative scribbles resembling handwriting.
+- TEXT STYLE / MATERIAL (APPLIES ONLY TO LETTERING):
+  ${styleTitre || "cinematic, elegant contrast"}.
+- IMPORTANT: The text style applies ONLY to the lettering.
+  Do NOT apply this style to the characters, environment, rendering,
+  lighting, textures, materials, or the overall image.
+  The global visual style of the poster must remain independent.
 
 `;
     }
@@ -834,36 +824,7 @@ async function startGeneration(e) {
 // INIT GLOBAL (DOMContentLoaded)
 // =========================================================
 
-function autoClearOnSelect(selectId, customId) {
-    const sel = document.getElementById(selectId);
-    const custom = document.getElementById(customId);
-
-    if (!sel || !custom) return;
-
-    sel.addEventListener("change", () => {
-        if (sel.value && custom.value.trim() !== "") {
-            custom.value = ""; // Efface le champ libre
-        }
-    });
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-
-    // =========================================================
-    // AUTO-CLEAR POUR CHAQUE SELECT → CHAMP CUSTOM
-    // =========================================================
-    autoClearOnSelect("aff_style_titre", "aff_style_titre_custom");
-    autoClearOnSelect("aff_theme", "aff_theme_custom");
-    autoClearOnSelect("aff_ambiance", "aff_ambiance_custom");
-    autoClearOnSelect("aff_perso_sugg", "aff_perso_desc");
-    autoClearOnSelect("aff_env_sugg", "aff_env_desc");
-    autoClearOnSelect("aff_action_sugg", "aff_action_desc");
-    autoClearOnSelect("aff_palette", "aff_palette_custom");
-
-    // =========================================================
-    // (TON INIT GLOBAL NORMAL)
-    // =========================================================
-
     const formEl = document.getElementById("generation-form");
     if (formEl) {
         formEl.addEventListener("submit", startGeneration);
@@ -877,7 +838,6 @@ document.addEventListener("DOMContentLoaded", () => {
             modal.style.display = "none";
         });
     }
-
     if (modal) {
         modal.addEventListener("click", (ev) => {
             if (ev.target === modal) {
