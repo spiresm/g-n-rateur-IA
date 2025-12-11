@@ -72,7 +72,7 @@
 
             <form id="generation-form">
                 
-                <div class="section" title="Le workflow (séquence de tâches) à exécuter.">
+                <div class="section" title="Le workflow (séquence de tâches) à exécuter." style="display:none;">
                     <label>Workflow (obligatoire)</label>
                     <div class="workflow-carousel-wrapper">
                         <button type="button" class="carousel-btn left" id="workflow-carousel-left">‹</button>
@@ -84,7 +84,7 @@
                     <input type="hidden" id="workflow-select" name="workflow" value="" />
                 </div>
 
-                <div class="section" id="checkpoint-wrapper" title="Le modèle de base (Checkpoint) utilisé pour la génération, si le workflow le supporte.">
+                <div class="section" id="checkpoint-wrapper" title="Le modèle de base (Checkpoint) utilisé pour la génération, si le workflow le supporte." style="display:none;">
                     <label for="checkpoint-select">Checkpoint (si le workflow utilise {{checkpoint}})</label>
                     <select id="checkpoint-select" name="checkpoint">
                         <option value="">Chargement des checkpoints…</option>
