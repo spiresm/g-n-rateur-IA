@@ -42,10 +42,16 @@
 
     <div class="mode-selector">
         <div class="mode-card active-mode" data-mode="image" id="mode-image">
+            <div class="mode-vignette-wrapper">
+                <img src="vignettes/vignette-image.png" alt="Vignette Image Generation">
+            </div>
             <h2>🖼️ Génération d'Image</h2>
             <p>Générer une image libre via prompt texte.</p>
         </div>
         <div class="mode-card" data-mode="affiche" id="mode-affiche">
+            <div class="mode-vignette-wrapper">
+                <img src="vignettes/vignette-affiche.png" alt="Vignette Poster Generation">
+            </div>
             <h2>🎬 Affiche Ludique (Premium)</h2>
             <p>Générateur d'affiche cinématographique personnalisée.</p>
         </div>
@@ -65,10 +71,17 @@
 
             <form id="generation-form">
                 
-                <input type="hidden" id="workflow-select" name="workflow" value="image_z_image_turbo-alien" form="generation-form" />
-                <input type="hidden" id="checkpoint-select" name="checkpoint" value="sdxl_lightning" form="generation-form" />
-                <div id="workflow-groups-container" class="workflow-groups-flex" style="display:none;"></div>
-                <div id="checkpoint-wrapper" style="display: none;"></div>
+                <div class="section" id="workflow-section" style="display:none;">
+                    <label for="workflow-select">Workflow</label>
+                    <div id="workflow-groups-container" class="workflow-groups-flex"></div>
+                    <input type="hidden" id="workflow-select" name="workflow" value="image_z_image_turbo-alien" form="generation-form" />
+                </div>
+
+                <div class="section" id="checkpoint-section" style="display:none;">
+                    <label for="checkpoint-select">Checkpoint</label>
+                    <div id="checkpoint-wrapper"></div>
+                    <input type="hidden" id="checkpoint-select" name="checkpoint" value="sdxl_lightning" form="generation-form" />
+                </div>
                 
                 
                 <div id="affiche-menu" class="section" style="display:none; margin-top:20px;">
@@ -79,8 +92,7 @@
 
                         <div class="field-group">
                             <button type="button" id="affiche-random-btn" 
-                                class="btn-secondary" 
-                                style="margin-bottom:0px; width:100%; font-weight:600;">
+                                class="btn-secondary btn-random-aff">
                                 🎲 Générer une affiche aléatoire
                             </button>
                         </div>
@@ -373,8 +385,7 @@
             </div>
 
             <div id="affiche-generate-btn-wrapper" style="margin-bottom: 12px;">
-                <button type="button" id="affiche-generate-btn" class="btn-main" 
-                        style="font-size:15px; padding:12px; margin-top:0;">
+                <button type="button" id="affiche-generate-btn" class="btn-main">
                     ✨ Générer le prompt de l’affiche
                 </button>
             </div>
@@ -411,7 +422,7 @@
                 <textarea id="prompt" name="prompt" placeholder="Décris précisément l’image à générer…" class="ui-input textarea" form="generation-form"></textarea>
             </div>
             
-            </div>
+        </div>
     </div>
 </div>
 
