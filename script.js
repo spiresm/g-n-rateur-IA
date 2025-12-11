@@ -356,56 +356,116 @@ function mergeSelectAndCustom(selectId, customId) {
 // =========================================================
 
 function generateAffichePrompt() {
-    const titreText = document.getElementById("aff_titre_text")?.value || "";
-    const styleText = document.getElementById("aff_style_text")?.value || "";
-    const description = document.getElementById("aff_description")?.value || "";
-    const mood = document.getElementById("aff_mood")?.value || "";
-    const color = document.getElementById("aff_color")?.value || "";
-    const randomSeed = document.getElementById("aff_random_seed")?.value || "";
-    
-    // NOUVELLE LOGIQUE POUR LE STYLE DE TITRE
-    let selectedStyleValue = document.getElementById("aff_style_titre")?.value;
+    // Récupération des champs de texte simples (Titre, Sous-Titre, Tagline)
+    const titre = document.getElementById("aff_titre")?.value.trim() || "";
+    const sousTitre = document.getElementById("aff_sous_titre")?.value.trim() || "";
+    const tagline = document.getElementById("aff_tagline")?.value.trim() || "";
+    const details = document.getElementById("aff_details")?.value.trim() || "";
+    const randomSeed = document.getElementById("aff_random_seed")?.value.trim() || ""; // Récupère la seed si elle existe
 
-    // Si le style n'est pas sélectionné (valeur vide par défaut) OU si le bouton aléatoire a été cliqué (via le formulaire)
-    // On va chercher une valeur au hasard dans les options du menu déroulant.
-    if (!selectedStyleValue || selectedStyleValue === 'aleatoire') {
+    // Récupération des champs SELECT + CUSTOM via la fonction utilitaire
+    const theme = mergeSelectAndCustom("aff_theme", "aff_theme_custom");
+    const ambiance = mergeSelectAndCustom("aff_ambiance", "aff_ambiance_custom");
+    const perso = mergeSelectAndCustom("aff_perso_sugg", "aff_perso_desc");
+    const env = mergeSelectAndCustom("aff_env_sugg", "aff_env_desc");
+    const action = mergeSelectAndCustom("aff_action_sugg", "aff_action_desc");
+    const palette = mergeSelectAndCustom("aff_palette", "aff_palette_custom");
+    
+    // Logique pour le style du titre
+    let styleTitre = mergeSelectAndCustom("aff_style_titre", "aff_style_titre_custom");
+    
+    // Si le style de titre est vide ou 'aleatoire', on pioche un style dans STYLE_TITRE_OPTIONS
+    if (styleTitre === "" || styleTitre === "aleatoire") {
         const styleSelect = document.getElementById("aff_style_titre");
         const options = styleSelect ? Array.from(styleSelect.options) : [];
-        
-        // Exclure la première option qui est souvent 'Sélectionner' ou 'Aléatoire' si elle a une valeur vide.
         const relevantOptions = options.filter(opt => opt.value !== '');
         
         if (relevantOptions.length > 0) {
             const randomIndex = Math.floor(Math.random() * relevantOptions.length);
-            selectedStyleValue = relevantOptions[randomIndex].value;
-            // Mettre à jour visuellement le select, bien que cela ne soit pas strictement nécessaire pour la logique du prompt.
-            styleSelect.value = selectedStyleValue; 
+            styleTitre = relevantOptions[randomIndex].value;
+            styleSelect.value = styleTitre; // Mise à jour visuelle (optionnel)
             log(`Style de titre aléatoire sélectionné : ${relevantOptions[randomIndex].textContent}`);
+        } else {
+             styleTitre = "cinematic, elegant contrast"; // Valeur de repli
         }
     }
-    
-    // Nettoyage et construction des prompts
-    const prompt_styles = `${mood}, ${color}, ${styleText}`;
-    const negative_prompt = `text, typo, bad text, blurry, watermark, signature, duplicate, multiple characters, worst quality, low quality, bad anatomy, bad fingers`;
-    
-    // Construction du PROMPT FINAL
-    let prompt = `poster, cinematic, movie poster style, ${description}, ${prompt_styles}, --title: "${titreText}", --title_style: "${selectedStyleValue}"`;
 
+
+    const hasTitle = Boolean(titre);
+    const hasSubtitle = Boolean(sousTitre);
+    const hasTagline = Boolean(tagline);
+
+    let textBlock = "";
+
+    // 👉 Si aucun texte : neutralisation totale du texte
+    if (!hasTitle && !hasSubtitle && !hasTagline) {
+        textBlock = `
+NO TEXT MODE:
+The poster must contain ZERO text, letters, symbols or numbers.
+Do not invent any title, subtitle or tagline.
+Avoid any shapes that resemble typography.
+`;
+    } else {
+        textBlock = `
+ALLOWED TEXT ONLY (MODEL MUST NOT INVENT ANYTHING ELSE):
+
+${hasTitle ? `TITLE: "${titre}" (top area, clean, sharp, readable, no distortion)` : ""}
+${hasSubtitle ? `SUBTITLE: "${sousTitre}" (under title, smaller, crisp, readable)` : ""}
+${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
+
+Rules for text:
+- Only the items above are permitted.
+- No additional text, no hallucinated wording.
+- No extra letters, no random symbols.
+- No decorative scribbles resembling handwriting.
+- TEXT STYLE / MATERIAL (APPLIES ONLY TO LETTERING):
+  ${styleTitre || "cinematic, elegant contrast"}.
+- IMPORTANT: The text style applies ONLY to the lettering.
+  Do NOT apply this style to the characters, environment, rendering,
+  lighting, textures, materials, or the overall image.
+  The global visual style of the poster must remain independent.
+`;
+    }
+
+    const visualElements = [
+        theme,
+        ambiance,
+        perso,
+        env,
+        action,
+        palette
+    ].filter(item => item.trim() !== "").join(', ');
+    
+    // Le prompt contient maintenant toutes les variables
+    let prompt = `
+Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
+
+${textBlock}
+
+Visual elements:
+${visualElements}
+
+Extra details:
+${details || "cinematic particles, depth fog, volumetric light"}
+
+Image style:
+Premium poster design, professional layout, ultra high resolution, visually striking.
+    `.trim();
+
+    // Ajout de la seed pour le workflow, si elle existe
     if (randomSeed) {
-        // Si un champ existe pour la seed, on l'ajoute au prompt comme méta-information pour le workflow
         prompt += `, --seed: ${randomSeed}`;
     }
 
-    // Affichage dans le textarea (pour vérification)
     const promptArea = document.getElementById("prompt");
     if (promptArea) {
         promptArea.value = prompt;
     }
 
     log("🎨 Prompt affiche généré et prêt à être envoyé.");
-
-    // Ceci est crucial pour que startGeneration le récupère :
-    return prompt;
+    
+    // Le retour de la valeur est CRUCIAL pour la fonction startGeneration
+    return prompt; 
 }
 
 
