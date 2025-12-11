@@ -761,3 +761,104 @@ input[type=range]::-webkit-slider-thumb {
     background-color: var(--danger); /* Utilise la variable --danger: #ff4f4f */
     color: var(--bg);
 }
+/* =========================================================
+   AFFICHE - CONTRÔLES SPÉCIFIQUES
+========================================================= */
+
+/* Ligne de contrôle : conteneur flexible pour Select + Reset + Input */
+.aff-controls-line {
+    display: flex;
+    gap: 8px; /* Espace entre les éléments */
+    align-items: center;
+    width: 100%;
+}
+
+/* Le Select (menu déroulant) prend 1/3 de l'espace, sauf si seul */
+.aff-controls-line .ui-input:not(.custom-input) {
+    flex: 1 1 33%; /* Base 33%, peut grandir/rétrécir */
+    min-width: 0; /* Important pour le flex */
+}
+
+/* L'Input Custom prend le reste de l'espace */
+.aff-controls-line .custom-input {
+    flex: 2 1 66%; /* Base 66%, peut grandir/rétrécir */
+}
+
+
+/* STYLE VISUEL SPÉCIFIQUE (Pour aider à identifier les champs) */
+
+/* Select normal */
+.menu-select {
+    background-color: var(--panel-alt);
+    border: 1px solid var(--border);
+    transition: border-color 0.2s;
+}
+.menu-select:focus {
+    border-color: #22c55e; /* Vert Accent Strong */
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+}
+
+/* Input Custom (Texte libre) */
+.custom-input {
+    background-color: var(--panel-alt);
+    border: 1px solid var(--border);
+    transition: border-color 0.2s;
+}
+.custom-input:focus {
+    border-color: #f59e0b; /* Ambre/Jaune */
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
+}
+
+/* Bouton Reset (la croix) */
+.btn-reset {
+    /* Style de base: taille, centrage */
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    
+    /* Couleurs */
+    background: #450a0a; /* Rouge foncé */
+    border: 1px solid #7f1d1d; /* Bordure rouge */
+    color: #fca5a5; /* Icône rouge pâle */
+    
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    
+    /* Assure qu'il ne s'étire pas */
+    flex-shrink: 0;
+}
+
+.btn-reset:hover {
+    background: #6f1111; /* Rouge plus clair au survol */
+    border-color: #fca5a5;
+    color: white;
+}
+
+/* L'input custom est masqué par défaut */
+.custom-input {
+    display: none;
+}
+
+/* Afficher uniquement les champs personnalisés si le menu Select a la valeur 'custom' */
+.aff-controls-line select:not([value='custom']) ~ .custom-input {
+    display: none !important;
+}
+
+/* Afficher l'input si la valeur 'custom' est sélectionnée */
+.aff-controls-line select[value='custom'] ~ .custom-input {
+    display: block !important;
+}
+
+/* Masquer le bouton reset si l'input custom est masqué */
+.aff-controls-line .custom-input:not([style*="display: block"]) ~ .btn-reset {
+    display: none !important;
+}
+
+/* Masquer le bouton reset si l'input custom est visible MAIS vide, ET que le select est sur 'custom' */
+.aff-controls-line .custom-input[value=''] ~ .btn-reset {
+    /* Mettre la logique via JS est plus fiable pour le reset */
+}
