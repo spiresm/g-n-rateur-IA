@@ -395,9 +395,12 @@ function generateAffichePrompt() {
     const hasSubtitle = Boolean(sousTitre);
     const hasTagline = Boolean(tagline);
 
+
+    // 3. Construction des prompts pour le modèle
+    
     let textBlock = "";
 
-    // 👉 Si aucun texte : neutralisation totale du texte
+    // Le prompt de texte complexe est injecté directement dans le prompt principal
     if (!hasTitle && !hasSubtitle && !hasTagline) {
         textBlock = `
 NO TEXT MODE:
@@ -406,6 +409,7 @@ Do not invent any title, subtitle or tagline.
 Avoid any shapes that resemble typography.
 `;
     } else {
+        // 🛑 BLOC CRUCIAL POUR DISSOCIER LE STYLE DE TITRE 🛑
         textBlock = `
 ALLOWED TEXT ONLY (MODEL MUST NOT INVENT ANYTHING ELSE):
 
@@ -413,20 +417,14 @@ ${hasTitle ? `TITLE: "${titre}" (top area, clean, sharp, readable, no distortion
 ${hasSubtitle ? `SUBTITLE: "${sousTitre}" (under title, smaller, crisp, readable)` : ""}
 ${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
 
-Rules for text:
-- Only the items above are permitted.
-- No additional text, no hallucinated wording.
-- No extra letters, no random symbols.
-- No decorative scribbles resembling handwriting.
-- TEXT STYLE / MATERIAL (APPLIES ONLY TO LETTERING):
-  ${styleTitre || "cinematic, elegant contrast"}.
-- IMPORTANT: The text style applies ONLY to the lettering.
-  Do NOT apply this style to the characters, environment, rendering,
-  lighting, textures, materials, or the overall image.
-  The global visual style of the poster must remain independent.
+RULES FOR TEXT:
+- Only the items above are permitted. No additional text, no hallucinated wording.
+- **TEXT STYLE/MATERIAL (APPLIES ONLY TO LETTERING)**: ${styleTitre || "cinematic, elegant contrast"}.
+- **CRITICAL INSTRUCTION: DO NOT APPLY** the text style (e.g., 'dripping horror', 'neon', 'frosted') to the **characters, environment, lighting, or overall rendering**. The main image's mood and style must be defined exclusively by the 'Visual elements' below.
 `;
     }
-
+    
+    // Filtrage des éléments visuels vides
     const visualElements = [
         theme,
         ambiance,
@@ -436,7 +434,7 @@ Rules for text:
         palette
     ].filter(item => item.trim() !== "").join(', ');
     
-    // Le prompt contient maintenant toutes les variables
+    // Construction du prompt principal
     let prompt = `
 Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
 
@@ -450,9 +448,10 @@ ${details || "cinematic particles, depth fog, volumetric light"}
 
 Image style:
 Premium poster design, professional layout, ultra high resolution, visually striking.
-    `.trim();
+    `.trim().replace(/\n\s*\n/g, '\n').replace(/\s{2,}/g, ' '); // Nettoyage des sauts de ligne inutiles
 
-    // Ajout de la seed pour le workflow, si elle existe
+
+    // Ajout de la seed
     if (randomSeed) {
         prompt += `, --seed: ${randomSeed}`;
     }
@@ -464,7 +463,6 @@ Premium poster design, professional layout, ultra high resolution, visually stri
 
     log("🎨 Prompt affiche généré et prêt à être envoyé.");
     
-    // Le retour de la valeur est CRUCIAL pour la fonction startGeneration
     return prompt; 
 }
 
