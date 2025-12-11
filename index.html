@@ -79,160 +79,169 @@
                 <!-- ========================================================= -->
                 <div id="affiche-menu" class="section" style="display:none; margin-top:20px;">
 
-    <h3 style="margin-bottom:15px;">🎨 Générateur d’Affiche Ludique</h3>
+    <div class="menu-premium">
+        <h3 class="menu-title">🎨 Générateur d’Affiche Ludique</h3>
+        <p class="menu-sub">Créez une affiche de style cinématographique personnalisée pour votre événement.</p>
 
-    <!-- 🔹 BOUTON RANDOM EN HAUT -->
-    <button type="button" id="affiche-random-btn" 
-        class="btn-secondary" 
-        style="margin-bottom:20px; width:100%; font-weight:600; background:#1e293b; border-color:#4f46e5;">
-        🎲 Générer une affiche aléatoire
-    </button>
+        <button type="button" id="affiche-random-btn" 
+            class="btn-secondary" 
+            style="margin-bottom:20px; width:100%; font-weight:600;">
+            🎲 Générer une affiche aléatoire
+        </button>
 
-    <!-- 🔹 TITRE -->
-<label for="aff_titre">Titre de l’affiche (optionnel)</label>
-<input id="aff_titre" type="text" placeholder="Ex : LA GRANDE AVENTURE">
+        <div class="field-group">
+            <label for="aff_titre">Titre de l’affiche (optionnel)</label>
+            <input id="aff_titre" type="text" class="ui-input custom-field" placeholder="Ex : LA GRANDE AVENTURE">
+        </div>
 
-<!-- 🔹 SOUS-TITRE -->
-<label for="aff_sous_titre">Sous-titre (optionnel)</label>
-<input id="aff_sous_titre" type="text" placeholder="Ex : Nuit magique, édition spéciale…">
+        <div class="field-group">
+            <label for="aff_sous_titre">Sous-titre (optionnel)</label>
+            <input id="aff_sous_titre" type="text" class="ui-input" placeholder="Ex : Nuit magique, édition spéciale…">
+        </div>
 
-<!-- 🔹 TAGLINE -->
-<label for="aff_tagline">Tagline (texte en bas de l’affiche – optionnel)</label>
-<input id="aff_tagline" type="text" placeholder="Ex : Une aventure inoubliable…">
+        <div class="field-group">
+            <label for="aff_tagline">Tagline (texte en bas de l’affiche – optionnel)</label>
+            <input id="aff_tagline" type="text" class="ui-input" placeholder="Ex : Une aventure inoubliable…">
+        </div>
 
+        <hr class="separator" />
+        
+        <div class="field-group">
+            <label for="aff_theme">Occasion / Thème</label>
+            <select id="aff_theme" class="ui-select">
+                <option value="">Choisir…</option>
+                <option>Anniversaire</option>
+                <option>Noël</option>
+                <option>Halloween</option>
+                <option>Saint Nicolas</option>
+                <option>Nouvel an</option>
+                <option>Saint-Valentin</option>
+                <option>Carnaval</option>
+                <option>Pâques</option>
+                <option>Fête des mères</option>
+                <option>Fête des pères</option>
+            </select>
+            <input id="aff_theme_custom" type="text" class="ui-input" placeholder="Ou écrire votre propre thème…" style="margin-top: 6px;">
+        </div>
 
-    <!-- 🔹 OCCASION / THÈME -->
-    <label for="aff_theme">Occasion / Thème</label>
-    <select id="aff_theme">
-        <option value="">Choisir…</option>
-        <option>Anniversaire</option>
-        <option>Noël</option>
-        <option>Halloween</option>
-        <option>Saint Nicolas</option>
-        <option>Nouvel an</option>
-        <option>Saint-Valentin</option>
-        <option>Carnaval</option>
-        <option>Pâques</option>
-        <option>Fête des mères</option>
-        <option>Fête des pères</option>
-    </select>
+        <div class="field-group">
+            <label for="aff_ambiance">Ambiance générale</label>
+            <select id="aff_ambiance" class="ui-select">
+                <option value="">Choisir…</option>
+                <option>festive et colorée</option>
+                <option>magique et lumineuse</option>
+                <option>sombre et mystérieuse</option>
+                <option>épique et dramatique</option>
+                <option>humoristique et décalée</option>
+                <option>cosy et chaleureuse</option>
+                <option>futuriste et technologique</option>
+                <option>vintage années 80</option>
+                <option>féerique et enchantée</option>
+                <option>cartoon fun et exagéré</option>
+            </select>
+            <input id="aff_ambiance_custom" type="text" class="ui-input" placeholder="Ou écrire une ambiance personnalisée…" style="margin-top: 6px;">
+        </div>
+        
+        <hr class="separator" />
 
-    <input id="aff_theme_custom" type="text" placeholder="Ou écrire votre propre thème…">
+        <div class="field-group">
+            <label for="aff_perso_sugg">Personnage principal</label>
+            <select id="aff_perso_sugg" class="ui-select">
+                <option value="">Choisir…</option>
+                <option>un enfant joyeux</option>
+                <option>un père Noël souriant</option>
+                <option>une sorcière amusante</option>
+                <option>un super-héros dynamique</option>
+                <option>un animal mignon anthropomorphisé</option>
+                <option>un robot stylisé</option>
+                <option>un monstre rigolo</option>
+                <option>une mascotte cartoon</option>
+                <option>un guerrier épique</option>
+                <option>une princesse magique</option>
+            </select>
+            <input id="aff_perso_desc" type="text" class="ui-input" placeholder="Description personnelle (optionnel)" style="margin-top: 6px;">
+        </div>
 
-    <!-- 🔹 AMBIANCE GÉNÉRALE -->
-    <label for="aff_ambiance">Ambiance générale</label>
-    <select id="aff_ambiance">
-        <option value="">Choisir…</option>
-        <option>festive et colorée</option>
-        <option>magique et lumineuse</option>
-        <option>sombre et mystérieuse</option>
-        <option>épique et dramatique</option>
-        <option>humoristique et décalée</option>
-        <option>cosy et chaleureuse</option>
-        <option>futuriste et technologique</option>
-        <option>vintage années 80</option>
-        <option>féerique et enchantée</option>
-        <option>cartoon fun et exagéré</option>
-    </select>
+        <div class="field-group">
+            <label for="aff_env_sugg">Environnement</label>
+            <select id="aff_env_sugg" class="ui-select">
+                <option value="">Choisir…</option>
+                <option>un décor enneigé</option>
+                <option>une salle de fête décorée</option>
+                <option>un château hanté</option>
+                <option>une scène de rue nocturne</option>
+                <option>un salon cosy éclairé aux bougies</option>
+                <option>un paysage futuriste néon</option>
+                <option>une forêt enchantée</option>
+                <option>une ville miniature style maquette</option>
+                <option>une plage tropicale festive</option>
+            </select>
+            <input id="aff_env_desc" type="text" class="ui-input" placeholder="Description personnelle (optionnel)" style="margin-top: 6px;">
+        </div>
 
-    <input id="aff_ambiance_custom" type="text" placeholder="Ou écrire une ambiance personnalisée…">
+        <div class="field-group">
+            <label for="aff_action_sugg">Action du personnage</label>
+            <select id="aff_action_sugg" class="ui-select">
+                <option value="">Choisir…</option>
+                <option>souffle les bougies</option>
+                <option>ouvre un cadeau</option>
+                <option>danse joyeusement</option>
+                <option>lance des confettis</option>
+                <option>vole dans le ciel</option>
+                <option>fait un tour de magie</option>
+                <option>explore un lieu mystérieux</option>
+                <option>combat un monstre rigolo</option>
+                <option>joue d’un instrument de musique</option>
+            </select>
+            <input id="aff_action_desc" type="text" class="ui-input" placeholder="Description personnelle (optionnel)" style="margin-top: 6px;">
+        </div>
 
-    <!-- 🔹 PERSONNAGE PRINCIPAL -->
-    <label for="aff_perso_sugg">Personnage principal</label>
-    <select id="aff_perso_sugg">
-        <option value="">Choisir…</option>
-        <option>un enfant joyeux</option>
-        <option>un père Noël souriant</option>
-        <option>une sorcière amusante</option>
-        <option>un super-héros dynamique</option>
-        <option>un animal mignon anthropomorphisé</option>
-        <option>un robot stylisé</option>
-        <option>un monstre rigolo</option>
-        <option>une mascotte cartoon</option>
-        <option>un guerrier épique</option>
-        <option>une princesse magique</option>
-    </select>
+        <hr class="separator" />
 
-    <input id="aff_perso_desc" type="text" placeholder="Description personnelle (optionnel)">
+        <div class="field-group">
+            <label for="aff_details">Détails supplémentaires</label>
+            <textarea id="aff_details" class="ui-input textarea" placeholder="Ex: feux d’artifice, neige légère, ballons colorés…"></textarea>
+        </div>
 
-    <!-- 🔹 ENVIRONNEMENT -->
-    <label for="aff_env_sugg">Environnement</label>
-    <select id="aff_env_sugg">
-        <option value="">Choisir…</option>
-        <option>un décor enneigé</option>
-        <option>une salle de fête décorée</option>
-        <option>un château hanté</option>
-        <option>une scène de rue nocturne</option>
-        <option>un salon cosy éclairé aux bougies</option>
-        <option>un paysage futuriste néon</option>
-        <option>une forêt enchantée</option>
-        <option>une ville miniature style maquette</option>
-        <option>une plage tropicale festive</option>
-    </select>
+        <div class="field-group">
+            <label for="aff_palette">Palette de couleurs</label>
+            <select id="aff_palette" class="ui-select">
+                <option value="">Choisir…</option>
+                <optgroup label="Simples">
+                    <option>couleurs chaudes (rouge, orange, jaune)</option>
+                    <option>couleurs froides (bleu, violet, turquoise)</option>
+                    <option>pastels doux (rose, pêche, lavande)</option>
+                    <option>contraste fort (noir, rouge, or)</option>
+                </optgroup>
+                <optgroup label="Dégradés">
+                    <option>dégradé bleu → violet</option>
+                    <option>dégradé rouge → orange</option>
+                    <option>dégradé rose → bleu</option>
+                    <option>dégradé or → noir</option>
+                    <option>dégradé turquoise → vert</option>
+                </optgroup>
+            </select>
+            <input id="aff_palette_custom" type="text" class="ui-input" placeholder="Ou définir votre propre palette…" style="margin-top: 6px;">
+        </div>
 
-    <input id="aff_env_desc" type="text" placeholder="Description personnelle (optionnel)">
+        <div class="field-group">
+            <label for="aff_style_titre">Style du titre</label>
+            <select id="aff_style_titre" class="ui-select">
+                <option value="">Choisir…</option>
+                <option>blockbuster dramatique</option>
+                <option>cartoon arrondi</option>
+                <option>style manuscrit élégant</option>
+                <option>métallique chromé</option>
+                <option>vintage rétro</option>
+                <option>style horreur</option>
+                <option>minimaliste moderne</option>
+            </select>
+            <input id="aff_style_titre_custom" type="text" class="ui-input" placeholder="Ou écrire votre propre style…" style="margin-top: 6px;">
+        </div>
 
-    <!-- 🔹 ACTIONS -->
-    <label for="aff_action_sugg">Action du personnage</label>
-    <select id="aff_action_sugg">
-        <option value="">Choisir…</option>
-        <option>souffle les bougies</option>
-        <option>ouvre un cadeau</option>
-        <option>danse joyeusement</option>
-        <option>lance des confettis</option>
-        <option>vole dans le ciel</option>
-        <option>fait un tour de magie</option>
-        <option>explore un lieu mystérieux</option>
-        <option>combat un monstre rigolo</option>
-        <option>joue d’un instrument de musique</option>
-    </select>
-
-    <input id="aff_action_desc" type="text" placeholder="Description personnelle (optionnel)">
-
-    <!-- 🔹 Détails -->
-    <label for="aff_details">Détails supplémentaires</label>
-    <textarea id="aff_details" placeholder="Ex: feux d’artifice, neige légère, ballons colorés…"></textarea>
-
-    <!-- 🔹 PALETTE -->
-    <label for="aff_palette">Palette de couleurs</label>
-    <select id="aff_palette">
-        <option value="">Choisir…</option>
-        <optgroup label="Simples">
-            <option>couleurs chaudes (rouge, orange, jaune)</option>
-            <option>couleurs froides (bleu, violet, turquoise)</option>
-            <option>pastels doux (rose, pêche, lavande)</option>
-            <option>contraste fort (noir, rouge, or)</option>
-        </optgroup>
-        <optgroup label="Dégradés">
-            <option>dégradé bleu → violet</option>
-            <option>dégradé rouge → orange</option>
-            <option>dégradé rose → bleu</option>
-            <option>dégradé or → noir</option>
-            <option>dégradé turquoise → vert</option>
-        </optgroup>
-    </select>
-
-    <input id="aff_palette_custom" type="text" placeholder="Ou définir votre propre palette…">
-
-    <!-- 🔹 STYLE TITRE -->
-    <label for="aff_style_titre">Style du titre</label>
-    <select id="aff_style_titre">
-        <option value="">Choisir…</option>
-        <option>blockbuster dramatique</option>
-        <option>cartoon arrondi</option>
-        <option>style manuscrit élégant</option>
-        <option>métallique chromé</option>
-        <option>vintage rétro</option>
-        <option>style horreur</option>
-        <option>minimaliste moderne</option>
-    </select>
-
-    <input id="aff_style_titre_custom" type="text" placeholder="Ou écrire votre propre style…">
-
-    <!-- 🔹 BOUTON GÉNÉRATION -->
-    <button type="button" id="affiche-generate-btn" class="btn-main" style="margin-top:20px; font-size:15px; padding:12px;">
-        ✨ Générer le prompt de l’affiche
-    </button>
+        <button type="button" id="affiche-generate-btn" class="btn-main" style="margin-top:20px; font-size:15px; padding:12px;">
+            ✨ Générer le prompt de l’affiche
+        </button>
 
 </div>
                 <!-- ========================================================= -->
