@@ -934,33 +934,39 @@ document.addEventListener("DOMContentLoaded", () => {
     // ACTIVATION DES MENUS (AFFICHE / IMAGE)
     // =========================================================
     const modeCards = document.querySelectorAll(".mode-card");
-    const afficheMenu = document.getElementById("affiche-menu");
-    // NOTE: imageMenu n'est pas utilisé dans le HTML, mais conservé pour la logique
-    // const imageMenu = document.getElementById("image-menu"); 
+const afficheMenu = document.getElementById("affiche-menu");
+const generateButton = document.getElementById("generate-button");
+const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper");
 
-    modeCards.forEach(card => {
-        card.addEventListener("click", () => {
-            const mode = card.dataset.mode;
+modeCards.forEach(card => {
+    card.addEventListener("click", () => {
+        const mode = card.dataset.mode;
 
-            // visuel actif
-            modeCards.forEach(c => c.classList.remove("active-mode"));
-            card.classList.add("active-mode");
+        // visuel actif
+        modeCards.forEach(c => c.classList.remove("active-mode"));
+        card.classList.add("active-mode");
 
-            // Le mode AFFICHE affiche le menu Affiche
-            if (mode === "affiche") {
-                afficheMenu.style.display = "block";
-                // L'autre menu (Image) n'existe pas dans le HTML, donc on le gère indirectement.
-                // Ici, on pourrait appeler selectWorkflow pour s'assurer que le workflow 'affiche.json' est sélectionné.
-                selectWorkflow("affiche.json"); 
+        // Le mode AFFICHE affiche le menu Affiche
+        if (mode === "affiche") {
+            afficheMenu.style.display = "block";
+            selectWorkflow("affiche.json");
 
-            } else {
-                // Si ce n'est pas le mode AFFICHE, on le masque
-                afficheMenu.style.display = "none";
-                // Logique pour sélectionner un autre workflow par défaut peut être ajoutée ici
-                // selectWorkflow("default_image.json");
-            }
-        });
+            // LOGIQUE DE BOUTON : Masquer le bouton Générique, Afficher le bouton Affiche
+            if (generateButton) generateButton.style.display = 'none';
+            if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
+
+        } else { // Mode Image
+            // Si ce n'est pas le mode AFFICHE, on le masque
+            afficheMenu.style.display = "none";
+            // On peut sélectionner un workflow par défaut pour le mode Image ici si besoin.
+            // selectWorkflow("default_image.json");
+
+            // LOGIQUE DE BOUTON : Afficher le bouton Générique, Masquer le bouton Affiche
+            if (generateButton) generateButton.style.display = 'block';
+            if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
+        }
     });
+});
 
     // =========================================================
     // INITIALISATION FINAL
