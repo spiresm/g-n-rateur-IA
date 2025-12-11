@@ -40,22 +40,20 @@
         </div>
     </header>
 
-    <div class="mode-selector-wrapper">
+    <div class="mode-selector">
         
-        <div class="mode-container" data-mode="image">
-            <div class="mode-card active-mode" id="mode-image">
+        <div class="mode-card active-mode" data-mode="image" id="mode-image">
+            <div class="mode-vignette-wrapper">
                 <img src="vignettes/vignette-image.png" alt="Vignette Image Generation">
             </div>
-            <h2>Génération d'Image</h2> 
-            <p>Générer une image libre via prompt texte.</p>
+            <h2>Génération d'Image</h2>
         </div>
 
-        <div class="mode-container" data-mode="affiche">
-            <div class="mode-card" id="mode-affiche">
+        <div class="mode-card" data-mode="affiche" id="mode-affiche">
+            <div class="mode-vignette-wrapper">
                 <img src="vignettes/vignette-affiche.png" alt="Vignette Poster Generation">
             </div>
             <h2>Affiche Ludique (Premium)</h2>
-            <p>Générateur d'affiche cinématographique personnalisée.</p>
         </div>
         
     </div>
@@ -99,7 +97,7 @@
 
     <button type="button" id="affiche-random-btn" 
         class="btn-secondary" 
-        style="margin-bottom:20px; width:100%; font-weight:600; background:#1e293b; border-color:#4f46e5;">
+        style="margin-bottom:20px; width:100%; font-weight:600; background:#6a40a0; border-color:#7d51b3; color:#fff;">
         🎲 Générer une affiche aléatoire
     </button>
 
@@ -128,7 +126,7 @@
         <option>Fête des pères</option>
     </select>
 
-    <input id="aff_theme_custom" type="text" placeholder="Ou écrire votre propre thème…" class="ui-input">
+    <input id="aff_theme_custom" type="text" placeholder="Ou écrire votre propre thème…" class="ui-input" style="margin-top: 6px;">
 
     <label for="aff_ambiance">Ambiance générale</label>
     <select id="aff_ambiance" class="ui-select">
@@ -145,7 +143,7 @@
         <option>cartoon fun et exagéré</option>
     </select>
 
-    <input id="aff_ambiance_custom" type="text" placeholder="Ou écrire une ambiance personnalisée…" class="ui-input">
+    <input id="aff_ambiance_custom" type="text" placeholder="Ou écrire une ambiance personnalisée…" class="ui-input" style="margin-top: 6px;">
 
     <label for="aff_perso_sugg">Personnage principal</label>
     <select id="aff_perso_sugg" class="ui-select">
@@ -162,7 +160,7 @@
         <option>une princesse magique</option>
     </select>
 
-    <input id="aff_perso_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input">
+    <input id="aff_perso_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input" style="margin-top: 6px;">
 
     <label for="aff_env_sugg">Environnement</label>
     <select id="aff_env_sugg" class="ui-select">
@@ -178,7 +176,7 @@
         <option>une plage tropicale festive</option>
     </select>
 
-    <input id="aff_env_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input">
+    <input id="aff_env_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input" style="margin-top: 6px;">
 
     <label for="aff_action_sugg">Action du personnage</label>
     <select id="aff_action_sugg" class="ui-select">
@@ -194,7 +192,7 @@
         <option>joue d’un instrument de musique</option>
     </select>
 
-    <input id="aff_action_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input">
+    <input id="aff_action_desc" type="text" placeholder="Description personnelle (optionnel)" class="ui-input" style="margin-top: 6px;">
 
     <label for="aff_details">Détails supplémentaires</label>
     <textarea id="aff_details" placeholder="Ex: feux d’artifice, neige légère, ballons colorés…" class="ui-input textarea"></textarea>
@@ -217,7 +215,7 @@
         </optgroup>
     </select>
 
-    <input id="aff_palette_custom" type="text" placeholder="Ou définir votre propre palette…" class="ui-input">
+    <input id="aff_palette_custom" type="text" placeholder="Ou définir votre propre palette…" class="ui-input" style="margin-top: 6px;">
 
     <label for="aff_style_titre">Style du titre</label>
     <select id="aff_style_titre" class="ui-select">
@@ -231,7 +229,7 @@
         <option>minimaliste moderne</option>
     </select>
 
-    <input id="aff_style_titre_custom" type="text" placeholder="Ou écrire votre propre style…" class="ui-input">
+    <input id="aff_style_titre_custom" type="text" placeholder="Ou écrire votre propre style…" class="ui-input" style="margin-top: 6px;">
 
     <button type="button" id="affiche-generate-btn" class="btn-main" style="margin-top:20px; font-size:15px; padding:12px; width: 100%;">
         ✨ Générer le prompt de l’affiche
