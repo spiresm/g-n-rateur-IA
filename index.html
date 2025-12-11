@@ -10,9 +10,6 @@
 <body>
 <div class="app-shell">
 
-    <!-- ========================================================= -->
-    <!-- HEADER PREMIUM                                            -->
-    <!-- ========================================================= -->
     <header>
         <div class="title-group">
             <h1>Générateur IA Premium</h1>
@@ -38,239 +35,127 @@
         </div>
     </header>
 
-    <!-- ========================================================= -->
-    <!-- SELECTEUR DU MODE                                         -->
-    <!-- ========================================================= -->
-
-    <div class="mode-selector">
-        <div class="mode-card" data-mode="affiche">
-            <div class="mode-icon">🎬</div>
-            <h2>Créer une Affiche</h2>
-            <p>Construis une affiche cinéma stylée et riche.</p>
-        </div>
-
-        <div class="mode-card" data-mode="image">
-            <div class="mode-icon">🖼️</div>
-            <h2>Créer une Image</h2>
-            <p>Génère une image IA artistique ou réaliste.</p>
-        </div>
-    </div>
-
-    <hr class="separator">
-
-
-    <!-- ========================================================= -->
-    <!-- LAYOUT                                                     -->
-    <!-- ========================================================= -->
     <div class="layout">
-
-        <!-- ========================================================= -->
-        <!-- PANEL DE GAUCHE : MENUS                                   -->
-        <!-- ========================================================= -->
         <div class="panel">
+            <div class="panel-subtitle">✨ Mon prompt créatif</div>
+            
+            <textarea id="prompt-input" class="ui-input" placeholder="Décrivez l'image que vous souhaitez générer..." style="min-height: 150px;"></textarea>
 
-            <!-- ========== MENU AFFICHE ========== -->
-            <div id="affiche-menu" class="menu-premium" style="display:none;">
-                <h3 class="menu-title">🎬 Création d'Affiche</h3>
-                <p class="menu-sub">Personnalisez chaque aspect pour une affiche cinématographique premium.</p>
-
-                <button type="button" id="affiche-random-btn" class="btn-random">
-                    🎲 Générer une Affiche Aléatoire
-                </button>
-
-                <div class="field-group">
-                    <label>Titre</label>
-                    <input id="aff_titre" class="ui-input" type="text" placeholder="Ex : LA GRANDE AVENTURE">
-                </div>
-
-                <div class="field-group">
-                    <label>Sous-titre</label>
-                    <input id="aff_sous_titre" class="ui-input" type="text" placeholder="Ex : La magie commence ici…">
-                </div>
-
-                <div class="field-group">
-                    <label>Tagline (bas de l’affiche)</label>
-                    <input id="aff_tagline" class="ui-input" type="text" placeholder="Ex : Une aventure inoubliable…">
-                </div>
-
-                <hr class="separator">
-
-                <div class="dual-field">
+            <form id="generation-form" onsubmit="event.preventDefault(); startGeneration();">
+                <div class="panel-subtitle" style="margin-top: 20px;">⚙️ Paramètres avancés</div>
+                <div class="settings-grid">
                     <div>
-                        <label>Occasion / Thème</label>
-                        <select id="aff_theme" class="ui-select"></select>
+                        <label for="workflow-select">Workflow</label>
+                        <select id="workflow-select" class="ui-input">
+                            </select>
                     </div>
-                    <input id="aff_theme_custom" class="ui-input custom-field" type="text" placeholder="Votre propre thème…">
-                </div>
-
-                <div class="dual-field">
                     <div>
-                        <label>Ambiance générale</label>
-                        <select id="aff_ambiance" class="ui-select"></select>
+                        <label for="sampler">Sampler</label>
+                        <select id="sampler" class="ui-input">
+                            <option value="res_multistep" selected>res_multistep (Turbo)</option>
+                            <option value="dpmpp_2m_sde">dpmpp_2m_sde</option>
+                            <option value="euler">euler</option>
+                        </select>
                     </div>
-                    <input id="aff_ambiance_custom" class="ui-input custom-field" type="text" placeholder="Décrivez votre ambiance…">
-                </div>
-
-                <hr class="separator">
-
-                <div class="dual-field">
                     <div>
-                        <label>Personnage principal</label>
-                        <select id="aff_perso_sugg" class="ui-select"></select>
+                        <label for="seed-input">Seed</label>
+                        <input type="number" id="seed-input" class="ui-input" value="-1" min="-1" max="99999999999">
                     </div>
-                    <input id="aff_perso_desc" class="ui-input custom-field" type="text" placeholder="Description personnalisée…">
                 </div>
 
-                <div class="dual-field">
+                <div class="slider-group">
+                    <label for="steps-slider">Étapes (Steps): <span id="steps-value">9</span></label>
+                    <input type="range" id="steps-slider" min="1" max="60" value="9" class="ui-slider">
+                </div>
+                <div class="slider-group">
+                    <label for="cfg_scale-slider">CFG Scale: <span id="cfg_scale-value">1.0</span></label>
+                    <input type="range" id="cfg_scale-slider" min="0.1" max="30" step="0.1" value="1.0" class="ui-slider">
+                </div>
+
+                <div class="panel-subtitle">📐 Dimensions</div>
+                <div class="dimensions-grid">
                     <div>
-                        <label>Environnement</label>
-                        <select id="aff_env_sugg" class="ui-select"></select>
+                        <label for="width-input">Largeur (px)</label>
+                        <input type="number" id="width-input" class="ui-input" value="1024" min="64" max="2048" step="8">
                     </div>
-                    <input id="aff_env_desc" class="ui-input custom-field" type="text" placeholder="Votre environnement…">
-                </div>
-
-                <div class="dual-field">
                     <div>
-                        <label>Action du personnage</label>
-                        <select id="aff_action_sugg" class="ui-select"></select>
+                        <label for="height-input">Hauteur (px)</label>
+                        <input type="number" id="height-input" class="ui-input" value="1024" min="64" max="2048" step="8">
                     </div>
-                    <input id="aff_action_desc" class="ui-input custom-field" type="text" placeholder="Description personnalisée…">
                 </div>
 
-                <hr class="separator">
-
-                <div class="field-group">
-                    <label>Détails supplémentaires</label>
-                    <textarea id="aff_details" class="ui-input textarea" placeholder="Ex : fumée, reflets, lumière dramatique…"></textarea>
+                <div class="quick-select-format">
+                    <div class="format-btn" data-width="1024" data-height="1024" data-format="square">□ Carré</div>
+                    <div class="format-btn" data-width="1536" data-height="1024" data-format="landscape">▬ Paysage</div>
                 </div>
 
-                <hr class="separator">
+                <div class="action-block">
+                    <button type="submit" id="generate-btn" class="btn-primary" form="generation-form">
+                        🚀 Lancer la génération
+                    </button>
+                    <div id="error-box" class="error-text" style="display:none;"></div>
+                </div>
+            </form>
 
-                <div class="dual-field">
-                    <div>
-                        <label>Palette</label>
-                        <select id="aff_palette" class="ui-select"></select>
+        </div>
+
+        <div class="panel panel-result">
+            <div id="result-area">
+                <div id="progress-overlay">
+                    <div id="progress-spinner"></div>
+                    <div id="progress-meta">
+                        <span id="progress-label">En attente…</span>
+                        <span id="progress-percent">0%</span>
                     </div>
-                    <input id="aff_palette_custom" class="ui-input custom-field" type="text" placeholder="Palette personnalisée…">
-                </div>
 
-                <div class="dual-field">
-                    <div>
-                        <label>Style du titre</label>
-                        <select id="aff_style_titre" class="ui-select"></select>
+                    <div class="progress-bar-large">
+                        <div class="progress-inner-large" id="progress-inner"></div>
                     </div>
-                    <input id="aff_style_titre_custom" class="ui-input custom-field" type="text" placeholder="Style personnalisé…">
                 </div>
 
-                <button id="affiche-generate-btn" class="btn-main">
-                    ✨ Générer le Prompt de l’Affiche
-                </button>
+                <div id="result-placeholder">
+                    <img id="result-image" src="" alt="Image générée" style="display: none; width: 100%; height: auto; border-radius: 8px;" />
+                    <p id="placeholder-text">Aucune image encore générée.</p>
+                </div>
+            </div>
 
+            <div class="panel-subtitle">🎯 Prompt généré</div>
+            <textarea id="prompt" class="ui-input" style="min-height:130px;" readonly></textarea>
+            
+            <div class="panel-subtitle">📊 Paramètres finaux</div>
+            <div id="metadata-display" class="metadata-grid">
+                <span title="Seed">Seed: <strong id="meta-seed">–</strong></span>
+                <span title="Steps">Steps: <strong id="meta-steps">–</strong></span>
+                <span title="CFG Scale">CFG: <strong id="meta-cfg">–</strong></span>
+                <span title="Sampler">Sampler: <strong id="meta-sampler">–</strong></span>
             </div>
 
 
-            <!-- ========== MENU IMAGE ========== -->
-            <div id="image-menu" class="menu-premium" style="display:none;">
-                <h3 class="menu-title">🖼️ Génération d’Image</h3>
-                <p class="menu-sub">Créez une image IA de haute qualité à partir d’un prompt détaillé.</p>
+            <div class="panel-subtitle">📜 Console</div>
+            <div id="log-box" class="log-box"></div> 
 
-                <div class="field-group">
-                    <label>Prompt principal</label>
-                    <textarea id="prompt" class="ui-input" readonly style="min-height:130px;"></textarea>
-                </div>
-
-                <hr class="separator">
-
-                <div class="field-group">
-                    <label>Image de référence (optionnel)</label>
-                    <button type="button" id="input-image-browse-btn" class="btn-secondary">🖼️ Importer une image…</button>
-                    <span id="input-image-label" class="file-label">Aucune image sélectionnée</span>
-                    <input id="input-image-file" type="file" accept="image/*" style="display:none;">
-                </div>
-
-                <button id="generate-button" class="btn-main">
-                    🚀 Générer l’Image
+            <div id="result-footer" style="margin-top: 18px;">
+                <button type="button" id="copy-params-btn" class="btn-secondary">
+                    📋 Copier les paramètres
                 </button>
             </div>
 
         </div>
-
-
-<!-- ========================================================= -->
-<!-- PANEL DE DROITE : RESULTATS                              -->
-<!-- ========================================================= -->
-<div class="panel">
-
-    <!-- HEADER -->
-    <div class="panel-header">
-        <div class="panel-title">
-            <span class="icon">🖼️</span>
-            <div>
-                Résultat
-                <div class="panel-sub">Prévisualisation & image finale</div>
-            </div>
-        </div>
-        <span class="pill-green" id="job-status-pill">READY</span>
     </div>
 
-    <!-- BOUTON GÉNÉRER L'IMAGE -->
-    <button id="generate-button" class="btn-main" style="margin-bottom: 18px;">
-        🚀 Générer l’image
-    </button>
 
-    <!-- CHOIX FORMAT -->
-    <div class="format-select">
-        <div class="format-option" data-format="square">▢ Carré</div>
-        <div class="format-option" data-format="portrait">▯ Portrait</div>
-        <div class="format-option" data-format="landscape">▬ Paysage</div>
-    </div>
-
-    <!-- PREVIEW -->
-    <div id="result-area">
-        <div id="progress-overlay">
-            <div id="progress-spinner"></div>
-            <div id="progress-meta">
-                <span id="progress-label">En attente…</span>
-                <span id="progress-percent">0%</span>
-            </div>
-
-            <div class="progress-bar-large">
-                <div class="progress-inner-large" id="progress-inner"></div>
-            </div>
-        </div>
-
-        <div id="result-placeholder">
-            <p>Aucune image encore générée.</p>
+    <div id="image-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close-btn">&times;</span>
+            <img id="modal-image" src="" alt="Image HD">
+            <a id="modal-download-link" href="#" download class="btn-secondary" style="margin-top: 20px;">
+                Télécharger (Nom du fichier)
+            </a>
         </div>
     </div>
 
-    <!-- PROMPT GÉNÉRÉ -->
-    <div class="panel-subtitle">🎯 Prompt généré</div>
-    <textarea id="prompt" class="ui-input" style="min-height:130px;" readonly></textarea>
-
-    <!-- LOGS -->
-    <div class="panel-subtitle">📜 Console</div>
-    <div id="log-container" class="log-box"></div>
-
-    <!-- FOOTER -->
-    <div id="result-footer" style="margin-top: 18px;">
-        <button type="button" id="copy-params-btn" class="btn-secondary">
-            📋 Copier les paramètres
-        </button>
-    </div>
-
+    <script src="script.js"></script>
+    
 </div>
-
-
-<!-- Modal -->
-<div id="image-modal" class="modal">
-    <div class="modal-content">
-        <span class="modal-close-btn">&times;</span>
-        <img id="modal-image" src="" alt="Image HD">
-        <a id="modal-download-link" href="#" download class="btn-secondary">Télécharger l’image</a>
-    </div>
-</div>
-
-<script src="script.js"></script>
 </body>
 </html>
