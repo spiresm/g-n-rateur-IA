@@ -632,11 +632,20 @@ async function startGeneration(e) {
     log("Début de la séquence de génération réelle (Max 3 tentatives)...");
 
     const generateBtn = document.getElementById("generate-button");
-    if (generateBtn) {
-        generateBtn.disabled = true;
-        generateBtn.querySelector(".dot").style.background = "#fbbf24";
-        generateBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
+    // NOTE: On utilise le bouton approprié en fonction du mode actif
+    const afficheBtn = document.getElementById("affiche-generate-btn");
+    const currentBtn = (generateBtn && generateBtn.style.display !== 'none') ? generateBtn : afficheBtn;
+
+    if (currentBtn) {
+        currentBtn.disabled = true;
+        // La gestion de l'animation/texte est déjà faite par le click listener pour affiche
+        // Pour le bouton générique (Mode Image), on le met en état 'Génération en cours...'
+        if (currentBtn === generateBtn) {
+            generateBtn.querySelector(".dot").style.background = "#fbbf24";
+            generateBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
+        }
     }
+
 
     lastGenerationStartTime = Date.now();
     showProgressOverlay(true, "Initialisation…");
@@ -697,10 +706,14 @@ async function startGeneration(e) {
         pollProgress(finalPromptId);
     }
 
-    if (generateBtn) {
-        generateBtn.disabled = false;
-        generateBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
-        generateBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
+    // Réactive le bouton
+    if (currentBtn) {
+        currentBtn.disabled = false;
+        // Réinitialise le texte du bouton générique
+        if (currentBtn === generateBtn) {
+            generateBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
+            generateBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
+        }
     }
 }
 
@@ -868,17 +881,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     // =========================================================
-    // RANDOM AFFICHE BUTTON LISTENER
+    // RANDOM AFFICHE BUTTON LISTENER (CORRIGÉ FINAL)
     // =========================================================
 
     const randomBtn = document.getElementById("affiche-random-btn");
-    if (randomBtn) {
+    if (randomBtn && formEl) {
         randomBtn.addEventListener("click", async () => {
             console.log("🎲 Clic random détecté !");
 
             const data = await loadRandomAfficheJSON();
             if (!data) return;
 
+            // ... (logique de pioche aléatoire) ...
             const theme = pickRandom(data.themes);
             const ambiance = pickRandom(data.ambiances);
             const perso = pickRandom(data.personnages);
@@ -906,7 +920,19 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             fillAfficheFieldsFromRandom(randomObj);
-            generateAffichePrompt(); // Génère le prompt immédiatement après le remplissage
+            generateAffichePrompt(); // 1. Génère le prompt immédiatement après le remplissage
+            
+            // 2. Déclenche la soumission du formulaire pour démarrer la génération
+            formEl.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            
+            // 3. Animation du bouton
+            randomBtn.classList.add("clicked");
+            randomBtn.innerHTML = "🎲 Génération...";
+            setTimeout(() => {
+                randomBtn.classList.remove("clicked");
+                randomBtn.innerHTML = "🎲 Aléatoire";
+            }, 600);
+            
             console.log("🎲 Champs affiche remplis aléatoirement:", randomObj);
         });
     }
@@ -916,63 +942,62 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================================
 
     const btnPrompt = document.getElementById("affiche-generate-btn");
-const formEl = document.getElementById("generation-form");
-
-if (btnPrompt && formEl) {
-    btnPrompt.addEventListener("click", () => {
-        
-        generateAffichePrompt(); // 1. Génère le prompt et met à jour le champ caché
-        
-        // 2. Déclenche la soumission du formulaire pour démarrer la génération
-        formEl.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); 
-        
-        // 3. Animation du bouton
-        btnPrompt.classList.add("clicked");
-        btnPrompt.innerHTML = "✨ Génération...";
-        setTimeout(() => {
-            btnPrompt.classList.remove("clicked");
-            btnPrompt.innerHTML = "✨ Générer le prompt de l’affiche";
-        }, 600);
-    });
-}
+    // formEl est disponible dans ce scope
+    if (btnPrompt && formEl) {
+        btnPrompt.addEventListener("click", () => {
+            
+            generateAffichePrompt(); // 1. Génère le prompt et met à jour le champ caché
+            
+            // 2. Déclenche la soumission du formulaire pour démarrer la génération
+            formEl.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); 
+            
+            // 3. Animation du bouton
+            btnPrompt.classList.add("clicked");
+            btnPrompt.innerHTML = "✨ Génération...";
+            setTimeout(() => {
+                btnPrompt.classList.remove("clicked");
+                btnPrompt.innerHTML = "✨ Générer le prompt de l’affiche";
+            }, 600);
+        });
+    }
 
     // =========================================================
-    // ACTIVATION DES MENUS (AFFICHE / IMAGE)
+    // ACTIVATION DES MENUS & BOUTONS (AFFICHE / IMAGE) - CORRIGÉ
     // =========================================================
     const modeCards = document.querySelectorAll(".mode-card");
-const afficheMenu = document.getElementById("affiche-menu");
-const generateButton = document.getElementById("generate-button"); // Le bouton standard
-const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper"); // Le conteneur du bouton Affiche
+    const afficheMenu = document.getElementById("affiche-menu");
+    const generateButton = document.getElementById("generate-button"); // Le bouton standard
+    const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper"); // Le conteneur du bouton Affiche
 
 
-modeCards.forEach(card => {
-    card.addEventListener("click", () => {
-        const mode = card.dataset.mode;
+    modeCards.forEach(card => {
+        card.addEventListener("click", () => {
+            const mode = card.dataset.mode;
 
-        // visuel actif
-        modeCards.forEach(c => c.classList.remove("active-mode"));
-        card.classList.add("active-mode");
+            // visuel actif
+            modeCards.forEach(c => c.classList.remove("active-mode"));
+            card.classList.add("active-mode");
 
-        // Le mode AFFICHE affiche le menu Affiche
-        if (mode === "affiche") {
-            afficheMenu.style.display = "block";
-            selectWorkflow("affiche.json"); 
+            // Le mode AFFICHE affiche le menu Affiche
+            if (mode === "affiche") {
+                afficheMenu.style.display = "block";
+                selectWorkflow("affiche.json"); 
 
-            // LOGIQUE DE BOUTON : Masquer le bouton Générique, Afficher le conteneur Affiche
-            if (generateButton) generateButton.style.display = 'none';
-            if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
+                // LOGIQUE DE BOUTON : Masquer le bouton Générique, Afficher le conteneur Affiche
+                if (generateButton) generateButton.style.display = 'none';
+                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
 
-        } else { // Mode Image
-            // Si ce n'est pas le mode AFFICHE, on le masque
-            afficheMenu.style.display = "none";
-            // L'appel selectWorkflow("default_image.json"); peut être ajouté ici
+            } else { // Mode Image
+                // Si ce n'est pas le mode AFFICHE, on le masque
+                afficheMenu.style.display = "none";
+                // L'appel selectWorkflow("default_image.json"); peut être ajouté ici
 
-            // LOGIQUE DE BOUTON : Afficher le bouton Générique, Masquer le conteneur Affiche
-            if (generateButton) generateButton.style.display = 'block'; // <-- CECI REND LE BOUTON VISIBLE
-            if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
-        }
+                // LOGIQUE DE BOUTON : Afficher le bouton Générique, Masquer le conteneur Affiche
+                if (generateButton) generateButton.style.display = 'block'; // <-- CECI REND LE BOUTON VISIBLE
+                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
+            }
+        });
     });
-});
     // =========================================================
     // INITIALISATION FINAL
     // =========================================================
