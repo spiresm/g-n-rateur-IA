@@ -40,8 +40,20 @@
         </div>
     </header>
 
-    <div class="layout">
-        <div class="panel">
+    <div class="nav-tabs">
+        <button id="tab-settings" class="nav-tab selected" data-panel="settings">
+            <span class="tab-icon">⚙️</span>
+            Paramètres
+        </button>
+        <button id="tab-results" class="nav-tab" data-panel="results">
+            <span class="tab-icon">🖼️</span>
+            Résultats
+        </button>
+    </div>
+
+    <div id="app-screens">
+        
+        <div class="panel app-screen active" id="panel-settings">
             <div class="panel-header">
                 <div class="panel-title">
                     <span class="icon">⚙️</span>
@@ -74,34 +86,26 @@
                     </select>
                 </div>
 
-                <!-- ========================================================= -->
-                <!-- MENU SPÉCIAL AFFICHE CINÉMA (MASQUÉ PAR DÉFAUT)          -->
-                <!-- ========================================================= -->
                 <div id="affiche-menu" class="section" style="display:none; margin-top:20px;">
 
     <h3 style="margin-bottom:15px;">🎨 Générateur d’Affiche Ludique</h3>
 
-    <!-- 🔹 BOUTON RANDOM EN HAUT -->
     <button type="button" id="affiche-random-btn" 
         class="btn-secondary" 
         style="margin-bottom:20px; width:100%; font-weight:600; background:#1e293b; border-color:#4f46e5;">
         🎲 Générer une affiche aléatoire
     </button>
 
-    <!-- 🔹 TITRE -->
-<label for="aff_titre">Titre de l’affiche (optionnel)</label>
+    <label for="aff_titre">Titre de l’affiche (optionnel)</label>
 <input id="aff_titre" type="text" placeholder="Ex : LA GRANDE AVENTURE">
 
-<!-- 🔹 SOUS-TITRE -->
 <label for="aff_sous_titre">Sous-titre (optionnel)</label>
 <input id="aff_sous_titre" type="text" placeholder="Ex : Nuit magique, édition spéciale…">
 
-<!-- 🔹 TAGLINE -->
 <label for="aff_tagline">Tagline (texte en bas de l’affiche – optionnel)</label>
 <input id="aff_tagline" type="text" placeholder="Ex : Une aventure inoubliable…">
 
 
-    <!-- 🔹 OCCASION / THÈME -->
     <label for="aff_theme">Occasion / Thème</label>
     <select id="aff_theme">
         <option value="">Choisir…</option>
@@ -119,7 +123,6 @@
 
     <input id="aff_theme_custom" type="text" placeholder="Ou écrire votre propre thème…">
 
-    <!-- 🔹 AMBIANCE GÉNÉRALE -->
     <label for="aff_ambiance">Ambiance générale</label>
     <select id="aff_ambiance">
         <option value="">Choisir…</option>
@@ -137,7 +140,6 @@
 
     <input id="aff_ambiance_custom" type="text" placeholder="Ou écrire une ambiance personnalisée…">
 
-    <!-- 🔹 PERSONNAGE PRINCIPAL -->
     <label for="aff_perso_sugg">Personnage principal</label>
     <select id="aff_perso_sugg">
         <option value="">Choisir…</option>
@@ -155,7 +157,6 @@
 
     <input id="aff_perso_desc" type="text" placeholder="Description personnelle (optionnel)">
 
-    <!-- 🔹 ENVIRONNEMENT -->
     <label for="aff_env_sugg">Environnement</label>
     <select id="aff_env_sugg">
         <option value="">Choisir…</option>
@@ -172,7 +173,6 @@
 
     <input id="aff_env_desc" type="text" placeholder="Description personnelle (optionnel)">
 
-    <!-- 🔹 ACTIONS -->
     <label for="aff_action_sugg">Action du personnage</label>
     <select id="aff_action_sugg">
         <option value="">Choisir…</option>
@@ -189,11 +189,9 @@
 
     <input id="aff_action_desc" type="text" placeholder="Description personnelle (optionnel)">
 
-    <!-- 🔹 Détails -->
     <label for="aff_details">Détails supplémentaires</label>
     <textarea id="aff_details" placeholder="Ex: feux d’artifice, neige légère, ballons colorés…"></textarea>
 
-    <!-- 🔹 PALETTE -->
     <label for="aff_palette">Palette de couleurs</label>
     <select id="aff_palette">
         <option value="">Choisir…</option>
@@ -214,23 +212,17 @@
 
     <input id="aff_palette_custom" type="text" placeholder="Ou définir votre propre palette…">
 
-    <!-- 🔹 STYLE TITRE -->
     <label for="aff_style_titre">Style du titre</label>
                     
 <select id="aff_style_titre"></select>
 
     <input id="aff_style_titre_custom" type="text" placeholder="Ou écrire votre propre style…">
 
-    <!-- 🔹 BOUTON GÉNÉRATION -->
     <button type="button" id="affiche-generate-btn" class="btn-main" style="margin-top:20px; font-size:15px; padding:12px;">
         ✨ Générer le prompt de l’affiche
     </button>
 
 </div>
-                <!-- ========================================================= -->
-                <!-- FIN MENU AFFICHE                                         -->
-                <!-- ========================================================= -->
-
                 <div class="section" title="Le texte décrivant l'image que vous voulez générer. Soyez le plus précis possible.">
                     <label for="prompt">Prompt</label>
                     <textarea id="prompt" name="prompt" placeholder="Décris précisément l’image à générer…"></textarea>
@@ -353,12 +345,18 @@
                         <option value="ultra">Ultra</option>
                     </select>
                 </div>
+
+                <div style="margin-top: 30px;">
+                    <button id="generate-button" type="submit" class="btn-main" style="width: 100%;">
+                        <span class="dot"></span>
+                        Démarrer la génération
+                    </button>
+                </div>
             </form>
 
             <div class="log-box" id="log-box"></div>
         </div>
-
-        <div class="panel">
+        <div class="panel app-screen" id="panel-results" style="display:none;">
             <div class="panel-header">
                 <div class="panel-title">
                     <span class="icon">🖼️</span>
@@ -370,13 +368,6 @@
                 <span class="pill-green" id="job-status-pill">READY</span>
             </div>
 
-            <div style="margin-bottom: 12px;">
-                <button id="generate-button" type="submit" class="btn-main" form="generation-form" style="width: 100%;">
-                    <span class="dot"></span>
-                    Démarrer la génération
-                </button>
-            </div>
-            
             <div id="result-area">
                 <div id="progress-overlay">
                     <div id="progress-spinner"></div>
@@ -418,8 +409,8 @@
             </div>
             <div id="error-box" class="error-text" style="display:none;"></div>
         </div>
+        </div>
     </div>
-</div>
 
 <div id="image-modal" class="modal">
     <div class="modal-content">
