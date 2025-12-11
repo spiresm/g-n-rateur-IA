@@ -43,17 +43,11 @@
     <div class="mode-selector">
         
         <div class="mode-card active-mode" data-mode="image" id="mode-image">
-            <div class="mode-vignette-wrapper">
-                <img src="vignettes/vignette-image.png" alt="Vignette Image Generation">
-            </div>
-            <h2>Génération d'Image</h2>
+            <img src="vignettes/vignette-image.png" alt="Vignette Image Generation">
         </div>
 
         <div class="mode-card" data-mode="affiche" id="mode-affiche">
-            <div class="mode-vignette-wrapper">
-                <img src="vignettes/vignette-affiche.png" alt="Vignette Poster Generation">
-            </div>
-            <h2>Affiche Ludique (Premium)</h2>
+            <img src="vignettes/vignette-affiche.png" alt="Vignette Poster Generation">
         </div>
         
     </div>
@@ -268,10 +262,10 @@
                     <div class="section" id="group-seed" style="display:none !important; margin-top: 10px;">
                         <label for="seed-input">Seed:</label>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="number" id="seed-input" name="seed_value" value="42" style="flex-grow: 1;" title="Entrez une valeur numérique fixe. Conserver la même 'seed' reproduit le même résultat." class="ui-input" />
+                            <input type="number" id="seed-input" name="seed_value" value="42" style="flex-grow: 1;" class="ui-input" />
                             
                             <input type="checkbox" id="seed-random-toggle" name="seed_random" style="width: auto; margin-left: 0;" />
-                            <label for="seed-random-toggle" style="margin-left: -5px; display: flex; align-items: center; cursor: pointer;" title="Si cochée, le système utilisera une Seed aléatoire (-1) à chaque génération, ignorant la valeur fixe ci-contre.">
+                            <label for="seed-random-toggle" style="margin-left: -5px; display: flex; align-items: center; cursor: pointer;">
                                 Aléatoire ℹ️
                             </label>
                         </div>
