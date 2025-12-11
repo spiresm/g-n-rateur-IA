@@ -375,8 +375,14 @@ Rules for text:
 - Only the items above are permitted.
 - No additional text, no hallucinated wording.
 - No extra letters, no random symbols.
-- No decorative scribbles that look like writing.
-- Title/style: ${styleTitre || "cinematic, elegant contrast"}.
+- No decorative scribbles resembling handwriting.
+- TEXT STYLE / MATERIAL (APPLIES ONLY TO LETTERING):
+  ${styleTitre || "cinematic, elegant contrast"}.
+- IMPORTANT: The text style applies ONLY to the lettering.
+  Do NOT apply this style to the characters, environment, rendering,
+  lighting, textures, materials, or the overall image.
+  The global visual style of the poster must remain independent.
+
 `;
     }
 
