@@ -436,3 +436,12 @@ label {
     margin: 22px 0;
     opacity: 0.4;
 }
+/* =========================================================
+   SELECTED MODE CARD
+========================================================= */
+
+.active-mode {
+    border-color: var(--accent) !important;
+    transform: translateY(-4px);
+    box-shadow: 0 0 20px rgba(212,175,55,0.25);
+}
