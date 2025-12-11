@@ -498,7 +498,7 @@ label {
 }
 
 .fmt-icon {
-    flex: 1; /* Permet aux vignettes de se répartir l'espace */
+    flex: 1; 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -511,7 +511,7 @@ label {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
-    height: 45px; /* Hauteur fixe pour une meilleure cohérence */
+    height: 60px; /* Augmenté légèrement pour une meilleure visibilité de la vignette */
     position: relative;
     overflow: hidden;
 }
@@ -521,7 +521,7 @@ label {
     background: #2a2a2a;
 }
 
-/* Styles pour simuler les vignettes */
+/* Styles pour simuler les vignettes (le petit rectangle) */
 .fmt-icon::before {
     content: '';
     position: absolute;
@@ -531,17 +531,27 @@ label {
     background-color: var(--accent-soft);
     border: 1px solid var(--accent);
     border-radius: 3px;
-    opacity: 0.8;
+    /* Rendre le fond légèrement plus visible que le texte */
+    opacity: 0.9; 
 }
 
 /* Vignette Paysage (Wide) */
 .wide-format::before {
-    width: 80%;
-    height: 40%;
+    width: 80%; /* Largeur de la forme */
+    height: 40%; /* Hauteur de la forme */
 }
+/* Texte aligné pour ne pas masquer la forme */
+.wide-format {
+    padding-top: 30px; 
+}
+
 
 /* Vignette Portrait (Tall) */
 .tall-format::before {
-    width: 40%;
-    height: 80%;
+    width: 40%; /* Largeur de la forme */
+    height: 80%; /* Hauteur de la forme */
+}
+/* Texte aligné pour ne pas masquer la forme */
+.tall-format {
+    padding-top: 30px;
 }
