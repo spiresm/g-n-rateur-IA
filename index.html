@@ -196,48 +196,71 @@
         </div>
 
 
-        <!-- ========================================================= -->
-        <!-- PANEL DE DROITE : RESULTATS                              -->
-        <!-- ========================================================= -->
-        <div class="panel">
-            <div class="panel-header">
-                <div class="panel-title">
-                    <span class="icon">🖼️</span>
-                    <div>
-                        Résultat
-                        <div class="panel-sub">Prévisualisation & image finale</div>
-                    </div>
-                </div>
-                <span class="pill-green" id="job-status-pill">READY</span>
+<!-- ========================================================= -->
+<!-- PANEL DE DROITE : RESULTATS                              -->
+<!-- ========================================================= -->
+<div class="panel">
+
+    <!-- HEADER -->
+    <div class="panel-header">
+        <div class="panel-title">
+            <span class="icon">🖼️</span>
+            <div>
+                Résultat
+                <div class="panel-sub">Prévisualisation & image finale</div>
+            </div>
+        </div>
+        <span class="pill-green" id="job-status-pill">READY</span>
+    </div>
+
+    <!-- BOUTON GÉNÉRER L'IMAGE -->
+    <button id="generate-button" class="btn-main" style="margin-bottom: 18px;">
+        🚀 Générer l’image
+    </button>
+
+    <!-- CHOIX FORMAT -->
+    <div class="format-select">
+        <div class="format-option" data-format="square">▢ Carré</div>
+        <div class="format-option" data-format="portrait">▯ Portrait</div>
+        <div class="format-option" data-format="landscape">▬ Paysage</div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div id="result-area">
+        <div id="progress-overlay">
+            <div id="progress-spinner"></div>
+            <div id="progress-meta">
+                <span id="progress-label">En attente…</span>
+                <span id="progress-percent">0%</span>
             </div>
 
-            <div id="result-area">
-                <div id="progress-overlay">
-                    <div id="progress-spinner"></div>
-                    <div id="progress-meta">
-                        <span id="progress-label">En attente…</span>
-                        <span id="progress-percent">0%</span>
-                    </div>
-
-                    <div class="progress-bar-large">
-                        <div class="progress-inner-large" id="progress-inner"></div>
-                    </div>
-                </div>
-
-                <div id="result-placeholder">
-                    <p>Aucune image encore générée.</p>
-                </div>
-            </div>
-
-            <div id="result-footer">
-                <button type="button" id="copy-params-btn" class="btn-secondary">
-                    📋 Copier les paramètres
-                </button>
+            <div class="progress-bar-large">
+                <div class="progress-inner-large" id="progress-inner"></div>
             </div>
         </div>
 
+        <div id="result-placeholder">
+            <p>Aucune image encore générée.</p>
+        </div>
     </div>
+
+    <!-- PROMPT GÉNÉRÉ -->
+    <div class="panel-subtitle">🎯 Prompt généré</div>
+    <textarea id="prompt-output" class="ui-input" style="min-height:130px;" readonly></textarea>
+
+    <!-- LOGS -->
+    <div class="panel-subtitle">📜 Console</div>
+    <div id="log-container" class="log-box"></div>
+
+    <!-- FOOTER -->
+    <div id="result-footer" style="margin-top: 18px;">
+        <button type="button" id="copy-params-btn" class="btn-secondary">
+            📋 Copier les paramètres
+        </button>
+    </div>
+
 </div>
+
 
 <!-- Modal -->
 <div id="image-modal" class="modal">
