@@ -506,7 +506,7 @@ async function pollProgress(promptId) {
                     pollingProgressInterval = null;
                     showProgressOverlay(false);
 
-                    // 🛠️ MESSAGE DIAGNOSTIC AMÉLIORÉ
+                    // MESSAGE DIAGNOSTIC AMÉLIORÉ
                     setError(`La tâche ${promptId} a été perdue par le serveur (HTTP ${resCheck.status}). La génération a échoué. Le serveur a pu redémarrer ou la tâche est en erreur.`);
                     return;
                 }
@@ -522,7 +522,7 @@ async function pollProgress(promptId) {
                 clearInterval(pollingProgressInterval);
                 pollingProgressInterval = null;
                 showProgressOverlay(false);
-                 // 🛠️ MESSAGE DIAGNOSTIC AMÉLIORÉ
+                 // MESSAGE DIAGNOSTIC AMÉLIORÉ
                 setError(`Échec de la connexion au serveur API (${API_BASE_URL}) après plusieurs tentatives. Vérifiez que le serveur est démarré.`);
                 return;
             }
@@ -652,7 +652,7 @@ async function startGeneration(e) {
     if (statusPill) {
         statusPill.textContent = "PENDING";
         statusPill.classList.remove("pill-green", "pill-danger");
-        statusPuspill.classList.add("pill");
+        statusPill.classList.add("pill"); // <-- CORRECTION APPLIQUÉE ICI
     }
 
     const maxAttempts = 3;
@@ -690,7 +690,7 @@ async function startGeneration(e) {
             log(`Tentative ${attempt}/${maxAttempts} : Échec. Ré-essai dans 5 secondes...`);
 
             if (attempt >= maxAttempts) {
-                // 🛠️ MESSAGE DIAGNOSTIC AMÉLIORÉ
+                // MESSAGE DIAGNOSTIC AMÉLIORÉ
                 setError(`❌ Échec de l’envoi initial de la tâche au serveur API après 3 tentatives. Vérifiez la console pour les détails du réseau.`);
             }
 
