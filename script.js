@@ -936,7 +936,5 @@ modeCards.forEach(card => {
             afficheMenu.style.display = "none";
             imageMenu.style.display = "block";
         }
-    });
-    
 });  //  ← NE PAS TOUCHER
 
