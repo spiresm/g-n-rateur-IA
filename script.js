@@ -506,7 +506,8 @@ async function pollProgress(promptId) {
                     pollingProgressInterval = null;
                     showProgressOverlay(false);
 
-                    setError(`La tâche ${promptId} a été perdue par le serveur (Erreur ${resCheck.status}). La génération a échoué.`);
+                    // 🛠️ MESSAGE DIAGNOSTIC AMÉLIORÉ
+                    setError(`La tâche ${promptId} a été perdue par le serveur (HTTP ${resCheck.status}). La génération a échoué. Le serveur a pu redémarrer ou la tâche est en erreur.`);
                     return;
                 }
             }
@@ -521,7 +522,8 @@ async function pollProgress(promptId) {
                 clearInterval(pollingProgressInterval);
                 pollingProgressInterval = null;
                 showProgressOverlay(false);
-                setError(`Échec de la connexion au serveur après plusieurs tentatives. Vérifiez l'URL de l'API (${API_BASE_URL}).`);
+                 // 🛠️ MESSAGE DIAGNOSTIC AMÉLIORÉ
+                setError(`Échec de la connexion au serveur API (${API_BASE_URL}) après plusieurs tentatives. Vérifiez que le serveur est démarré.`);
                 return;
             }
         }
@@ -539,7 +541,7 @@ async function fetchResult(promptId) {
         const resp = await fetch(`${API_BASE_URL}/result/${promptId}`); 
         if (!resp.ok) {
             log("Result HTTP non OK:", resp.status);
-            setError("Impossible de récupérer le résultat pour l’instant.");
+            setError("Impossible de récupérer le résultat pour l’instant. Le serveur ne trouve pas l'image.");
             return;
         }
 
@@ -650,7 +652,7 @@ async function startGeneration(e) {
     if (statusPill) {
         statusPill.textContent = "PENDING";
         statusPill.classList.remove("pill-green", "pill-danger");
-        statusPill.classList.add("pill");
+        statusPuspill.classList.add("pill");
     }
 
     const maxAttempts = 3;
@@ -671,7 +673,7 @@ async function startGeneration(e) {
                     await new Promise(r => setTimeout(r, 5000));
                     continue;
                 } else {
-                    throw new Error("Échec après plusieurs tentatives.");
+                    throw new Error(`Échec après plusieurs tentatives. (HTTP ${resp.status})`);
                 }
             }
 
@@ -688,7 +690,8 @@ async function startGeneration(e) {
             log(`Tentative ${attempt}/${maxAttempts} : Échec. Ré-essai dans 5 secondes...`);
 
             if (attempt >= maxAttempts) {
-                setError("Échec de l’envoi de la génération après plusieurs tentatives.");
+                // 🛠️ MESSAGE DIAGNOSTIC AMÉLIORÉ
+                setError(`❌ Échec de l’envoi initial de la tâche au serveur API après 3 tentatives. Vérifiez la console pour les détails du réseau.`);
             }
 
             await new Promise(r => setTimeout(r, 5000));
