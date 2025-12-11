@@ -944,8 +944,9 @@ if (btnPrompt && formEl) {
     // =========================================================
     const modeCards = document.querySelectorAll(".mode-card");
 const afficheMenu = document.getElementById("affiche-menu");
-const generateButton = document.getElementById("generate-button");
-const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper");
+const generateButton = document.getElementById("generate-button"); // Le bouton standard
+const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper"); // Le conteneur du bouton Affiche
+
 
 modeCards.forEach(card => {
     card.addEventListener("click", () => {
@@ -958,25 +959,23 @@ modeCards.forEach(card => {
         // Le mode AFFICHE affiche le menu Affiche
         if (mode === "affiche") {
             afficheMenu.style.display = "block";
-            selectWorkflow("affiche.json");
+            selectWorkflow("affiche.json"); 
 
-            // LOGIQUE DE BOUTON : Masquer le bouton Générique, Afficher le bouton Affiche
+            // LOGIQUE DE BOUTON : Masquer le bouton Générique, Afficher le conteneur Affiche
             if (generateButton) generateButton.style.display = 'none';
             if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
 
         } else { // Mode Image
             // Si ce n'est pas le mode AFFICHE, on le masque
             afficheMenu.style.display = "none";
-            // On peut sélectionner un workflow par défaut pour le mode Image ici si besoin.
-            // selectWorkflow("default_image.json");
+            // L'appel selectWorkflow("default_image.json"); peut être ajouté ici
 
-            // LOGIQUE DE BOUTON : Afficher le bouton Générique, Masquer le bouton Affiche
-            if (generateButton) generateButton.style.display = 'block';
+            // LOGIQUE DE BOUTON : Afficher le bouton Générique, Masquer le conteneur Affiche
+            if (generateButton) generateButton.style.display = 'block'; // <-- CECI REND LE BOUTON VISIBLE
             if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
         }
     });
 });
-
     // =========================================================
     // INITIALISATION FINAL
     // =========================================================
