@@ -20,7 +20,7 @@ const STYLE_TITRE_OPTIONS = [
     { label: "Texte en flammes", value: "burning fire lettering, glowing embers, smoke trails, intense heat distortion" },
     { label: "Texte liquide / eau", value: "transparent water-textured letters, droplets, soft reflections, fluid organic movement" },
     { label: "Titre doré royal", value: "polished gold lettering, embossed texture, warm specular highlights, luxury vibe" },
-    { label: "Graffiti urbain", value: "spray-painted lettering, rough outlines, dripping paint, street-art neon energy" },
+    { label: "Graffiti urbain", value: "spray-painted lettering, rough outlines, dripping paint, street-art" },
     { label: "Hologramme futuriste", value: "holographic translucent letters, digital flicker, refraction effects, sci-fi projection" },
     { label: "Gothique médiéval", value: "blackletter-inspired carved metal, dark engraved texture, dramatic gothic atmosphere" },
     { label: "Style pâte à modeler (stop motion)", value: "hand-molded clay letters, fingerprint texture, soft studio lighting, claymation charm" },
