@@ -623,26 +623,15 @@ async function startGeneration(e) {
     const formEl = document.getElementById("generation-form");
     if (!formEl) return;
 
-    const formData = new FormData(formEl);
-
-    const wfName = document.getElementById("workflow-select")?.value;
-    if (!wfName) {
-        setError("Veuillez sélectionner un workflow.");
-        return;
-    }
-
-    log("Début de la séquence de génération réelle (Max 3 tentatives)...");
-
     const generateBtn = document.getElementById("generate-button");
     const currentBtn = generateBtn;
 
+    // 1. Désactiver le bouton immédiatement et initialiser l'état
     if (currentBtn) {
         currentBtn.disabled = true;
-        // Animation du bouton générique
         currentBtn.querySelector(".dot").style.background = "#fbbf24";
-        currentBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
+        currentBtn.innerHTML = `<span class="dot"></span>Initialisation…`;
     }
-
 
     lastGenerationStartTime = Date.now();
     showProgressOverlay(true, "Initialisation…");
@@ -652,64 +641,92 @@ async function startGeneration(e) {
     if (statusPill) {
         statusPill.textContent = "PENDING";
         statusPill.classList.remove("pill-green", "pill-danger");
-        statusPill.classList.add("pill"); // <-- CORRECTION APPLIQUÉE ICI
+        statusPill.classList.add("pill");
     }
 
-    const maxAttempts = 3;
-    let attempt = 0;
     let success = false;
     let finalPromptId = null;
 
-    while (attempt < maxAttempts && !success) {
-        attempt++;
-        try {
-            log(`[Tentative ${attempt}/${maxAttempts}] Envoi de la requête de génération.`);
+    // 2. Le bloc try/finally garantit la réactivation du bouton.
+    try {
+        const formData = new FormData(formEl);
+        const wfName = document.getElementById("workflow-select")?.value;
 
-            const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { method: "POST", body: formData });
-
-            if (!resp.ok) {
-                log(`Tentative ${attempt} → HTTP ${resp.status}`);
-                if (attempt < maxAttempts) {
-                    await new Promise(r => setTimeout(r, 5000));
-                    continue;
-                } else {
-                    throw new Error(`Échec après plusieurs tentatives. (HTTP ${resp.status})`);
-                }
-            }
-
-            const data = await resp.json();
-            if (!data.prompt_id) {
-                throw new Error("Réponse invalide de /generate (missing prompt_id)");
-            }
-
-            success = true;
-            finalPromptId = data.prompt_id;
-
-        } catch (err) {
-            console.error(`Erreur tentative ${attempt}:`, err);
-            log(`Tentative ${attempt}/${maxAttempts} : Échec. Ré-essai dans 5 secondes...`);
-
-            if (attempt >= maxAttempts) {
-                // MESSAGE DIAGNOSTIC AMÉLIORÉ
-                setError(`❌ Échec de l’envoi initial de la tâche au serveur API après 3 tentatives. Vérifiez la console pour les détails du réseau.`);
-            }
-
-            await new Promise(r => setTimeout(r, 5000));
+        if (!wfName) {
+            setError("Veuillez sélectionner un workflow.");
+            // Lancer une erreur force l'exécution du bloc 'catch' puis 'finally'.
+            throw new Error("No workflow selected."); 
         }
-    }
 
-    if (success && finalPromptId) {
-        currentPromptId = finalPromptId;
-        log("Prompt ID final:", finalPromptId);
-        pollProgress(finalPromptId);
-    }
+        log("Début de la séquence de génération réelle (Max 3 tentatives)...");
+        if (currentBtn) currentBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
 
-    // Réactive le bouton
-    if (currentBtn) {
-        currentBtn.disabled = false;
-        // Réinitialise le texte du bouton générique
-        currentBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
-        currentBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
+        const maxAttempts = 3;
+        let attempt = 0;
+
+        while (attempt < maxAttempts && !success) {
+            attempt++;
+            try {
+                log(`[Tentative ${attempt}/${maxAttempts}] Envoi de la requête de génération.`);
+
+                const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { method: "POST", body: formData });
+
+                if (!resp.ok) {
+                    log(`Tentative ${attempt} → HTTP ${resp.status}`);
+                    if (attempt < maxAttempts) {
+                        await new Promise(r => setTimeout(r, 5000));
+                        continue;
+                    } else {
+                        throw new Error(`Échec après plusieurs tentatives. (HTTP ${resp.status})`);
+                    }
+                }
+
+                const data = await resp.json();
+                if (!data.prompt_id) {
+                    throw new Error("Réponse invalide de /generate (missing prompt_id)");
+                }
+
+                success = true;
+                finalPromptId = data.prompt_id;
+
+            } catch (err) {
+                console.error(`Erreur tentative ${attempt}:`, err);
+                log(`Tentative ${attempt}/${maxAttempts} : Échec. Ré-essai dans 5 secondes...`);
+
+                if (attempt >= maxAttempts) {
+                    setError(`❌ Échec de l’envoi initial de la tâche au serveur API après 3 tentatives. Vérifiez la console pour les détails du réseau.`);
+                }
+
+                await new Promise(r => setTimeout(r, 5000));
+            }
+        }
+
+        if (success && finalPromptId) {
+            currentPromptId = finalPromptId;
+            log("Prompt ID final:", finalPromptId);
+            pollProgress(finalPromptId);
+        } else {
+            // Échec final de la boucle
+            showProgressOverlay(false);
+        }
+
+    } catch (globalErr) {
+        // Gère les erreurs synchrones ou le 'throw' pour sortie prématurée (comme l'absence de workflow).
+        console.warn("Generation stopped early:", globalErr.message);
+        // Si l'erreur n'a pas déjà été affichée (comme le manque de workflow), affiche un message générique
+        if (!document.getElementById("error-box")?.textContent) {
+            setError(`Erreur d'initialisation : ${globalErr.message}`);
+        }
+        showProgressOverlay(false);
+        
+    } finally {
+        // 3. Réactiver le bouton DANS TOUS LES CAS
+        if (currentBtn) {
+            currentBtn.disabled = false;
+            // Réinitialise le texte du bouton générique
+            currentBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
+            currentBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
+        }
     }
 }
 
