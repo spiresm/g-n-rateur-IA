@@ -436,6 +436,7 @@ label {
     margin: 22px 0;
     opacity: 0.4;
 }
+
 /* =========================================================
    SELECTED MODE CARD
 ========================================================= */
@@ -444,7 +445,12 @@ label {
     border-color: var(--accent) !important;
     transform: translateY(-4px);
     box-shadow: 0 0 20px rgba(212,175,55,0.25);
-   /* FIX LARGEUR SELECTS */
+}
+
+/* =========================================================
+   FIX LARGEUR SELECTS
+========================================================= */
+
 .dual-field select.ui-select {
     width: 100% !important;
 }
@@ -454,4 +460,26 @@ label {
     min-width: 100% !important;
 }
 
+/* =========================================================
+   LAYOUT 2 COLONNES PREMIUM
+========================================================= */
+
+.layout {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 900px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================================
+   BOUTON GÉNÉRER IMAGE
+========================================================= */
+
+#image-menu button.btn-main {
+    display: block !important;
 }
