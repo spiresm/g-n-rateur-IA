@@ -823,6 +823,28 @@ async function startGeneration(e) {
 // =========================================================
 // INIT GLOBAL (DOMContentLoaded)
 // =========================================================
+function autoClearOnSelect(selectId, customId) {
+    const sel = document.getElementById(selectId);
+    const custom = document.getElementById(customId);
+
+    if (!sel || !custom) return;
+
+    sel.addEventListener("change", () => {
+        if (sel.value && custom.value.trim() !== "") {
+            custom.value = ""; // Efface le champ libre
+        }
+    });
+}
+
+// Active pour chaque couple select + champ libre
+document.addEventListener("DOMContentLoaded", () => {
+    autoClearOnSelect("aff_style_titre", "aff_style_titre_custom");
+    autoClearOnSelect("aff_theme", "aff_theme_custom");
+    autoClearOnSelect("aff_ambiance", "aff_ambiance_custom");
+    autoClearOnSelect("aff_perso_sugg", "aff_perso_desc");
+    autoClearOnSelect("aff_env_sugg", "aff_env_desc");
+    autoClearOnSelect("aff_action_sugg", "aff_action_desc");
+    autoClearOnSelect("aff_palette", "aff_palette_custom");
 
 document.addEventListener("DOMContentLoaded", () => {
     const formEl = document.getElementById("generation-form");
