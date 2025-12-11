@@ -433,6 +433,9 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     }
 
     log("🎨 prompt affiche généré (version anti-texte parasite)");
+    
+    // 🔥 AJOUTEZ OU VÉRIFIEZ CECI :
+    return prompt;
 }
 
 
