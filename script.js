@@ -3,6 +3,49 @@
 // =========================================================
 
 const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
+// =========================================================
+// 🆕 LISTE DES STYLES DE TITRE (NOUVEAU BLOC)
+// =========================================================
+
+const STYLE_TITRE_OPTIONS = [
+    { label: "Texte sanglant dégoulinant", value: "dripping horror lettering, torn edges, glossy red liquid texture, glowing sinister vibe" },
+    { label: "Néon cyberpunk", value: "bright neon tube letters, electric glow, slight chromatic aberration, futuristic vaporwave look" },
+    { label: "Typographie givrée / glace", value: "frosted glass letters, icy texture, translucent frozen edges, cold blue inner glow" },
+    { label: "Lettrage en bois sculpté", value: "hand-carved wooden lettering, deep grooves, warm grain texture, rustic fantasy aesthetic" },
+    { label: "Texte métallique gravé", value: "polished engraved steel letters, sharp reflections, industrial sci-fi shine" },
+    { label: "Style cartoon / bulle", value: "rounded bubbly cartoon letters, colorful shading, outlined comic look" },
+    { label: "Effet slasher sanglant", value: "sharp jagged letters, blood splatter texture, rough grain, violent horror tone" },
+    { label: "Lettrage en cristal / gemme", value: "faceted gemstone letters, prism reflections, diamond-like clarity, luminous highlights" },
+    { label: "Runes de pierre anciennes", value: "weathered carved stone letters, cracks, moss details, archaeological fantasy mood" },
+    { label: "Texte en flammes", value: "burning fire lettering, glowing embers, smoke trails, intense heat distortion" },
+    { label: "Texte liquide / eau", value: "transparent water-textured letters, droplets, soft reflections, fluid organic movement" },
+    { label: "Titre doré royal", value: "polished gold lettering, embossed texture, warm specular highlights, luxury vibe" },
+    { label: "Graffiti urbain", value: "spray-painted lettering, rough outlines, dripping paint, street-art neon energy" },
+    { label: "Hologramme futuriste", value: "holographic translucent letters, digital flicker, refraction effects, sci-fi projection" },
+    { label: "Gothique médiéval", value: "blackletter-inspired carved metal, dark engraved texture, dramatic gothic atmosphere" },
+    { label: "Style pâte à modeler (stop motion)", value: "hand-molded clay letters, fingerprint texture, soft studio lighting, claymation charm" },
+    { label: "Découpe papier / collage", value: "layered paper-cut letters, soft shadows, handcrafted collage feel" },
+    { label: "Cosmique / nébuleuse", value: "letters filled with nebula textures, stars, glowing cosmic colors, ethereal space vibe" },
+    { label: "Steampunk en laiton", value: "aged brass letters, rivets, gears, Victorian industrial detailing" },
+    { label: "Texte glitch numérique", value: "distorted corrupted letters, RGB glitch separation, pixel noise, digital malfunction look" }
+];
+
+// =========================================================
+// 🆕 INJECTION AUTOMATIQUE DANS LE SELECT (NOUVEAU)
+// =========================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    const styleSelect = document.getElementById("aff_style_titre");
+    if (styleSelect) {
+        STYLE_TITRE_OPTIONS.forEach(opt => {
+            const o = document.createElement("option");
+            o.value = opt.value;
+            o.textContent = opt.label;
+            styleSelect.appendChild(o);
+        });
+    }
+});
+
 
 // =========================================================
 // CONFIGURATION DU POLLING HTTP (NOUVEAU SYSTEME SANS WS)
