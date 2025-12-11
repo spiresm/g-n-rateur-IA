@@ -91,7 +91,7 @@ function setError(msg) {
         errBox.textContent = msg;
         if (statusPill) {
              statusPill.textContent = "FAILED";
-             statusPill.classList.remove("pill", "pill-green");
+             statusPill.classList.remove("pill", "pill-green", "pill-warning");
              statusPill.classList.add("pill-danger"); 
         }
 
@@ -100,7 +100,7 @@ function setError(msg) {
         errBox.textContent = "";
         if (statusPill && statusPill.textContent === "FAILED") {
             statusPill.textContent = "READY";
-            statusPill.classList.remove("pill-danger");
+            statusPill.classList.remove("pill-danger", "pill-warning");
             statusPill.classList.add("pill-green");
         }
     }
@@ -437,7 +437,7 @@ Premium poster design, professional layout, ultra high resolution, visually stri
 
 
 // =========================================================
-// PROGRESSION FAKE + DÉTECTION AUTO /result (CORRIGÉ)
+// PROGRESSION FAKE + DÉTECTION AUTO /result (MODIFIÉ)
 // =========================================================
 
 async function pollProgress(promptId) {
@@ -457,7 +457,7 @@ async function pollProgress(promptId) {
 
     if (statusPill) {
         statusPill.textContent = "RUNNING";
-        statusPill.classList.remove("pill-green", "pill-danger");
+        statusPill.classList.remove("pill-green", "pill-danger", "pill-warning");
         statusPill.classList.add("pill");
     }
 
@@ -481,18 +481,8 @@ async function pollProgress(promptId) {
                     clearInterval(pollingProgressInterval);
                     pollingProgressInterval = null;
 
-                    if (percentSpan) percentSpan.textContent = "100%";
-                    if (innerBar) innerBar.style.width = "100%";
-
-                    showProgressOverlay(false);
-
-                    if (statusPill) {
-                        statusPill.textContent = "DONE";
-                        statusPill.classList.remove("pill", "pill-danger");
-                        statusPill.classList.add("pill-green");
-                    }
-
-                    fetchResult(promptId); // Appelle la fonction qui va chercher l'image finale
+                    // 🔥 MODIFICATION ICI : On délègue la récupération finale au gestionnaire
+                    handleCompletion(promptId); 
                     return;
                 }
             } else {
@@ -532,84 +522,146 @@ async function pollProgress(promptId) {
 }
 
 // =========================================================
-// RÉCUPÉRATION RESULTAT /result/{prompt_id}
+// GESTIONNAIRE DE COMPLÉTION AVEC RETRY (NOUVEAU)
 // =========================================================
 
-async function fetchResult(promptId) {
-    try {
-        log("Récupération du résultat pour:", promptId);
-        const resp = await fetch(`${API_BASE_URL}/result/${promptId}`); 
-        if (!resp.ok) {
-            log("Result HTTP non OK:", resp.status);
-            setError("Impossible de récupérer le résultat pour l’instant. Le serveur ne trouve pas l'image.");
-            return;
-        }
+async function handleCompletion(promptId) {
+    
+    const statusPill = document.getElementById("job-status-pill");
+    const percentSpan = document.getElementById("progress-percent");
+    const innerBar = document.getElementById("progress-inner");
 
-        const data = await resp.json();
-        const base64 = data.image_base64;
-        const filename = data.filename || "image.png";
+    // Mise à jour UI pour indiquer le début de la récupération finale
+    if (statusPill) {
+        statusPill.textContent = "FETCHING";
+        statusPill.classList.remove("pill", "pill-green", "pill-danger");
+        statusPill.classList.add("pill-warning"); // Le style .pill-warning doit exister ou le base .pill est utilisé
+    }
+    if (percentSpan) percentSpan.textContent = "92%";
+    if (innerBar) innerBar.style.width = "92%";
 
-        const resultArea = document.getElementById("result-area");
-        const placeholder = document.getElementById("result-placeholder");
 
-        if (placeholder) placeholder.style.display = "none";
+    const MAX_FETCH_ATTEMPTS = 10;
+    const RETRY_DELAY_MS = 2000;
 
-        const imgExisting = resultArea.querySelector("img.result-image");
-        if (imgExisting) imgExisting.remove();
+    for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
+        log(`[FETCH RESULT] Tentative ${attempt}/${MAX_FETCH_ATTEMPTS} pour ${promptId}...`);
+        
+        try {
+            const resp = await fetch(`${API_BASE_URL}/result/${promptId}`); 
 
-        const img = document.createElement("img");
-        img.className = "result-image mj-img mj-blur clickable";
-        img.src = `data:image/png;base64,${base64}`;
-        img.alt = "Image générée";
-        img.style.maxWidth = "100%";
-        img.style.height = "auto";
-        img.style.display = "block";
-        img.style.margin = "0 auto";
-
-        img.onload = () => {
-            img.classList.remove("mj-blur");
-            img.classList.add("mj-ready");
-        };
-
-        img.addEventListener("click", () => {
-            const modal = document.getElementById("image-modal");
-            const modalImg = document.getElementById("modal-image");
-            const dlLink = document.getElementById("modal-download-link");
-
-            if (modal && modalImg && dlLink) {
-                modalImg.src = img.src;
-                dlLink.href = img.src;
-                dlLink.download = filename;
-                modal.style.display = "flex";
+            if (resp.ok) {
+                // SUCCESS! Finish UI and display image
+                const data = await resp.json();
+                
+                // FINAL UI UPDATE 
+                if (percentSpan) percentSpan.textContent = "100%";
+                if (innerBar) innerBar.style.width = "100%";
+                showProgressOverlay(false);
+                if (statusPill) {
+                    statusPill.textContent = "DONE";
+                    statusPill.classList.remove("pill", "pill-danger", "pill-warning");
+                    statusPill.classList.add("pill-green");
+                }
+                
+                displayImageAndMetadata(data);
+                setError("");
+                return; // FINISHED SUCCESSFULLY
+            } 
+            
+            // HTTP NOT OK (404, 500, etc.) - The server is not ready yet.
+            log(`[FETCH RESULT] HTTP non OK: ${resp.status}. Ré-essai dans ${RETRY_DELAY_MS / 1000}s.`);
+            
+            if (attempt === MAX_FETCH_ATTEMPTS) {
+                throw new Error(`Échec de la récupération du résultat après ${MAX_FETCH_ATTEMPTS} tentatives (Dernier statut: ${resp.status}). Le serveur n'a pas rendu l'image disponible.`);
             }
-        });
+            
+            await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
 
-        resultArea.appendChild(img);
-
-        const metaSeed = document.getElementById("meta-seed");
-        const metaSteps = document.getElementById("meta-steps");
-        const metaCfg = document.getElementById("meta-cfg");
-        const metaSampler = document.getElementById("meta-sampler");
-
-        if (metaSeed) metaSeed.textContent = "–";
-        if (metaSteps) metaSteps.textContent = "–";
-        if (metaCfg) metaCfg.textContent = "–";
-        if (metaSampler) metaSampler.textContent = "–";
-
-        if (lastGenerationStartTime) {
-            const diffMs = Date.now() - lastGenerationStartTime;
-            const sec = (diffMs / 1000).toFixed(1);
-            const timeTakenEl = document.getElementById("time-taken");
-            if (timeTakenEl) timeTakenEl.textContent = `${sec}s`;
+        } catch (e) {
+            console.error("Erreur fetchResult/handleCompletion:", e);
+            
+            // FATAL UI FAILURE
+            showProgressOverlay(false);
+            setError(e.message || "Erreur lors de la récupération de l’image générée.");
+            if (statusPill) {
+                statusPill.textContent = "FAILED";
+                statusPill.classList.remove("pill", "pill-green", "pill-warning");
+                statusPill.classList.add("pill-danger");
+            }
+            return; // EXIT ON FATAL ERROR
         }
-
-        setError("");
-
-    } catch (e) {
-        console.error("Erreur fetchResult:", e);
-        setError("Erreur lors de la récupération de l’image générée.");
     }
 }
+
+
+// =========================================================
+// AFFICHAGE DU RÉSULTAT ET DES METADATAS (Anciennement fetchResult)
+// =========================================================
+
+function displayImageAndMetadata(data) {
+    const base64 = data.image_base64;
+    const filename = data.filename || "image.png";
+
+    const resultArea = document.getElementById("result-area");
+    const placeholder = document.getElementById("result-placeholder");
+
+    if (placeholder) placeholder.style.display = "none";
+
+    const imgExisting = resultArea.querySelector("img.result-image");
+    if (imgExisting) imgExisting.remove();
+
+    const img = document.createElement("img");
+    img.className = "result-image mj-img mj-blur clickable";
+    img.src = `data:image/png;base64,${base64}`;
+    img.alt = "Image générée";
+    img.style.maxWidth = "100%";
+    img.style.height = "auto";
+    img.style.display = "block";
+    img.style.margin = "0 auto";
+
+    img.onload = () => {
+        img.classList.remove("mj-blur");
+        img.classList.add("mj-ready");
+    };
+
+    img.addEventListener("click", () => {
+        const modal = document.getElementById("image-modal");
+        const modalImg = document.getElementById("modal-image");
+        const dlLink = document.getElementById("modal-download-link");
+
+        if (modal && modalImg && dlLink) {
+            modalImg.src = img.src;
+            dlLink.href = img.src;
+            dlLink.download = filename;
+            modal.style.display = "flex";
+        }
+    });
+
+    resultArea.appendChild(img);
+
+    const metaSeed = document.getElementById("meta-seed");
+    const metaSteps = document.getElementById("meta-steps");
+    const metaCfg = document.getElementById("meta-cfg");
+    const metaSampler = document.getElementById("meta-sampler");
+
+    // Les métadonnées ne sont pas dans le JSON de l'image, mais sont mises à jour ici.
+    // Si elles venaient du JSON de l'image:
+    // if (metaSeed) metaSeed.textContent = data.seed || "–";
+    // ...
+    if (metaSeed) metaSeed.textContent = "–";
+    if (metaSteps) metaSteps.textContent = "–";
+    if (metaCfg) metaCfg.textContent = "–";
+    if (metaSampler) metaSampler.textContent = "–";
+
+    if (lastGenerationStartTime) {
+        const diffMs = Date.now() - lastGenerationStartTime;
+        const sec = (diffMs / 1000).toFixed(1);
+        const timeTakenEl = document.getElementById("time-taken");
+        if (timeTakenEl) timeTakenEl.textContent = `${sec}s`;
+    }
+}
+
 
 // =========================================================
 // ENVOI DU FORMULAIRE → /generate
@@ -640,7 +692,7 @@ async function startGeneration(e) {
     const statusPill = document.getElementById("job-status-pill");
     if (statusPill) {
         statusPill.textContent = "PENDING";
-        statusPill.classList.remove("pill-green", "pill-danger");
+        statusPill.classList.remove("pill-green", "pill-danger", "pill-warning");
         statusPill.classList.add("pill");
     }
 
