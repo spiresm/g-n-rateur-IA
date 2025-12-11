@@ -686,7 +686,8 @@ async function startGeneration(e) {
 
     let success = false;
     let finalPromptId = null;
-    let formData; 
+    let formData;
+    let finalPromptText = ""; // Variable pour stocker le prompt final
 
     // 2. Le bloc try/finally garantit la réactivation du bouton.
     try {
@@ -697,21 +698,41 @@ async function startGeneration(e) {
             throw new Error("No workflow selected."); 
         }
 
-        // 🔥 CORRECTION CRUCIALE : Générer le prompt D'ABORD
+        // ÉTAPE 1 : Créer le FormData avec toutes les données existantes
+        formData = new FormData(formEl);
+
+        // ÉTAPE 2 : Gérer le prompt pour le mode AFFICHE (Injection directe)
         if (wfName === "affiche.json") {
-            log("Workflow Affiche détecté. Génération automatique du prompt.");
-            generateAffichePrompt(); // Mise à jour du <textarea id="prompt">
+            log("Workflow Affiche détecté. Génération automatique et injection du prompt.");
+            
+            // La fonction generateAffichePrompt est modifiée pour RETOURNER le prompt généré.
+            // Si votre fonction n'a pas été modifiée, veuillez appliquer la modification suivante:
+            // Remplacer :
+            // function generateAffichePrompt() { ... (calcul prompt) ... promptArea.value = prompt; }
+            // Par :
+            // function generateAffichePrompt() { ... (calcul prompt) ... promptArea.value = prompt; return prompt; }
+            
+            const generatedPrompt = generateAffichePrompt();
+            
+            // 🔥 INJECTION DIRECTE : On s'assure que le champ 'prompt' dans le FormData a la bonne valeur.
+            // Ceci garantit que la valeur est envoyée, même si le DOM n'est pas synchrone.
+            formData.set('prompt', generatedPrompt);
+            finalPromptText = generatedPrompt;
+
+        } else {
+            // Pour tous les autres workflows, on prend le prompt tel qu'il a été saisi dans le textarea
+            finalPromptText = formData.get('prompt') || "Prompt par défaut si vide";
         }
         
-        // 🔥 CORRECTION CRUCIALE : Lire le formulaire ENSUITE
-        formData = new FormData(formEl); // Maintenant, formData contient le bon prompt
-
-
+        log(`Contenu du prompt envoyé: "${finalPromptText.substring(0, 80)}..."`);
+        
         log("Début de la séquence de génération réelle...");
         if (currentBtn) currentBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
 
         const maxAttempts = 3;
         let attempt = 0;
+
+        // ... Reste du code de l'envoi HTTP, qui est correct ...
 
         while (attempt < maxAttempts && !success) {
             attempt++;
@@ -721,6 +742,7 @@ async function startGeneration(e) {
                 const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { method: "POST", body: formData });
 
                 if (!resp.ok) {
+                    // ... (gestion des erreurs de tentative) ...
                     log(`Tentative ${attempt} → HTTP ${resp.status}`);
                     if (attempt < maxAttempts) {
                         await new Promise(r => setTimeout(r, 5000));
