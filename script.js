@@ -632,7 +632,6 @@ async function startGeneration(e) {
     log("Début de la séquence de génération réelle (Max 3 tentatives)...");
 
     const generateBtn = document.getElementById("generate-button");
-    // NOTE: Le bouton affiche-generate-btn n'est plus concerné par la désactivation ici.
     const currentBtn = generateBtn;
 
     if (currentBtn) {
@@ -975,7 +974,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 selectWorkflow("affiche.json"); 
 
                 // LOGIQUE DE BOUTON AFFICHE : On affiche les boutons Affiche + le bouton de Lancement générique
-                if (generateButton) generateButton.style.display = 'block'; // <<< CORRIGÉ : BOUTON DE LANCEMENT VISIBLE
+                if (generateButton) generateButton.style.display = 'block'; // CECI REND LE BOUTON VISIBLE
                 if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
 
             } else { // Mode Image
@@ -990,8 +989,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
     // =========================================================
-    // INITIALISATION FINAL
+    // INITIALISATION FINAL (CORRECTION POUR AFFICHER LES BOUTONS AU CHARGEMENT)
     // =========================================================
+    
+    // Simuler un clic sur la carte active par défaut pour initialiser l'affichage
+    const defaultModeCard = document.querySelector(".mode-card.active-mode");
+    if (defaultModeCard) {
+        // Déclenche l'événement click pour appliquer la logique de visibilité
+        defaultModeCard.dispatchEvent(new Event('click'));
+    }
+
     setInterval(refreshGPU, 10000);
     refreshGPU();
     loadWorkflows();
