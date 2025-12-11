@@ -428,7 +428,7 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     const promptArea = document.getElementById("prompt");
     if (promptArea) {
         promptArea.value = prompt;
-        // Ligne RETIRÉE : Retire le déclenchement d'événement qui peut être instable.
+        // 🔥 CORRECTION 1 : Ligne dispatchEvent retirée pour stabilité
         // promptArea.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
@@ -664,7 +664,7 @@ function displayImageAndMetadata(data) {
 
 
 // =========================================================
-// ENVOI DU FORMULAIRE → /generate (CORRECTION DU PROMPT)
+// ENVOI DU FORMULAIRE → /generate (CORRECTION CRUCIALE DU PROMPT)
 // =========================================================
 
 async function startGeneration(e) {
@@ -713,14 +713,14 @@ async function startGeneration(e) {
             throw new Error("No workflow selected."); 
         }
 
-        // 🔥 NOUVEAU BLOC DE CORRECTION : Garantir que le prompt du mode affiche est généré et mis à jour.
+        // 🔥 CORRECTION 2 : LOGIQUE CRUCIALE. Générer le prompt juste avant FormData.
         if (wfName === "affiche.json") {
             log("Workflow Affiche détecté. Génération automatique du prompt avant envoi.");
             generateAffichePrompt(); // Ceci met à jour la valeur du <textarea name="prompt">
         }
         
         // CRÉATION DE FORMDATA MAINTENANT QUE LE PROMPT EST MIS À JOUR
-        formData = new FormData(formEl);
+        formData = new FormData(formEl); // C'est ici que le formulaire lit le prompt !
 
 
         log("Début de la séquence de génération réelle (Max 3 tentatives)...");
