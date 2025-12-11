@@ -416,7 +416,8 @@ input[type=range]::-webkit-slider-thumb {
     position: relative;
     width: 100%;
     /* 1:1 aspect ratio pour le placeholder, le JS ajustera pour l'image */
-    aspect-ratio: 1 / 1; 
+    /* REMOVED: aspect-ratio: 1 / 1; */
+    min-height: 400px; /* Ajout d'une hauteur minimale pour le placeholder */
     background-color: var(--bg-alt);
     border-radius: var(--radius-md);
     overflow: hidden;
