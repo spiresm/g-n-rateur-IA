@@ -2,17 +2,41 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8" />
-    <title>Générateur Premium IA</title>
+    <title>Générateur Premium IA Corrigé</title>
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css"> 
+    <style>
+        /* Styles minimalistes pour la démonstration si styles.css est manquant */
+        body { font-family: sans-serif; background: #f4f4f5; color: #333; margin: 0; padding: 20px; }
+        .app-shell { max-width: 1400px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        header { padding: 20px; background: #1e293b; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; }
+        .title-group h1 { margin: 0; font-size: 1.5rem; }
+        .layout { display: flex; gap: 20px; padding: 20px; }
+        .panel { flex: 1; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; }
+        .mode-selector { display: flex; gap: 10px; padding: 20px; }
+        .mode-card { flex: 1; padding: 15px; border: 2px solid #e5e7eb; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .mode-card.active { border-color: #4f46e5; background: #eef2ff; }
+        .btn-main { background: #4f46e5; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; width: 100%; }
+        .ui-input, .ui-select { width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .menu-title { border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 15px; }
+        .log-box { background: #f8fafc; border: 1px solid #e5eeef; padding: 10px; max-height: 200px; overflow-y: auto; font-size: 0.8rem; border-radius: 4px; }
+        .log-entry { margin-bottom: 5px; color: #333; }
+        .log-error { color: #ef4444; }
+        .log-success { color: #10b981; }
+        .field-group { margin-bottom: 15px; }
+        .dual-field { display: flex; gap: 10px; margin-bottom: 15px; }
+        .dual-field > div, .dual-field > input { flex: 1; }
+        .dual-field label { display: block; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .pill-green { background: #10b981; color: white; padding: 4px 8px; border-radius: 9999px; font-size: 0.75rem; }
+        .format-select { display: flex; gap: 10px; margin-bottom: 15px; }
+        .format-option { flex: 1; text-align: center; padding: 8px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+    </style>
 </head>
 
 <body>
 <div class="app-shell">
 
-    <!-- ========================================================= -->
-    <!-- HEADER PREMIUM                                            -->
-    <!-- ========================================================= -->
     <header>
         <div class="title-group">
             <h1>Générateur IA Premium</h1>
@@ -38,18 +62,14 @@
         </div>
     </header>
 
-    <!-- ========================================================= -->
-    <!-- SELECTEUR DU MODE                                         -->
-    <!-- ========================================================= -->
-
     <div class="mode-selector">
-        <div class="mode-card" data-mode="affiche">
+        <div class="mode-card active" data-mode="affiche" id="mode-affiche">
             <div class="mode-icon">🎬</div>
             <h2>Créer une Affiche</h2>
             <p>Construis une affiche cinéma stylée et riche.</p>
         </div>
 
-        <div class="mode-card" data-mode="image">
+        <div class="mode-card" data-mode="image" id="mode-image">
             <div class="mode-icon">🖼️</div>
             <h2>Créer une Image</h2>
             <p>Génère une image IA artistique ou réaliste.</p>
@@ -59,149 +79,136 @@
     <hr class="separator">
 
 
-    <!-- ========================================================= -->
-    <!-- LAYOUT                                                     -->
-    <!-- ========================================================= -->
     <div class="layout">
 
-        <!-- ========================================================= -->
-        <!-- PANEL DE GAUCHE : MENUS                                   -->
-        <!-- ========================================================= -->
         <div class="panel">
+            <form id="generation-form-premium">
 
-            <!-- ========== MENU AFFICHE ========== -->
-            <div id="affiche-menu" class="menu-premium" style="display:none;">
-                <h3 class="menu-title">🎬 Création d'Affiche</h3>
-                <p class="menu-sub">Personnalisez chaque aspect pour une affiche cinématographique premium.</p>
+                <div id="affiche-menu" class="menu-premium" style="display:block;">
+                    <h3 class="menu-title">🎬 Création d'Affiche</h3>
+                    <p class="menu-sub">Personnalisez chaque aspect pour une affiche cinématographique premium.</p>
 
-                <button type="button" id="affiche-random-btn" class="btn-random">
-                    🎲 Générer une Affiche Aléatoire
-                </button>
+                    <button type="button" id="affiche-random-btn" class="btn-random btn-secondary">
+                        🎲 Générer une Affiche Aléatoire
+                    </button>
 
-                <div class="field-group">
-                    <label>Titre</label>
-                    <input id="aff_titre" class="ui-input" type="text" placeholder="Ex : LA GRANDE AVENTURE">
-                </div>
-
-                <div class="field-group">
-                    <label>Sous-titre</label>
-                    <input id="aff_sous_titre" class="ui-input" type="text" placeholder="Ex : La magie commence ici…">
-                </div>
-
-                <div class="field-group">
-                    <label>Tagline (bas de l’affiche)</label>
-                    <input id="aff_tagline" class="ui-input" type="text" placeholder="Ex : Une aventure inoubliable…">
-                </div>
-
-                <hr class="separator">
-
-                <div class="dual-field">
-                    <div>
-                        <label>Occasion / Thème</label>
-                        <select id="aff_theme" class="ui-select"></select>
+                    <div class="field-group">
+                        <label>Titre</label>
+                        <input id="aff_titre" name="aff_titre" class="ui-input" type="text" placeholder="Ex : LA GRANDE AVENTURE">
                     </div>
-                    <input id="aff_theme_custom" class="ui-input custom-field" type="text" placeholder="Votre propre thème…">
-                </div>
 
-                <div class="dual-field">
-                    <div>
-                        <label>Ambiance générale</label>
-                        <select id="aff_ambiance" class="ui-select"></select>
+                    <div class="field-group">
+                        <label>Sous-titre</label>
+                        <input id="aff_sous_titre" name="aff_sous_titre" class="ui-input" type="text" placeholder="Ex : La magie commence ici…">
                     </div>
-                    <input id="aff_ambiance_custom" class="ui-input custom-field" type="text" placeholder="Décrivez votre ambiance…">
-                </div>
 
-                <hr class="separator">
-
-                <div class="dual-field">
-                    <div>
-                        <label>Personnage principal</label>
-                        <select id="aff_perso_sugg" class="ui-select"></select>
+                    <div class="field-group">
+                        <label>Tagline (bas de l’affiche)</label>
+                        <input id="aff_tagline" name="aff_tagline" class="ui-input" type="text" placeholder="Ex : Une aventure inoubliable…">
                     </div>
-                    <input id="aff_perso_desc" class="ui-input custom-field" type="text" placeholder="Description personnalisée…">
-                </div>
 
-                <div class="dual-field">
-                    <div>
-                        <label>Environnement</label>
-                        <select id="aff_env_sugg" class="ui-select"></select>
+                    <hr class="separator">
+
+                    <div class="dual-field">
+                        <div>
+                            <label>Occasion / Thème</label>
+                            <select id="aff_theme" name="aff_theme" class="ui-select"></select>
+                        </div>
+                        <input id="aff_theme_custom" name="aff_theme_custom" class="ui-input custom-field" type="text" placeholder="Votre propre thème…">
                     </div>
-                    <input id="aff_env_desc" class="ui-input custom-field" type="text" placeholder="Votre environnement…">
-                </div>
 
-                <div class="dual-field">
-                    <div>
-                        <label>Action du personnage</label>
-                        <select id="aff_action_sugg" class="ui-select"></select>
+                    <div class="dual-field">
+                        <div>
+                            <label>Ambiance générale</label>
+                            <select id="aff_ambiance" name="aff_ambiance" class="ui-select"></select>
+                        </div>
+                        <input id="aff_ambiance_custom" name="aff_ambiance_custom" class="ui-input custom-field" type="text" placeholder="Décrivez votre ambiance…">
                     </div>
-                    <input id="aff_action_desc" class="ui-input custom-field" type="text" placeholder="Description personnalisée…">
-                </div>
 
-                <hr class="separator">
+                    <hr class="separator">
 
-                <div class="field-group">
-                    <label>Détails supplémentaires</label>
-                    <textarea id="aff_details" class="ui-input textarea" placeholder="Ex : fumée, reflets, lumière dramatique…"></textarea>
-                </div>
-
-                <hr class="separator">
-
-                <div class="dual-field">
-                    <div>
-                        <label>Palette</label>
-                        <select id="aff_palette" class="ui-select"></select>
+                    <div class="dual-field">
+                        <div>
+                            <label>Personnage principal</label>
+                            <select id="aff_perso_sugg" name="aff_perso_sugg" class="ui-select"></select>
+                        </div>
+                        <input id="aff_perso_desc" name="aff_perso_desc" class="ui-input custom-field" type="text" placeholder="Description personnalisée…">
                     </div>
-                    <input id="aff_palette_custom" class="ui-input custom-field" type="text" placeholder="Palette personnalisée…">
-                </div>
 
-                <div class="dual-field">
-                    <div>
-                        <label>Style du titre</label>
-                        <select id="aff_style_titre" class="ui-select"></select>
+                    <div class="dual-field">
+                        <div>
+                            <label>Environnement</label>
+                            <select id="aff_env_sugg" name="aff_env_sugg" class="ui-select"></select>
+                        </div>
+                        <input id="aff_env_desc" name="aff_env_desc" class="ui-input custom-field" type="text" placeholder="Votre environnement…">
                     </div>
-                    <input id="aff_style_titre_custom" class="ui-input custom-field" type="text" placeholder="Style personnalisé…">
+
+                    <div class="dual-field">
+                        <div>
+                            <label>Action du personnage</label>
+                            <select id="aff_action_sugg" name="aff_action_sugg" class="ui-select"></select>
+                        </div>
+                        <input id="aff_action_desc" name="aff_action_desc" class="ui-input custom-field" type="text" placeholder="Description personnalisée…">
+                    </div>
+
+                    <hr class="separator">
+
+                    <div class="field-group">
+                        <label>Détails supplémentaires</label>
+                        <textarea id="aff_details" name="aff_details" class="ui-input textarea" placeholder="Ex : fumée, reflets, lumière dramatique…"></textarea>
+                    </div>
+
+                    <hr class="separator">
+
+                    <div class="dual-field">
+                        <div>
+                            <label>Palette</label>
+                            <select id="aff_palette" name="aff_palette" class="ui-select"></select>
+                        </div>
+                        <input id="aff_palette_custom" name="aff_palette_custom" class="ui-input custom-field" type="text" placeholder="Palette personnalisée…">
+                    </div>
+
+                    <div class="dual-field">
+                        <div>
+                            <label>Style du titre</label>
+                            <select id="aff_style_titre" name="aff_style_titre" class="ui-select"></select>
+                        </div>
+                        <input id="aff_style_titre_custom" name="aff_style_titre_custom" class="ui-input custom-field" type="text" placeholder="Style personnalisé…">
+                    </div>
+
+                    <button type="button" id="affiche-generate-btn" class="btn-main">
+                        ✨ Générer le Prompt de l’Affiche
+                    </button>
+
                 </div>
 
-                <button id="affiche-generate-btn" class="btn-main">
-                    ✨ Générer le Prompt de l’Affiche
-                </button>
 
-            </div>
+                <div id="image-menu" class="menu-premium" style="display:none;">
+                    <h3 class="menu-title">🖼️ Génération d’Image</h3>
+                    <p class="menu-sub">Créez une image IA de haute qualité à partir d’un prompt détaillé.</p>
 
+                    <div class="field-group">
+                        <label>Prompt principal</label>
+                        <textarea id="image-input-prompt" name="prompt" class="ui-input" style="min-height:130px;"></textarea>
+                    </div>
 
-            <!-- ========== MENU IMAGE ========== -->
-            <div id="image-menu" class="menu-premium" style="display:none;">
-                <h3 class="menu-title">🖼️ Génération d’Image</h3>
-                <p class="menu-sub">Créez une image IA de haute qualité à partir d’un prompt détaillé.</p>
+                    <hr class="separator">
 
-                <div class="field-group">
-                    <label>Prompt principal</label>
-                    <textarea id="prompt" class="ui-input" readonly style="min-height:130px;"></textarea>
-                </div>
+                    <div class="field-group">
+                        <label>Image de référence (optionnel)</label>
+                        <button type="button" id="input-image-browse-btn" class="btn-secondary">🖼️ Importer une image…</button>
+                        <span id="input-image-label" class="file-label">Aucune image sélectionnée</span>
+                        <input id="input-image-file" type="file" accept="image/*" style="display:none;">
+                    </div>
+                    
+                    </div>
 
-                <hr class="separator">
-
-                <div class="field-group">
-                    <label>Image de référence (optionnel)</label>
-                    <button type="button" id="input-image-browse-btn" class="btn-secondary">🖼️ Importer une image…</button>
-                    <span id="input-image-label" class="file-label">Aucune image sélectionnée</span>
-                    <input id="input-image-file" type="file" accept="image/*" style="display:none;">
-                </div>
-
-                <button id="generate-button" class="btn-main">
-                    🚀 Générer l’Image
-                </button>
-            </div>
-
+            </form>
         </div>
 
 
-<!-- ========================================================= -->
-<!-- PANEL DE DROITE : RESULTATS                              -->
-<!-- ========================================================= -->
 <div class="panel">
 
-    <!-- HEADER -->
     <div class="panel-header">
         <div class="panel-title">
             <span class="icon">🖼️</span>
@@ -213,21 +220,22 @@
         <span class="pill-green" id="job-status-pill">READY</span>
     </div>
 
-    <!-- BOUTON GÉNÉRER L'IMAGE -->
-    <button id="generate-button" class="btn-main" style="margin-bottom: 18px;">
+    <button id="generate-button-right-panel" 
+            class="btn-main" 
+            type="submit" 
+            form="generation-form-premium" 
+            style="margin-bottom: 18px;">
         🚀 Générer l’image
     </button>
 
-    <!-- CHOIX FORMAT -->
     <div class="format-select">
         <div class="format-option" data-format="square">▢ Carré</div>
         <div class="format-option" data-format="portrait">▯ Portrait</div>
         <div class="format-option" data-format="landscape">▬ Paysage</div>
     </div>
 
-    <!-- PREVIEW -->
     <div id="result-area">
-        <div id="progress-overlay">
+        <div id="progress-overlay" style="display:none;">
             <div id="progress-spinner"></div>
             <div id="progress-meta">
                 <span id="progress-label">En attente…</span>
@@ -244,15 +252,12 @@
         </div>
     </div>
 
-    <!-- PROMPT GÉNÉRÉ -->
-    <div class="panel-subtitle">🎯 Prompt généré</div>
-    <textarea id="prompt" class="ui-input" style="min-height:130px;" readonly></textarea>
+    <div class="panel-subtitle" style="margin-top:20px;">🎯 Prompt généré</div>
+    <textarea id="generated-prompt-output" class="ui-input" style="min-height:130px;" readonly></textarea>
 
-    <!-- LOGS -->
     <div class="panel-subtitle">📜 Console</div>
     <div id="log-container" class="log-box"></div>
 
-    <!-- FOOTER -->
     <div id="result-footer" style="margin-top: 18px;">
         <button type="button" id="copy-params-btn" class="btn-secondary">
             📋 Copier les paramètres
@@ -262,7 +267,6 @@
 </div>
 
 
-<!-- Modal -->
 <div id="image-modal" class="modal">
     <div class="modal-content">
         <span class="modal-close-btn">&times;</span>
@@ -271,6 +275,139 @@
     </div>
 </div>
 
-<script src="script.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('generation-form-premium');
+        const afficheMenu = document.getElementById('affiche-menu');
+        const imageMenu = document.getElementById('image-menu');
+        const modeCards = document.querySelectorAll('.mode-card');
+        const afficheGenerateBtn = document.getElementById('affiche-generate-btn');
+        const generatedPromptOutput = document.getElementById('generated-prompt-output');
+        const logContainer = document.getElementById('log-container');
+        
+        // --- 1. FONCTION DE LOGGING ---
+        function logToConsole(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.classList.add('log-entry', `log-${type}`);
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.prepend(entry);
+        }
+
+        // --- 2. FONCTION POUR PEUPLER LES SELECTS (pour l'aspect fonctionnel) ---
+        function populateSelects() {
+            const themes = ['Anniversaire', 'Noël', 'Halloween', 'Vacances'];
+            const ambiances = ['festive et colorée', 'sombre et mystérieuse', 'épique et dramatique'];
+            const perso = ['un enfant joyeux', 'un super-héros', 'un robot stylisé'];
+            const env = ['un décor enneigé', 'une salle de fête', 'un château hanté'];
+            const action = ['ouvre un cadeau', 'vole dans le ciel', 'combat un monstre'];
+            const palette = ['couleurs chaudes', 'couleurs froides', 'pastels doux'];
+            const styleTitre = ['Vintage années 80', 'Néon futuriste', 'Classique Hollywood'];
+
+            [
+                { id: 'aff_theme', data: themes },
+                { id: 'aff_ambiance', data: ambiances },
+                { id: 'aff_perso_sugg', data: perso },
+                { id: 'aff_env_sugg', data: env },
+                { id: 'aff_action_sugg', data: action },
+                { id: 'aff_palette', data: palette },
+                { id: 'aff_style_titre', data: styleTitre }
+            ].forEach(item => {
+                const select = document.getElementById(item.id);
+                if (select) {
+                    select.innerHTML = '<option value="">Choisir...</option>';
+                    item.data.forEach(value => {
+                        const option = document.createElement('option');
+                        option.value = value;
+                        option.textContent = value;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+        populateSelects();
+        logToConsole("Les listes déroulantes de l'Affiche ont été initialisées.", "success");
+
+
+        // --- 3. GESTION DES MODES (AFFICHE / IMAGE) ---
+        modeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                modeCards.forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                const mode = card.getAttribute('data-mode');
+
+                afficheMenu.style.display = mode === 'affiche' ? 'block' : 'none';
+                imageMenu.style.display = mode === 'image' ? 'block' : 'none';
+                logToConsole(`Mode sélectionné : ${mode.toUpperCase()}.`);
+            });
+        });
+
+        // --- 4. LOGIQUE DE GÉNÉRATION DU PROMPT AFFICHE ---
+        function buildAffichePrompt() {
+            const elements = [
+                document.getElementById('aff_titre').value ? `Titre : "${document.getElementById('aff_titre').value}".` : '',
+                document.getElementById('aff_sous_titre').value ? `Sous-titre : "${document.getElementById('aff_sous_titre').value}".` : '',
+                document.getElementById('aff_tagline').value ? `Tagline : "${document.getElementById('aff_tagline').value}".` : '',
+                document.getElementById('aff_theme_custom').value || document.getElementById('aff_theme').value ? `Thème : ${document.getElementById('aff_theme_custom').value || document.getElementById('aff_theme').value}.` : '',
+                document.getElementById('aff_ambiance_custom').value || document.getElementById('aff_ambiance').value ? `Ambiance : ${document.getElementById('aff_ambiance_custom').value || document.getElementById('aff_ambiance').value}.` : '',
+                document.getElementById('aff_perso_desc').value || document.getElementById('aff_perso_sugg').value ? `Personnage : ${document.getElementById('aff_perso_desc').value || document.getElementById('aff_perso_sugg').value}.` : '',
+                document.getElementById('aff_env_desc').value || document.getElementById('aff_env_sugg').value ? `Environnement : ${document.getElementById('aff_env_desc').value || document.getElementById('aff_env_sugg').value}.` : '',
+                document.getElementById('aff_action_desc').value || document.getElementById('aff_action_sugg').value ? `Action : ${document.getElementById('aff_action_desc').value || document.getElementById('aff_action_sugg').value}.` : '',
+                document.getElementById('aff_details').value ? `Détails supplémentaires : ${document.getElementById('aff_details').value}.` : '',
+                document.getElementById('aff_palette_custom').value || document.getElementById('aff_palette').value ? `Palette de couleurs : ${document.getElementById('aff_palette_custom').value || document.getElementById('aff_palette').value}.` : '',
+                document.getElementById('aff_style_titre_custom').value || document.getElementById('aff_style_titre').value ? `Style du titre : ${document.getElementById('aff_style_titre_custom').value || document.getElementById('aff_style_titre').value}.` : '',
+                "Style : Affiche de film stylisée, haute qualité, éclairage dramatique."
+            ];
+            
+            return elements.filter(e => e).join(' ');
+        }
+
+        afficheGenerateBtn.addEventListener('click', () => {
+            const prompt = buildAffichePrompt();
+            generatedPromptOutput.value = prompt;
+            logToConsole("Le prompt de l'affiche a été généré et affiché.", "success");
+        });
+
+        // --- 5. GESTION DE LA SOUMISSION DU FORMULAIRE (Bouton "Générer l'image") ---
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Empêche le rechargement de la page
+            
+            // Simuler le statut "En cours"
+            document.getElementById('job-status-pill').textContent = 'IN PROGRESS';
+            document.getElementById('job-status-pill').style.backgroundColor = '#f59e0b'; // Jaune
+
+            // 1. Déterminer le prompt à utiliser
+            const activeMode = document.querySelector('.mode-card.active').getAttribute('data-mode');
+            let finalPrompt = '';
+
+            if (activeMode === 'affiche') {
+                // Si mode Affiche, on prend le prompt construit précédemment (ou on le reconstruit)
+                finalPrompt = generatedPromptOutput.value || buildAffichePrompt();
+            } else if (activeMode === 'image') {
+                // Si mode Image, on prend le prompt saisi directement
+                finalPrompt = document.getElementById('image-input-prompt').value;
+            }
+
+            if (!finalPrompt) {
+                logToConsole("ERREUR: Veuillez générer ou saisir un prompt avant de lancer.", "error");
+                document.getElementById('job-status-pill').textContent = 'ERROR';
+                document.getElementById('job-status-pill').style.backgroundColor = '#ef4444'; // Rouge
+                return;
+            }
+
+            // 2. Afficher le prompt final dans la zone de résultat (si ce n'était pas fait)
+            generatedPromptOutput.value = finalPrompt;
+
+            logToConsole(`Génération lancée pour le mode ${activeMode.toUpperCase()}. Prompt: ${finalPrompt.substring(0, 50)}...`, "info");
+            
+            // 3. Simuler le processus de génération (remplacer par votre appel API)
+            setTimeout(() => {
+                logToConsole("Génération terminée avec succès !", "success");
+                document.getElementById('job-status-pill').textContent = 'COMPLETE';
+                document.getElementById('job-status-pill').style.backgroundColor = '#10b981'; // Vert
+                document.getElementById('time-taken').textContent = '15.4s';
+            }, 3000); // 3 secondes de simulation
+        });
+    });
+</script>
 </body>
 </html>
