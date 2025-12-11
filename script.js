@@ -823,6 +823,7 @@ async function startGeneration(e) {
 // =========================================================
 // INIT GLOBAL (DOMContentLoaded)
 // =========================================================
+
 function autoClearOnSelect(selectId, customId) {
     const sel = document.getElementById(selectId);
     const custom = document.getElementById(customId);
@@ -836,8 +837,11 @@ function autoClearOnSelect(selectId, customId) {
     });
 }
 
-// Active pour chaque couple select + champ libre
 document.addEventListener("DOMContentLoaded", () => {
+
+    // =========================================================
+    // AUTO-CLEAR POUR CHAQUE SELECT → CHAMP CUSTOM
+    // =========================================================
     autoClearOnSelect("aff_style_titre", "aff_style_titre_custom");
     autoClearOnSelect("aff_theme", "aff_theme_custom");
     autoClearOnSelect("aff_ambiance", "aff_ambiance_custom");
@@ -846,7 +850,10 @@ document.addEventListener("DOMContentLoaded", () => {
     autoClearOnSelect("aff_action_sugg", "aff_action_desc");
     autoClearOnSelect("aff_palette", "aff_palette_custom");
 
-document.addEventListener("DOMContentLoaded", () => {
+    // =========================================================
+    // (TON INIT GLOBAL NORMAL)
+    // =========================================================
+
     const formEl = document.getElementById("generation-form");
     if (formEl) {
         formEl.addEventListener("submit", startGeneration);
@@ -860,6 +867,7 @@ document.addEventListener("DOMContentLoaded", () => {
             modal.style.display = "none";
         });
     }
+
     if (modal) {
         modal.addEventListener("click", (ev) => {
             if (ev.target === modal) {
