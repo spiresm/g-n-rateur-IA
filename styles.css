@@ -1,22 +1,22 @@
 /* =========================================================
-   VARIABLES GLOBALES
+   VARIABLES GLOBALES (Mise à jour des couleurs et des formes)
 ========================================================= */
 
 :root {
     --bg: #050509;
-    --bg-alt: #0c0c12;
-    --panel: #15151f;
-    --panel-alt: #1d1d2b;
-    --accent: #4f46e5;
-    --accent-soft: rgba(79,70,229,0.15);
-    --accent-strong: #22c55e;
-    --border: #272738;
-    --text: #f9fafb;
-    --muted: #9ca3af;
-    --danger: #ef4444;
-    --radius-lg: 14px;
-    --radius-md: 10px;
-    --shadow-soft: 0 22px 45px rgba(0,0,0,0.45);
+    --bg-alt: #0e0e16; /* Plus lumineux pour le contraste */
+    --panel: #181825; /* Nouveau fond de panneau */
+    --panel-alt: #242436;
+    --accent: #00bcd4; /* Bleu/Cyan plus moderne */
+    --accent-soft: rgba(0,188,212,0.15);
+    --accent-strong: #4f46e5; /* Violet/Bleu pour l'action principale */
+    --border: #33334f;
+    --text: #ffffff;
+    --muted: #a0a0b0;
+    --danger: #ff5555;
+    --radius-lg: 18px; /* Plus grand et plus doux */
+    --radius-md: 12px;
+    --shadow-soft: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 * {
@@ -27,14 +27,15 @@ body {
     margin: 0;
     padding: 0;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: radial-gradient(circle at top, #111827 0, #020617 45%, #020617 100%);
+    /* Fond plus sombre pour l'immersion */
+    background: radial-gradient(circle at top, #1c1c28 0, #0a0a14 55%, #0a0a14 100%);
     color: var(--text);
 }
 
 .app-shell {
-    max-width: 600px; /* SIMULATION TAILLE SMARTPHONE */
+    max-width: 1400px; /* Exploitation maximale de l'écran PC */
     margin: 0 auto;
-    padding: 24px 20px 40px;
+    padding: 30px 30px 60px;
 }
 
 /* =========================================================
@@ -45,25 +46,20 @@ header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.header-logo {
-    height: 35px;
-    margin-right: 20px;
+    gap: 25px;
+    margin-bottom: 30px;
+    padding: 0 10px;
 }
 
 .title-group {
     flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
 }
 
 .title-group h1 {
-    font-size: 22px;
+    font-size: 28px;
     margin: 0;
+    font-weight: 700;
+    color: var(--accent);
 }
 
 .title-chip {
@@ -71,30 +67,30 @@ header {
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    padding: 3px 9px;
+    padding: 4px 12px;
     border-radius: 999px;
-    background: rgba(34,197,94,0.1);
-    border: 1px solid rgba(34,197,94,0.4);
-    color: #bbf7d0;
+    background: var(--accent-soft);
+    border: 1px solid rgba(0,188,212,0.4);
+    color: var(--accent);
 }
 
 .title-chip span {
     width: 7px;
     height: 7px;
     border-radius: 999px;
-    background: #22c55e;
+    background: var(--accent);
 }
 
 .gpu-card {
-    min-width: 260px;
-    padding: 10px 14px;
+    min-width: 280px;
+    padding: 12px 20px;
     border-radius: 999px;
     border: 1px solid var(--border);
-    background: linear-gradient(130deg,#020617,#020617,#111827);
+    background: linear-gradient(130deg, #111122, var(--panel));
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: var(--shadow-soft);
+    box-shadow: 0 0 15px rgba(0,0,0,0.4);
 }
 
 .gpu-main {
@@ -106,7 +102,7 @@ header {
 .gpu-label {
     font-size: 11px;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--accent);
 }
 
 .gpu-pills {
@@ -118,7 +114,7 @@ header {
 .gpu-pill {
     padding: 2px 7px;
     border-radius: 999px;
-    border: 1px solid rgba(148,163,184,0.3);
+    border: 1px solid var(--border);
 }
 
 .gpu-dot {
@@ -134,139 +130,108 @@ header {
 }
 
 /* =========================================================
-   NAVIGATION PAR ONGLET (SIMULATION ÉCRAN D'APP)
-========================================================= */
-
-.nav-tabs {
-    position: sticky; /* Rendre la barre de navigation persistante */
-    top: 0;
-    z-index: 60;
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 0;
-    margin-top: 20px;
-    background: var(--bg); /* Fond pour masquer le contenu lors du défilement */
-    border-bottom: 1px solid var(--border);
-}
-
-.nav-tab {
-    flex-grow: 1;
-    text-align: center;
-    padding: 10px 5px;
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: var(--radius-md);
-    transition: all .2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-family: inherit;
-}
-
-.nav-tab:hover {
-    color: var(--text);
-}
-
-.nav-tab.selected {
-    color: var(--accent-strong);
-    border-bottom: 2px solid var(--accent-strong);
-    background: var(--bg-alt); 
-    border-radius: 0; /* Retire les coins arrondis en bas pour l'effet de ligne */
-}
-
-.tab-icon {
-    font-size: 18px;
-}
-
-/* =========================================================
-   GRID LAYOUT (NEUTRALISÉ POUR DESIGN SMARTPHONE)
+   GRID LAYOUT (Responsive)
 ========================================================= */
 
 .layout {
-    display: block; /* Supprime le grid-template-columns original */
-    gap: 0;
+    display: grid;
+    /* Ratio 1:1.3 pour mettre en valeur la zone de résultat */
+    grid-template-columns: minmax(300px, 1fr) minmax(400px, 1.3fr);
+    gap: 30px;
 }
 
-#app-screens {
-    padding-top: 10px; /* Espace entre les onglets et le contenu du panel */
-}
-
-@media (max-width: 980px) {
-    /* Le layout est déjà bloqué en mode colonne par défaut grâce à la désactivation du grid */
+@media (max-width: 1100px) {
     .layout {
-        display: block;
+        /* Passe en mode colonne sur les petits/moyens écrans */
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-shell {
+        padding: 20px 15px 40px;
     }
 
     header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 15px;
     }
 
     .gpu-card {
         width: 100%;
+        min-width: unset;
     }
 }
 
 /* =========================================================
-   PANELS
+   PANELS (Nouveaux styles)
 ========================================================= */
 
 .panel {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
-    /* Gradient plus subtil */
-    background: radial-gradient(circle at top left, var(--panel) 0%, var(--bg) 60%); 
-    padding: 16px 16px 18px;
+    /* Gradient de panneau plus prononcé */
+    background: radial-gradient(circle at top left, var(--panel-alt) 0%, var(--panel) 60%);
+    padding: 22px;
     box-shadow: var(--shadow-soft);
-    margin-bottom: 20px; /* Espace sous le panneau pour le défilement */
 }
 
 .panel-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 12px;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
 .panel-title {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 14px;
+    gap: 10px;
+    font-size: 16px;
     font-weight: 600;
 }
 
 .panel-title span.icon {
-    width: 22px;
-    height: 22px;
-    border-radius: 7px;
-    background: linear-gradient(135deg,#4f46e5,#22c55e);
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent-strong), var(--accent));
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
 .panel-sub {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
+}
+
+.pill-green {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(34,197,94,0.1);
+    color: #4ade80;
+    font-size: 11px;
+    font-weight: 600;
 }
 
 /* =========================================================
-   FORM INPUTS (AMÉLIORÉ POUR TOUCH)
+   FORM & INPUTS (Plus gros et plus clairs)
 ========================================================= */
 
 .section {
-    margin-bottom: 18px; /* Plus d'espace vertical entre les sections */
+    margin-bottom: 25px;
+    padding: 15px;
+    background: var(--bg-alt);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--border); /* Petite touche de design */
 }
 
 .section label {
-    font-size: 13px; /* Légèrement plus grand */
+    font-size: 13px;
     color: var(--muted);
-    margin-bottom: 6px; /* Plus d'espace sous le label */
+    margin-bottom: 8px;
     display: block;
     font-weight: 500;
 }
@@ -275,13 +240,13 @@ input,
 select,
 textarea {
     width: 100%;
-    padding: 12px 14px; /* AUGMENTÉ pour le clic/touch */
+    padding: 10px 14px; /* Augmenté */
     border-radius: var(--radius-md);
-    background: var(--bg-alt); /* Plus de contraste avec le fond */
+    background: #111122; /* Encore plus sombre que le fond de section */
     border: 1px solid var(--border);
     color: var(--text);
     outline: none;
-    font-size: 14px; /* Augmenté */
+    font-size: 14px;
     transition: border-color .2s, box-shadow .2s;
 }
 
@@ -289,81 +254,130 @@ input:focus,
 textarea:focus,
 select:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 1px rgba(79,70,229,0.5);
+    box-shadow: 0 0 0 1px var(--accent);
 }
 
 textarea {
-    min-height: 110px;
+    min-height: 120px;
     resize: vertical;
 }
 
+/* Section spéciale (Affiche Menu) */
+.special-menu {
+    border-left: 3px solid var(--accent);
+}
+
+.row-sliders {
+    display: flex;
+    gap: 20px;
+}
+.row-sliders > div {
+    flex: 1;
+}
+
 /* =========================================================
-   BUTTONS (AMÉLIORÉ POUR TOUCH)
+   BUTTONS (Plus d'impact)
 ========================================================= */
 
 .btn-main {
     width: 100%;
-    padding: 14px 16px; /* Légèrement plus grand */
+    padding: 15px 20px;
     border-radius: 999px;
-    background: linear-gradient(135deg,#4f46e5,#22c55e);
+    background: linear-gradient(90deg, var(--accent-strong), #a855f7); /* Nouveau gradient */
     border: none;
     color: white;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 18px 35px rgba(34,197,94,0.35);
+    box-shadow: 0 15px 30px rgba(79,70,229,0.4);
     display: inline-flex;
     justify-content: center;
+    align-items: center;
     gap: 8px;
-    margin-top: 6px;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
 }
-
-.btn-main:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.btn-main:hover {
+    opacity: 0.9;
+}
+.btn-main:active {
+    transform: scale(0.98);
 }
 
 .btn-secondary {
-    padding: 10px 18px; /* Légèrement plus grand */
+    padding: 10px 18px;
     border-radius: var(--radius-md);
     background-color: #374151;
-    border: 1px solid #4b5563;
+    border: 1px solid var(--border);
     color: white;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Zone d'action au-dessus de la prévisualisation */
+.action-area {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed var(--border);
 }
 
 /* =========================================================
-   IMAGE RÉSULTAT — FIX COMPLET
+   IMAGE RÉSULTAT & PROGRESSION (Mise en valeur)
 ========================================================= */
 
 #result-area {
     position: relative;
     width: 100%;
-    min-height: 200px;
-    border-radius: 16px;
-    border: 1px solid #1f2937;
-    background: #020617;
+    min-height: 450px; /* Augmentation de la hauteur pour la visibilité */
+    border-radius: var(--radius-lg);
+    background: var(--bg-alt);
+    border: 2px solid var(--border);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
     overflow: hidden;
     padding: 12px;
 }
 
-
 #result-placeholder {
     width: 100%;
-    min-height: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 10px;
+    text-align: center;
 }
 
 #result-placeholder p {
-    display: none !important;
+    font-size: 14px !important;
+    color: var(--muted);
+    line-height: 1.5;
+    padding: 40px;
 }
 
-/* IMAGE PREVIEW */
+/* PROGRESS OVERLAY */
+#progress-overlay {
+    background: rgba(0,0,0,0.75);
+}
+
+.progress-bar-large {
+    width: 90%;
+    max-width: 500px;
+    height: 16px;
+    background: #1f2937;
+    border-radius: 999px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.7);
+}
+
+.progress-inner-large {
+    background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+}
+
+
+/* IMAGE PREVIEW FIX */
 .result-image {
     display: block !important;
     width: auto !important;
@@ -381,187 +395,89 @@ textarea {
     cursor: pointer;
 }
 
-/* =========================================================
-   MODALE / LIGHTBOX
-========================================================= */
 
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 100;
-    top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.88);
-    justify-content: center;
-    align-items: center;
+/* Metadata */
+#result-footer {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
 }
 
-.modal-content {
-    max-width: 90%;
-    max-height: 90%;
-}
-
-#modal-image {
-    max-width: 100%;
-    max-height: 85vh;
-    border-radius: var(--radius-lg);
-}
-
-.modal-close-btn {
-    position: absolute;
-    top: 20px;
-    right: 35px;
-    font-size: 40px;
-    color: white;
-    cursor: pointer;
-}
-
-/* =========================================================
-   PROGRESS OVERLAY (FIX SUPERPOSITION)
-========================================================= */
-
-#progress-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    z-index: 50;
-    display: none;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    padding-top: 40px;
-    gap: 20px;
-}
-
-#progress-overlay.visible {
+.row-actions {
+    margin-bottom: 15px;
     display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-#progress-meta {
-    margin-top: 10px;
-    font-size: 14px;
+.timing-info {
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.timing-info strong {
+    color: var(--text);
 }
 
-.progress-bar-large {
-    width: 80%;
-    max-width: 400px;
-    height: 12px;
-    background: #1f2937;
-    border-radius: 999px;
-    overflow: hidden;
-}
 
-.progress-inner-large {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg,#4f46e5,#22c55e);
-    transition: width .3s ease-out;
+.metadata-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    font-size: 13px;
+    padding-top: 10px;
+    color: var(--muted);
+}
+.metadata-grid strong {
+    color: var(--accent);
+    font-weight: 600;
 }
 
 /* =========================================================
-   WORKFLOW CAROUSEL
+   WORKFLOW & FORMAT ICONS
 ========================================================= */
+.workflow-section {
+    border-left: 3px solid var(--accent-strong);
+}
 
+/* Styles de workflow non modifiés ici pour la simplicité */
 .workflow-groups-flex {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
-
-.workflow-grid {
-    display: flex;
-    gap: 15px;
-    overflow-x: auto;
-    padding: 6px;
-}
-
-.workflow-vignette {
-    flex: 0 0 150px;
-    height: 90px;
-    border-radius: var(--radius-md);
-    background: radial-gradient(circle at top left,#111827,#020617);
-    border: 2px solid transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: .2s ease;
-    cursor: pointer;
-}
-
-.workflow-vignette:hover {
-    border-color: var(--accent);
-}
-
 .workflow-vignette.selected {
     border-color: var(--accent-strong);
-    box-shadow: 0 0 10px rgba(34,197,94,0.4);
+    box-shadow: 0 0 10px rgba(79,70,229,0.4);
 }
 
-.vignette-label-only {
-    font-size: 13px;
-    font-weight: 600;
-    color: white;
-    text-align: center;
-    padding: 0 12px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-}
 
-/* CACHE IMAGES PAR DÉFAUT */
-.workflow-thumb,
-.workflow-thumb-wrapper {
-    display: none !important;
-}
-
-/* =========================================================
-   LOGS & ERRORS
-========================================================= */
-
-.log-box {
-    margin-top: 14px;
-    background: #020617;
-    border: 1px solid #1f2937;
-    border-radius: 12px;
-    padding: 8px 12px;
-    max-height: 140px;
-    overflow-y: auto;
-    font-size: 11px;
-}
-
-.error-text {
-    color: var(--danger);
-}
 .quick-format-icons {
     display: flex;
-    gap: 12px;
-    margin: 10px 0;
+    gap: 15px;
+    margin: 10px 0 0;
     justify-content: flex-start;
 }
 
 .fmt-icon {
-    padding: 12px 18px; /* Plus grand pour le touch */
-    background: var(--panel-alt);
+    font-size: 30px;
+    padding: 10px 16px;
+    background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md); 
+    border-radius: var(--radius-md);
     cursor: pointer;
     transition: 0.15s ease-in-out;
-    font-size: 28px; 
-    line-height: 1;
 }
 
 .fmt-icon:hover {
-    transform: scale(1.05);
-    border-color: #4f46e5;
+    transform: scale(1.1);
+    border-color: var(--accent);
 }
 
 .fmt-icon.selected {
-    border-color: #22c55e !important;
-    background: rgba(34,197,94,0.15);
-    transform: scale(1.02);
-}
-.btn-main.clicked {
-    transform: scale(0.97);
-    opacity: 0.85;
+    border-color: var(--accent-strong) !important;
+    background: rgba(79,70,229,0.15);
+    transform: scale(1.05);
 }
