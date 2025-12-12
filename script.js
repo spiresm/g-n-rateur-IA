@@ -3,6 +3,7 @@
 // =========================================================
 
 const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
+
 // =========================================================
 // 🆕 LISTE DES STYLES DE TITRE
 // =========================================================
@@ -37,12 +38,6 @@ const STYLE_TITRE_OPTIONS = [
 document.addEventListener("DOMContentLoaded", () => {
     const styleSelect = document.getElementById("aff_style_titre");
     if (styleSelect) {
-        // Ajouter l'option "Aléatoire" en premier
-        const optRandom = document.createElement("option");
-        optRandom.value = "aleatoire";
-        optRandom.textContent = "⭐️ Aléatoire";
-        styleSelect.appendChild(optRandom);
-        
         STYLE_TITRE_OPTIONS.forEach(opt => {
             const o = document.createElement("option");
             o.value = opt.value;
@@ -59,8 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
 const POLLING_INTERVAL_MS = 900;
 let pollingProgressInterval = null;
 let fakeProgress = 0;
-let pollingFailureCount = 0; // Ajout du compteur d'erreurs
-const MAX_POLLING_FAILURES = 5; // Ajout de la limite d'erreurs
+let pollingFailureCount = 0;
+const MAX_POLLING_FAILURES = 5;
 
 // =========================================================
 // VARIABLES GLOBALES
@@ -87,7 +82,7 @@ function log(...args) {
 function setError(msg) {
     const errBox = document.getElementById("error-box");
     const statusPill = document.getElementById("job-status-pill");
-
+    
     if (!errBox) return;
 
     if (msg) {
@@ -164,7 +159,6 @@ async function refreshGPU() {
 
 // =========================================================
 // GESTION WORKFLOWS & CHECKPOINTS
-// (Pas de changement dans cette section)
 // =========================================================
 
 async function loadWorkflows() {
@@ -183,6 +177,7 @@ async function loadWorkflows() {
 
         container.innerHTML = "";
 
+        // On peut filtrer ici si besoin, pour l'instant on prend tout
         const groupsConfig = [
             {
                 label: "ComfyUI",
@@ -294,6 +289,8 @@ function selectWorkflow(workflowName) {
 
     if (workflowName === "affiche.json") {
         if (afficheMenu) afficheMenu.style.display = "block";
+        
+        // Mise à jour de la résolution pour l'affiche (format vertical 9:16)
         const wInput = document.getElementById("width-input");
         const hInput = document.getElementById("height-input");
         if (wInput) wInput.value = "1080";
@@ -308,6 +305,7 @@ function selectWorkflow(workflowName) {
             }
         });
 
+        // Masquer les options inutiles pour l'affiche
         if (groupSteps) groupSteps.style.display = "none";
         if (groupCfg) groupCfg.style.display = "none";
         if (groupSampler) groupSampler.style.display = "none";
@@ -342,7 +340,6 @@ function setValue(id, val) {
     el.value = val;
 }
 
-// 💥 CORRECTION : Le champ custom prend la priorité.
 function mergeSelectAndCustom(selectId, customId) {
     const s = document.getElementById(selectId)?.value.trim() || "";
     const c = document.getElementById(customId)?.value.trim() || "";
@@ -355,7 +352,7 @@ function mergeSelectAndCustom(selectId, customId) {
 }
 
 // =========================================================
-// GÉNÉRATION DU PROMPT POUR LE MODE AFFICHE (NOUVELLE FONCTION CENTRALE)
+// GÉNÉRATION DU PROMPT POUR LE MODE AFFICHE (FINAL)
 // =========================================================
 
 function generateAffichePrompt() {
@@ -377,18 +374,17 @@ function generateAffichePrompt() {
     // Logique pour le style du titre
     let styleTitre = mergeSelectAndCustom("aff_style_titre", "aff_style_titre_custom");
     
-    // Si le style de titre est 'aleatoire', on pioche un style dans STYLE_TITRE_OPTIONS
-    if (styleTitre === "aleatoire") {
-        const relevantOptions = STYLE_TITRE_OPTIONS;
+    // Si le style de titre est vide ou 'aleatoire', on pioche un style dans STYLE_TITRE_OPTIONS
+    if (styleTitre === "" || styleTitre === "aleatoire") {
+        const styleSelect = document.getElementById("aff_style_titre");
+        const options = styleSelect ? Array.from(styleSelect.options) : [];
+        const relevantOptions = options.filter(opt => opt.value !== '');
         
         if (relevantOptions.length > 0) {
             const randomIndex = Math.floor(Math.random() * relevantOptions.length);
             styleTitre = relevantOptions[randomIndex].value;
-            // Optionnel: mettre à jour l'affichage dans le select, mais la valeur reste "aleatoire"
-            // pour l'affichage, c'est mieux de laisser l'utilisateur voir ce qui a été pioché.
-            // On peut mettre à jour le champ custom si on veut persister le style pioché.
-            document.getElementById("aff_style_titre_custom").value = styleTitre;
-            log(`Style de titre aléatoire sélectionné : ${relevantOptions[randomIndex].label}`);
+            styleSelect.value = styleTitre; // Mise à jour visuelle (optionnel)
+            log(`Style de titre aléatoire sélectionné : ${relevantOptions[randomIndex].textContent}`);
         } else {
              styleTitre = "cinematic, elegant contrast"; // Valeur de repli
         }
@@ -435,6 +431,7 @@ RULES FOR TEXT:
         perso,
         env,
         action,
+        palette
     ].filter(item => item.trim() !== "").join(', ');
     
     // Construction du prompt principal
@@ -444,17 +441,10 @@ Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
 ${textBlock}
 
 Visual elements:
-- Theme/mood: ${theme || "cinematic, dark fantasy"}
-- Ambiance: ${ambiance || "atmospheric, suspenseful"}
-- Main character: ${perso || "single adventurer, back to camera"}
-- Environment: ${env || "vast mountain landscape, digital painting"}
-- Action: ${action || "walking towards the light"}
+${visualElements}
 
 Extra details:
 ${details || "cinematic particles, depth fog, volumetric light"}
-
-Color palette:
-${palette || "high contrast cinematic palette"}
 
 Image style:
 Premium poster design, professional layout, ultra high resolution, visually striking.
@@ -481,7 +471,6 @@ Premium poster design, professional layout, ultra high resolution, visually stri
 // PROGRESSION FAKE + DÉTECTION AUTO /result (MODIFIÉ)
 // =========================================================
 
-// (Cette section reste inchangée par rapport à mon script précédent)
 async function pollProgress(promptId) {
     if (!promptId) return;
 
@@ -743,15 +732,21 @@ async function startGeneration(e) {
         // ÉTAPE 1 : Créer le FormData avec toutes les données existantes
         formData = new FormData(formEl);
 
-        // 💥 CORRECTION CRITIQUE 💥
         // ÉTAPE 2 : Gérer le prompt pour le mode AFFICHE (Injection directe)
         if (wfName === "affiche.json") {
             log("Workflow Affiche détecté. Génération automatique et injection du prompt.");
             
-            // 🔥 APPEL DE LA NOUVELLE FONCTION CENTRALE
+            // La fonction generateAffichePrompt est modifiée pour RETOURNER le prompt généré.
+            // Si votre fonction n'a pas été modifiée, veuillez appliquer la modification suivante:
+            // Remplacer :
+            // function generateAffichePrompt() { ... (calcul prompt) ... promptArea.value = prompt; }
+            // Par :
+            // function generateAffichePrompt() { ... (calcul prompt) ... promptArea.value = prompt; return prompt; }
+            
             const generatedPrompt = generateAffichePrompt();
             
-            // INJECTION DIRECTE : On s'assure que le champ 'prompt' dans le FormData a la bonne valeur.
+            // 🔥 INJECTION DIRECTE : On s'assure que le champ 'prompt' dans le FormData a la bonne valeur.
+            // Ceci garantit que la valeur est envoyée, même si le DOM n'est pas synchrone.
             formData.set('prompt', generatedPrompt);
             finalPromptText = generatedPrompt;
 
@@ -768,6 +763,8 @@ async function startGeneration(e) {
         const maxAttempts = 3;
         let attempt = 0;
 
+        // ... Reste du code de l'envoi HTTP, qui est correct ...
+
         while (attempt < maxAttempts && !success) {
             attempt++;
             try {
@@ -776,6 +773,7 @@ async function startGeneration(e) {
                 const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { method: "POST", body: formData });
 
                 if (!resp.ok) {
+                    // ... (gestion des erreurs de tentative) ...
                     log(`Tentative ${attempt} → HTTP ${resp.status}`);
                     if (attempt < maxAttempts) {
                         await new Promise(r => setTimeout(r, 5000));
@@ -912,21 +910,9 @@ function fillAfficheFieldsFromRandom(randomObj) {
     }
 
     if (randomObj.style_titre) {
-        // Pour les randoms, on utilise le menu déroulant
+        setValue("aff_style_titre_custom", randomObj.style_titre);
         const s = document.getElementById("aff_style_titre");
-        const c = document.getElementById("aff_style_titre_custom");
-        
-        // On essaie de trouver le style dans les options (pour utiliser "Aléatoire")
-        const foundOption = STYLE_TITRE_OPTIONS.find(opt => opt.value === randomObj.style_titre);
-        
-        if (s && foundOption) {
-            s.value = foundOption.value; // Sélectionne l'option trouvée
-            if (c) c.value = ""; // Efface le custom
-        } else if (c) {
-            c.value = randomObj.style_titre; // Sinon, met dans le custom
-            if (s) s.value = "aleatoire"; // Et met le select sur custom/aléatoire pour signifier un choix libre
-        }
-        
+        if (s) s.value = "";
     }
 }
 
@@ -1043,15 +1029,13 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             fillAfficheFieldsFromRandom(randomObj);
-            
-            // 💥 NOUVEAU: Mettre à jour le prompt après le remplissage aléatoire.
             generateAffichePrompt(); 
             
             randomBtn.classList.add("clicked");
             randomBtn.innerHTML = "🎲 Champs remplis !";
             setTimeout(() => {
                 randomBtn.classList.remove("clicked");
-                randomBtn.innerHTML = "🎲 Générer une affiche aléatoire";
+                randomBtn.innerHTML = "🎲 Aléatoire";
             }, 600);
             
             console.log("🎲 Champs affiche remplis aléatoirement:", randomObj);
@@ -1066,7 +1050,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnPrompt && formEl) {
         btnPrompt.addEventListener("click", () => {
             
-            // 💥 CORRECTION: Utilise la fonction centrale
             generateAffichePrompt(); // Met à jour le champ
             
             btnPrompt.classList.add("clicked");
@@ -1077,31 +1060,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 600);
         });
     }
-
-    // =========================================================
-    // GESTION FORMATS RAPIDES
-    // =========================================================
-
-    const fmtIcons = document.querySelectorAll(".fmt-icon");
-    const widthInput = document.getElementById("width-input");
-    const heightInput = document.getElementById("height-input");
-
-    fmtIcons.forEach(icon => {
-        icon.addEventListener("click", () => {
-            const w = icon.dataset.w;
-            const h = icon.dataset.h;
-            if (!w || !h) return;
-
-            fmtIcons.forEach(i => i.classList.remove("selected-format"));
-            icon.classList.add("selected-format");
-
-            if (widthInput) widthInput.value = w;
-            if (heightInput) heightInput.value = h;
-
-            log(`Format rapide sélectionné: ${w}x${h}`);
-        });
-    });
-
 
     // =========================================================
     // ACTIVATION DES MENUS & BOUTONS (AFFICHE / IMAGE) - CORRECTION DE VISIBILITÉ
