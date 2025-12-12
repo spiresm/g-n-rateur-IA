@@ -3,10 +3,9 @@
 // =========================================================
 
 const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
-const FRONTEND_URL = "https://genrateuria.netlify.app"; // Utilisé pour la redirection après l'authentification
 
 // =========================================================
-// 🆕 LISTE DES STYLES DE TITRE (depuis script.js)
+// 🆕 LISTE DES STYLES DE TITRE
 // =========================================================
 
 const STYLE_TITRE_OPTIONS = [
@@ -18,727 +17,1100 @@ const STYLE_TITRE_OPTIONS = [
     { label: "Style cartoon / bulle", value: "rounded bubbly cartoon letters, colorful shading, outlined comic look" },
     { label: "Effet slasher sanglant", value: "sharp jagged letters, blood splatter texture, rough grain, violent horror tone" },
     { label: "Lettrage en cristal / gemme", value: "faceted gemstone letters, prism reflections, diamond-like clarity, luminous highlights" },
-    { label: "Ruban de soie flottant", value: "silk ribbon floating letters, soft smooth texture, ethereal lighting, elegant flow" },
-    { label: "Peinture murale style art déco", value: "art deco mural painting typography, stylized geometric patterns, gold leaf accents, flat design" }
+    { label: "Runes de pierre anciennes", value: "weathered carved stone letters, cracks, moss details, archaeological fantasy mood" },
+    { label: "Texte en flammes", value: "burning fire lettering, glowing embers, smoke trails, intense heat distortion" },
+    { label: "Texte liquide / eau", value: "transparent water-textured letters, droplets, soft reflections, fluid organic movement" },
+    { label: "Titre doré royal", value: "polished gold lettering, embossed texture, warm specular highlights, luxury vibe" },
+    { label: "Graffiti urbain", value: "spray-painted lettering, rough outlines, dripping paint, street-art" },
+    { label: "Hologramme futuriste", value: "holographic translucent letters, digital flicker, refraction effects, sci-fi projection" },
+    { label: "Gothique médiéval", value: "blackletter-inspired carved metal, dark engraved texture, dramatic gothic atmosphere" },
+    { label: "Style pâte à modeler (stop motion)", value: "hand-molded clay letters, fingerprint texture, soft studio lighting, claymation charm" },
+    { label: "Découpe papier / collage", value: "layered paper-cut letters, soft shadows, handcrafted collage feel" },
+    { label: "Cosmique / nébuleuse", value: "letters filled with nebula textures, stars, glowing cosmic colors, ethereal space vibe" },
+    { label: "Steampunk en laiton", value: "aged brass letters, rivets, gears, Victorian industrial detailing" },
+    { label: "Texte glitch numérique", value: "distorted corrupted letters, RGB glitch separation, pixel noise, digital malfunction look" }
 ];
 
 // =========================================================
-// 🛡️ UTILITIES DE SÉCURITÉ (Gestion du Token dans localStorage - depuis script (40).js)
+// 🆕 INJECTION AUTOMATIQUE DANS LE SELECT
 // =========================================================
 
-function setToken(token) {
-    try {
-        localStorage.setItem('google_auth_token', token);
-        console.log("SUCCESS: Token sauvegardé dans localStorage.");
-        return true;
-    } catch (e) {
-        console.error("ERREUR CRITIQUE: Impossible de sauvegarder dans localStorage. La session ne peut pas être maintenue.", e);
-        return false;
+document.addEventListener("DOMContentLoaded", () => {
+    const styleSelect = document.getElementById("aff_style_titre");
+    if (styleSelect) {
+        STYLE_TITRE_OPTIONS.forEach(opt => {
+            const o = document.createElement("option");
+            o.value = opt.value;
+            o.textContent = opt.label;
+            styleSelect.appendChild(o);
+        });
+    }
+});
+
+
+// =========================================================
+// CONFIGURATION DU POLLING HTTP
+// =========================================================
+const POLLING_INTERVAL_MS = 900;
+let pollingProgressInterval = null;
+let fakeProgress = 0;
+let pollingFailureCount = 0;
+const MAX_POLLING_FAILURES = 5;
+
+// =========================================================
+// VARIABLES GLOBALES
+// =========================================================
+let currentPromptId = null;
+let lastGenerationStartTime = null;
+
+// =========================================================
+// OUTILS D’AFFICHAGE (LOGS, ERREURS, PROGRESSION VISUELLE)
+// =========================================================
+
+function log(...args) {
+    console.log(...args);
+    const box = document.getElementById("log-box");
+    if (!box) return;
+    const line = document.createElement("div");
+    line.className = "log-line";
+    const ts = new Date().toLocaleTimeString("fr-FR", { hour12: false });
+    line.innerHTML = `<strong>[${ts}]</strong> ${args.join(" ")}`;
+    box.appendChild(line);
+    box.scrollTop = box.scrollHeight;
+}
+
+function setError(msg) {
+    const errBox = document.getElementById("error-box");
+    const statusPill = document.getElementById("job-status-pill");
+    
+    if (!errBox) return;
+
+    if (msg) {
+        errBox.style.display = "block";
+        errBox.textContent = msg;
+        if (statusPill) {
+             statusPill.textContent = "FAILED";
+             statusPill.classList.remove("pill", "pill-green", "pill-warning");
+             statusPill.classList.add("pill-danger"); 
+        }
+
+    } else {
+        errBox.style.display = "none";
+        errBox.textContent = "";
+        if (statusPill && statusPill.textContent === "FAILED") {
+            statusPill.textContent = "READY";
+            statusPill.classList.remove("pill-danger", "pill-warning");
+            statusPill.classList.add("pill-green");
+        }
     }
 }
 
-function getToken() {
+function showProgressOverlay(show, label = "En attente…") {
+    const overlay = document.getElementById("progress-overlay");
+    const labelSpan = document.getElementById("progress-label");
+    const percentSpan = document.getElementById("progress-percent");
+    const innerBar = document.getElementById("progress-inner");
+
+    if (!overlay || !labelSpan || !percentSpan || !innerBar) return;
+
+    if (show) {
+        overlay.classList.add("visible");
+        labelSpan.textContent = label;
+        percentSpan.textContent = "0%";
+        innerBar.style.width = "0%";
+        fakeProgress = 0;
+    } else {
+        overlay.classList.remove("visible");
+    }
+}
+
+// =========================================================
+// GPU STATUS (SIMPLIFIÉ)
+// =========================================================
+
+async function refreshGPU() {
+    const card = document.getElementById("gpu-card");
+    const nameEl = document.getElementById("gpu-name");
+    const utilEl = document.getElementById("gpu-util");
+    const memEl = document.getElementById("gpu-mem");
+    const tempEl = document.getElementById("gpu-temp");
+
+    if (!card || !nameEl || !utilEl || !memEl || !tempEl) return;
+
     try {
-        const token = localStorage.getItem('google_auth_token');
-        return token;
+        const resp = await fetch(`${API_BASE_URL}/gpu_status`);
+        if (!resp.ok) throw new Error("GPU status fetch failed");
+        const data = await resp.json();
+        nameEl.textContent = data.name || "NVIDIA GPU";
+        utilEl.textContent = (data.load ?? 0) + "%";
+        memEl.textContent = `${data.memory_used ?? 0} / ${data.memory_total ?? 0} Go`;
+        tempEl.textContent = (data.temperature ?? 0) + "°C";
+
+        card.classList.remove("gpu-status-error");
     } catch (e) {
-        console.error("ERREUR CRITIQUE: Impossible de lire le token dans localStorage.", e);
+        card.classList.add("gpu-status-error");
+        nameEl.textContent = "GPU indisponible";
+        utilEl.textContent = "–%";
+        memEl.textContent = "– / – Go";
+        tempEl.textContent = "– °C";
+        console.warn("Erreur GPU status:", e);
+    }
+}
+
+// =========================================================
+// GESTION WORKFLOWS & CHECKPOINTS
+// =========================================================
+
+async function loadWorkflows() {
+    const container = document.getElementById("workflow-groups-container");
+    const hiddenInput = document.getElementById("workflow-select");
+
+    if (!container) return;
+
+    try {
+        const resp = await fetch(`${API_BASE_URL}/workflows`);
+        if (!resp.ok) throw new Error("Erreur chargement workflows");
+        const data = await resp.json();
+
+        const workflows = data.workflows || [];
+        log("Workflows reçus:", JSON.stringify(workflows));
+
+        container.innerHTML = "";
+
+        // On peut filtrer ici si besoin, pour l'instant on prend tout
+        const groupsConfig = [
+            {
+                label: "ComfyUI",
+                filter: (name) => name.endsWith(".json")
+            }
+        ];
+
+        let firstSelected = false;
+
+        for (const group of groupsConfig) {
+            const groupWfs = workflows.filter(group.filter);
+            if (!groupWfs.length) continue;
+
+            const wrap = document.createElement("div");
+            wrap.className = "workflow-group-wrapper";
+
+            const title = document.createElement("h4");
+            title.className = "workflow-group-label";
+            title.textContent = group.label;
+            wrap.appendChild(title);
+
+            const grid = document.createElement("div");
+            grid.className = "workflow-grid";
+
+            groupWfs.forEach(wf => {
+                const base = wf.replace(/\.json$/,"");
+                const v = document.createElement("div");
+                v.className = "workflow-vignette";
+                v.dataset.workflowName = wf;
+
+                v.innerHTML = `
+                    <div class="workflow-thumb-wrapper">
+                        <img class="workflow-thumb" src="./vignettes/${base}.png" onerror="this.src='./vignettes/default.png'">
+                    </div>
+                    <div class="vignette-label-only">${base}</div>
+                `;
+
+                v.addEventListener("click", () => selectWorkflow(wf));
+                grid.appendChild(v);
+            });
+
+            wrap.appendChild(grid);
+            container.appendChild(wrap);
+
+            if (!firstSelected && groupWfs.length > 0) {
+                selectWorkflow(groupWfs[0]);
+                firstSelected = true;
+            }
+        }
+
+        if (!firstSelected && workflows.length > 0) {
+            selectWorkflow(workflows[0]);
+        }
+
+    } catch (e) {
+        console.error("Erreur loadWorkflows:", e);
+        if (container) {
+            container.innerHTML = `<span style="font-size:12px;color:#f97373;">Erreur de chargement des workflows.</span>`;
+        }
+    }
+
+    try {
+        const resp = await fetch(`${API_BASE_URL}/checkpoints`);
+        const data = await resp.json();
+        const select = document.getElementById("checkpoint-select");
+        if (!select) return;
+
+        select.innerHTML = "";
+        const optEmpty = document.createElement("option");
+        optEmpty.value = "";
+        optEmpty.textContent = "Aucun (par défaut du workflow)";
+        select.appendChild(optEmpty);
+
+        (data.checkpoints || []).forEach(ckpt => {
+            const opt = document.createElement("option");
+            opt.value = ckpt;
+            opt.textContent = ckpt;
+            select.appendChild(opt);
+        });
+
+    } catch (e) {
+        console.warn("Erreur chargement checkpoints:", e);
+    }
+}
+
+function selectWorkflow(workflowName) {
+    const hiddenInput = document.getElementById("workflow-select");
+    if (hiddenInput) {
+        hiddenInput.value = workflowName;
+    }
+
+    const all = document.querySelectorAll(".workflow-vignette");
+    all.forEach(el => {
+        el.classList.toggle("selected", el.dataset.workflowName === workflowName);
+    });
+
+    log("Workflow sélectionné:", workflowName);
+
+    const checkpointWrapper = document.getElementById("checkpoint-wrapper");
+    const videoParamsSection = document.getElementById("video-params-section");
+    const inputImageSection = document.getElementById("input-image-section");
+    const groupSteps = document.getElementById("group-steps");
+    const groupCfg = document.getElementById("group-cfg");
+    const groupSampler = document.getElementById("group-sampler");
+    const seedSection = document.getElementById("group-seed");
+    const sdxlPanel = document.getElementById("sdxl-panel");
+
+    const afficheMenu = document.getElementById("affiche-menu");
+
+    if (workflowName === "affiche.json") {
+        if (afficheMenu) afficheMenu.style.display = "block";
+        
+        // Mise à jour de la résolution pour l'affiche (format vertical 9:16)
+        const wInput = document.getElementById("width-input");
+        const hInput = document.getElementById("height-input");
+        if (wInput) wInput.value = "1080";
+        if (hInput) hInput.value = "1920";
+
+        const fmtIcons = document.querySelectorAll(".fmt-icon");
+        fmtIcons.forEach(icon => {
+            if (icon.dataset.w === "1080" && icon.dataset.h === "1920") {
+                icon.classList.add("selected-format");
+            } else {
+                icon.classList.remove("selected-format");
+            }
+        });
+
+        // Masquer les options inutiles pour l'affiche
+        if (groupSteps) groupSteps.style.display = "none";
+        if (groupCfg) groupCfg.style.display = "none";
+        if (groupSampler) groupSampler.style.display = "none";
+        if (seedSection) seedSection.style.display = "none";
+        if (sdxlPanel) sdxlPanel.style.display = "none";
+
+    } else {
+        if (afficheMenu) afficheMenu.style.display = "none";
+        
+        // Afficher les options avancées en mode normal (si elles existent)
+        if (groupSteps) groupSteps.style.display = "block";
+        if (groupCfg) groupCfg.style.display = "block";
+        if (groupSampler) groupSampler.style.display = "block";
+        if (seedSection) seedSection.style.display = "block";
+        if (sdxlPanel) sdxlPanel.style.display = "block";
+    }
+
+    if (workflowName.includes("video")) {
+        if (videoParamsSection) videoParamsSection.style.display = "block";
+    } else {
+        if (videoParamsSection) videoParamsSection.style.display = "none";
+    }
+}
+
+// =========================================================
+ // OUTILS POUR LES CHAMPS
+ // =========================================================
+
+function setValue(id, val) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = val;
+}
+
+function mergeSelectAndCustom(selectId, customId) {
+    const s = document.getElementById(selectId)?.value.trim() || "";
+    const c = document.getElementById(customId)?.value.trim() || "";
+
+    // Si le champ custom est rempli, il prend le pas
+    if (c) return c;
+    // Sinon, on retourne la valeur du select
+    if (s) return s;
+    return "";
+}
+
+// =========================================================
+// GÉNÉRATION DU PROMPT POUR LE MODE AFFICHE (FINAL)
+// =========================================================
+
+function generateAffichePrompt() {
+    // Récupération des champs de texte simples (Titre, Sous-Titre, Tagline)
+    const titre = document.getElementById("aff_titre")?.value.trim() || "";
+    const sousTitre = document.getElementById("aff_sous_titre")?.value.trim() || "";
+    const tagline = document.getElementById("aff_tagline")?.value.trim() || "";
+    const details = document.getElementById("aff_details")?.value.trim() || "";
+    const randomSeed = document.getElementById("aff_random_seed")?.value.trim() || ""; // Récupère la seed si elle existe
+
+    // Récupération des champs SELECT + CUSTOM via la fonction utilitaire
+    const theme = mergeSelectAndCustom("aff_theme", "aff_theme_custom");
+    const ambiance = mergeSelectAndCustom("aff_ambiance", "aff_ambiance_custom");
+    const perso = mergeSelectAndCustom("aff_perso_sugg", "aff_perso_desc");
+    const env = mergeSelectAndCustom("aff_env_sugg", "aff_env_desc");
+    const action = mergeSelectAndCustom("aff_action_sugg", "aff_action_desc");
+    const palette = mergeSelectAndCustom("aff_palette", "aff_palette_custom");
+    
+    // Logique pour le style du titre
+    let styleTitre = mergeSelectAndCustom("aff_style_titre", "aff_style_titre_custom");
+    
+    // Si le style de titre est vide ou 'aleatoire', on pioche un style dans STYLE_TITRE_OPTIONS
+    if (styleTitre === "" || styleTitre === "aleatoire") {
+        const styleSelect = document.getElementById("aff_style_titre");
+        const options = styleSelect ? Array.from(styleSelect.options) : [];
+        const relevantOptions = options.filter(opt => opt.value !== '');
+        
+        if (relevantOptions.length > 0) {
+            const randomIndex = Math.floor(Math.random() * relevantOptions.length);
+            styleTitre = relevantOptions[randomIndex].value;
+            styleSelect.value = styleTitre; // Mise à jour visuelle (optionnel)
+            log(`Style de titre aléatoire sélectionné : ${relevantOptions[randomIndex].textContent}`);
+        } else {
+             styleTitre = "cinematic, elegant contrast"; // Valeur de repli
+        }
+    }
+
+
+    const hasTitle = Boolean(titre);
+    const hasSubtitle = Boolean(sousTitre);
+    const hasTagline = Boolean(tagline);
+
+
+    // 3. Construction des prompts pour le modèle
+    
+    let textBlock = "";
+
+    // Le prompt de texte complexe est injecté directement dans le prompt principal
+    if (!hasTitle && !hasSubtitle && !hasTagline) {
+        textBlock = `
+NO TEXT MODE:
+The poster must contain ZERO text, letters, symbols or numbers.
+Do not invent any title, subtitle or tagline.
+Avoid any shapes that resemble typography.
+`;
+    } else {
+        // 🛑 BLOC CRUCIAL POUR DISSOCIER LE STYLE DE TITRE 🛑
+        textBlock = `
+ALLOWED TEXT ONLY (MODEL MUST NOT INVENT ANYTHING ELSE):
+
+${hasTitle ? `TITLE: "${titre}" (top area, clean, sharp, readable, no distortion)` : ""}
+${hasSubtitle ? `SUBTITLE: "${sousTitre}" (under title, smaller, crisp, readable)` : ""}
+${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
+
+RULES FOR TEXT:
+- Only the items above are permitted. No additional text, no hallucinated wording.
+- **TEXT STYLE/MATERIAL (APPLIES ONLY TO LETTERING)**: ${styleTitre || "cinematic, elegant contrast"}.
+- **CRITICAL INSTRUCTION: DO NOT APPLY** the text style (e.g., 'dripping horror', 'neon', 'frosted') to the **characters, environment, lighting, or overall rendering**. The main image's mood and style must be defined exclusively by the 'Visual elements' below.
+`;
+    }
+    
+    // Filtrage des éléments visuels vides
+    const visualElements = [
+        theme,
+        ambiance,
+        perso,
+        env,
+        action,
+        palette
+    ].filter(item => item.trim() !== "").join(', ');
+    
+    // Construction du prompt principal
+    let prompt = `
+Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
+
+${textBlock}
+
+Visual elements:
+${visualElements}
+
+Extra details:
+${details || "cinematic particles, depth fog, volumetric light"}
+
+Image style:
+Premium poster design, professional layout, ultra high resolution, visually striking.
+    `.trim().replace(/\n\s*\n/g, '\n').replace(/\s{2,}/g, ' '); // Nettoyage des sauts de ligne inutiles
+
+
+    // Ajout de la seed
+    if (randomSeed) {
+        prompt += `, --seed: ${randomSeed}`;
+    }
+
+    const promptArea = document.getElementById("prompt");
+    if (promptArea) {
+        promptArea.value = prompt;
+    }
+
+    log("🎨 Prompt affiche généré et prêt à être envoyé.");
+    
+    return prompt; 
+}
+
+
+// =========================================================
+// PROGRESSION FAKE + DÉTECTION AUTO /result (MODIFIÉ)
+// =========================================================
+
+async function pollProgress(promptId) {
+    if (!promptId) return;
+
+    fakeProgress = 0;
+    pollingFailureCount = 0; // Réinitialisation du compteur
+    showProgressOverlay(true, "Génération en cours…");
+
+    if (pollingProgressInterval) {
+        clearInterval(pollingProgressInterval);
+    }
+
+    const percentSpan = document.getElementById("progress-percent");
+    const innerBar = document.getElementById("progress-inner");
+    const statusPill = document.getElementById("job-status-pill");
+
+    if (statusPill) {
+        statusPill.textContent = "RUNNING";
+        statusPill.classList.remove("pill-green", "pill-danger", "pill-warning");
+        statusPill.classList.add("pill");
+    }
+
+    pollingProgressInterval = setInterval(async () => {
+        // Animation FAKE jusqu'à 92 %
+        fakeProgress = Math.min(fakeProgress + 7, 92);
+
+        if (percentSpan) percentSpan.textContent = fakeProgress + "%";
+        if (innerBar) innerBar.style.width = fakeProgress + "%";
+
+        // Test direct si le résultat est disponible
+        try {
+            const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`);
+
+            if (resCheck.ok) {
+                // Succès : Réinitialise le compteur d'erreurs et vérifie la fin
+                pollingFailureCount = 0;
+                const data = await resCheck.json();
+                
+                if (data.status && data.status.completed) {
+                    clearInterval(pollingProgressInterval);
+                    pollingProgressInterval = null;
+
+                    // On délègue la récupération finale au gestionnaire
+                    handleCompletion(promptId); 
+                    return;
+                }
+            } else {
+                // Si la réponse HTTP n'est pas OK (ex: 404, 500)
+                pollingFailureCount++;
+                log(`[POLL ERROR] HTTP non OK: ${resCheck.status}. Tentative d'arrêt ${pollingFailureCount}/${MAX_POLLING_FAILURES}`);
+                
+                if (pollingFailureCount >= MAX_POLLING_FAILURES) {
+                    clearInterval(pollingProgressInterval);
+                    pollingProgressInterval = null;
+                    showProgressOverlay(false);
+                    setError(`La tâche ${promptId} a été perdue par le serveur (HTTP ${resCheck.status}).`);
+                    return;
+                }
+            }
+
+        } catch (e) {
+            pollingFailureCount++;
+            log(`[POLL ERROR] Erreur réseau/JSON: ${e.message}.`);
+
+            if (pollingFailureCount >= MAX_POLLING_FAILURES) {
+                clearInterval(pollingProgressInterval);
+                pollingProgressInterval = null;
+                showProgressOverlay(false);
+                setError(`Échec de la connexion au serveur API (${API_BASE_URL}).`);
+                return;
+            }
+        }
+
+    }, POLLING_INTERVAL_MS);
+}
+
+// =========================================================
+// GESTIONNAIRE DE COMPLÉTION AVEC RETRY
+// =========================================================
+
+async function handleCompletion(promptId) {
+    
+    const statusPill = document.getElementById("job-status-pill");
+    const percentSpan = document.getElementById("progress-percent");
+    const innerBar = document.getElementById("progress-inner");
+
+    // Mise à jour UI pour indiquer le début de la récupération finale
+    if (statusPill) {
+        statusPill.textContent = "FETCHING";
+        statusPill.classList.remove("pill", "pill-green", "pill-danger");
+        statusPill.classList.add("pill-warning"); 
+    }
+    if (percentSpan) percentSpan.textContent = "92%";
+    if (innerBar) innerBar.style.width = "92%";
+
+
+    const MAX_FETCH_ATTEMPTS = 10;
+    const RETRY_DELAY_MS = 2000;
+
+    for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
+        log(`[FETCH RESULT] Tentative ${attempt}/${MAX_FETCH_ATTEMPTS} pour ${promptId}...`);
+        
+        try {
+            const resp = await fetch(`${API_BASE_URL}/result/${promptId}`); 
+
+            if (resp.ok) {
+                // SUCCESS! Finish UI and display image
+                const data = await resp.json();
+                
+                // FINAL UI UPDATE 
+                if (percentSpan) percentSpan.textContent = "100%";
+                if (innerBar) innerBar.style.width = "100%";
+                showProgressOverlay(false);
+                if (statusPill) {
+                    statusPill.textContent = "DONE";
+                    statusPill.classList.remove("pill", "pill-danger", "pill-warning");
+                    statusPill.classList.add("pill-green");
+                }
+                
+                displayImageAndMetadata(data);
+                setError("");
+                return; // FINISHED SUCCESSFULLY
+            } 
+            
+            // HTTP NOT OK
+            log(`[FETCH RESULT] HTTP non OK: ${resp.status}. Ré-essai dans ${RETRY_DELAY_MS / 1000}s.`);
+            
+            if (attempt === MAX_FETCH_ATTEMPTS) {
+                throw new Error(`Échec de la récupération du résultat après ${MAX_FETCH_ATTEMPTS} tentatives.`);
+            }
+            
+            await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+
+        } catch (e) {
+            console.error("Erreur fetchResult/handleCompletion:", e);
+            showProgressOverlay(false);
+            setError(e.message || "Erreur lors de la récupération de l’image générée.");
+            if (statusPill) {
+                statusPill.textContent = "FAILED";
+                statusPill.classList.remove("pill", "pill-green", "pill-warning");
+                statusPill.classList.add("pill-danger");
+            }
+            return; 
+        }
+    }
+}
+
+
+// =========================================================
+// AFFICHAGE DU RÉSULTAT ET DES METADATAS
+// =========================================================
+
+function displayImageAndMetadata(data) {
+    const base64 = data.image_base64;
+    const filename = data.filename || "image.png";
+
+    const resultArea = document.getElementById("result-area");
+    const placeholder = document.getElementById("result-placeholder");
+
+    if (placeholder) placeholder.style.display = "none";
+
+    const imgExisting = resultArea.querySelector("img.result-image");
+    if (imgExisting) imgExisting.remove();
+
+    const img = document.createElement("img");
+    img.className = "result-image mj-img mj-blur clickable";
+    img.src = `data:image/png;base64,${base64}`;
+    img.alt = "Image générée";
+    img.style.maxWidth = "100%";
+    img.style.height = "auto";
+    img.style.display = "block";
+    img.style.margin = "0 auto";
+
+    img.onload = () => {
+        img.classList.remove("mj-blur");
+        img.classList.add("mj-ready");
+    };
+
+    img.addEventListener("click", () => {
+        const modal = document.getElementById("image-modal");
+        const modalImg = document.getElementById("modal-image");
+        const dlLink = document.getElementById("modal-download-link");
+
+        if (modal && modalImg && dlLink) {
+            modalImg.src = img.src;
+            dlLink.href = img.src;
+            dlLink.download = filename;
+            modal.style.display = "flex";
+        }
+    });
+
+    resultArea.appendChild(img);
+
+    const metaSeed = document.getElementById("meta-seed");
+    const metaSteps = document.getElementById("meta-steps");
+    const metaCfg = document.getElementById("meta-cfg");
+    const metaSampler = document.getElementById("meta-sampler");
+
+    if (metaSeed) metaSeed.textContent = "–";
+    if (metaSteps) metaSteps.textContent = "–";
+    if (metaCfg) metaCfg.textContent = "–";
+    if (metaSampler) metaSampler.textContent = "–";
+
+    if (lastGenerationStartTime) {
+        const diffMs = Date.now() - lastGenerationStartTime;
+        const sec = (diffMs / 1000).toFixed(1);
+        const timeTakenEl = document.getElementById("time-taken");
+        if (timeTakenEl) timeTakenEl.textContent = `${sec}s`;
+    }
+}
+
+
+// =========================================================
+// ENVOI DU FORMULAIRE → /generate (CORRIGÉ COMPLET)
+// =========================================================
+
+async function startGeneration(e) {
+    e.preventDefault();
+
+    setError("");
+
+    const formEl = document.getElementById("generation-form");
+    if (!formEl) return;
+
+    const generateBtn = document.getElementById("generate-button");
+    const currentBtn = generateBtn;
+
+    // 1. Désactiver le bouton immédiatement et initialiser l'état
+    if (currentBtn) {
+        currentBtn.disabled = true;
+        currentBtn.querySelector(".dot").style.background = "#fbbf24";
+        currentBtn.innerHTML = `<span class="dot"></span>Initialisation…`;
+    }
+
+    lastGenerationStartTime = Date.now();
+    showProgressOverlay(true, "Initialisation…");
+    fakeProgress = 0;
+
+    const statusPill = document.getElementById("job-status-pill");
+    if (statusPill) {
+        statusPill.textContent = "PENDING";
+        statusPill.classList.remove("pill-green", "pill-danger", "pill-warning");
+        statusPill.classList.add("pill");
+    }
+
+    let success = false;
+    let finalPromptId = null;
+    let formData;
+    let finalPromptText = ""; // Variable pour stocker le prompt final
+
+    // 2. Le bloc try/finally garantit la réactivation du bouton.
+    try {
+        const wfName = document.getElementById("workflow-select")?.value;
+
+        if (!wfName) {
+            setError("Veuillez sélectionner un workflow.");
+            throw new Error("No workflow selected."); 
+        }
+
+        // ÉTAPE 1 : Créer le FormData avec toutes les données existantes
+        formData = new FormData(formEl);
+
+        // ÉTAPE 2 : Gérer le prompt pour le mode AFFICHE (Injection directe)
+        if (wfName === "affiche.json") {
+            log("Workflow Affiche détecté. Génération automatique et injection du prompt.");
+            
+            // La fonction generateAffichePrompt est modifiée pour RETOURNER le prompt généré.
+            // Si votre fonction n'a pas été modifiée, veuillez appliquer la modification suivante:
+            // Remplacer :
+            // function generateAffichePrompt() { ... (calcul prompt) ... promptArea.value = prompt; }
+            // Par :
+            // function generateAffichePrompt() { ... (calcul prompt) ... promptArea.value = prompt; return prompt; }
+            
+            const generatedPrompt = generateAffichePrompt();
+            
+            // 🔥 INJECTION DIRECTE : On s'assure que le champ 'prompt' dans le FormData a la bonne valeur.
+            // Ceci garantit que la valeur est envoyée, même si le DOM n'est pas synchrone.
+            formData.set('prompt', generatedPrompt);
+            finalPromptText = generatedPrompt;
+
+        } else {
+            // Pour tous les autres workflows, on prend le prompt tel qu'il a été saisi dans le textarea
+            finalPromptText = formData.get('prompt') || "Prompt par défaut si vide";
+        }
+        
+        log(`Contenu du prompt envoyé: "${finalPromptText.substring(0, 80)}..."`);
+        
+        log("Début de la séquence de génération réelle...");
+        if (currentBtn) currentBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
+
+        const maxAttempts = 3;
+        let attempt = 0;
+
+        // ... Reste du code de l'envoi HTTP, qui est correct ...
+
+        while (attempt < maxAttempts && !success) {
+            attempt++;
+            try {
+                log(`[Tentative ${attempt}/${maxAttempts}] Envoi de la requête de génération.`);
+
+                const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { method: "POST", body: formData });
+
+                if (!resp.ok) {
+                    // ... (gestion des erreurs de tentative) ...
+                    log(`Tentative ${attempt} → HTTP ${resp.status}`);
+                    if (attempt < maxAttempts) {
+                        await new Promise(r => setTimeout(r, 5000));
+                        continue;
+                    } else {
+                        throw new Error(`Échec après plusieurs tentatives. (HTTP ${resp.status})`);
+                    }
+                }
+
+                const data = await resp.json();
+                if (!data.prompt_id) {
+                    throw new Error("Réponse invalide de /generate (missing prompt_id)");
+                }
+
+                success = true;
+                finalPromptId = data.prompt_id;
+
+            } catch (err) {
+                console.error(`Erreur tentative ${attempt}:`, err);
+                log(`Tentative ${attempt}/${maxAttempts} : Échec.`);
+
+                if (attempt >= maxAttempts) {
+                    setError(`❌ Échec de l’envoi initial de la tâche au serveur API.`);
+                }
+
+                await new Promise(r => setTimeout(r, 5000));
+            }
+        }
+
+        if (success && finalPromptId) {
+            currentPromptId = finalPromptId;
+            log("Prompt ID final:", finalPromptId);
+            pollProgress(finalPromptId);
+        } else {
+            showProgressOverlay(false);
+        }
+
+    } catch (globalErr) {
+        console.warn("Generation stopped early:", globalErr.message);
+        if (!document.getElementById("error-box")?.textContent) {
+            setError(`Erreur d'initialisation : ${globalErr.message}`);
+        }
+        showProgressOverlay(false);
+        
+    } finally {
+        if (currentBtn) {
+            currentBtn.disabled = false;
+            currentBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
+            currentBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
+        }
+    }
+}
+
+// =========================================================
+// RANDOM AFFICHE — CHARGEMENT + GÉNÉRATION AUTOMATIQUE
+// =========================================================
+
+let RANDOM_AFFICHE_DATA = null;
+
+// Charge le fichier JSON une seule fois
+async function loadRandomAfficheJSON() {
+    if (RANDOM_AFFICHE_DATA) return RANDOM_AFFICHE_DATA;
+
+    try {
+        const resp = await fetch("random_affiche_data.json");
+        if (!resp.ok) {
+            console.error("❌ Fichier random_affiche_data.json introuvable !");
+            return null;
+        }
+
+        RANDOM_AFFICHE_DATA = await resp.json();
+        console.log("📁 random_affiche_data.json chargé !");
+        return RANDOM_AFFICHE_DATA;
+
+    } catch (e) {
+        console.error("Erreur lors du chargement JSON random :", e);
         return null;
     }
 }
 
-function clearToken() {
-    try {
-        localStorage.removeItem('google_auth_token');
-        sessionStorage.removeItem('auth_redirect_done'); // Nettoyage de sécurité
-    } catch (e) {
-        console.warn("Avertissement: Impossible de retirer le token de localStorage.");
+// Pioche aléatoire
+function pickRandom(arr) {
+    if (!arr || !arr.length) return "";
+    const idx = Math.floor(Math.random() * arr.length);
+    return arr[idx];
+}
+
+// Injection massive dans les champs
+function fillAfficheFieldsFromRandom(randomObj) {
+    if (!randomObj) return;
+
+    setValue("aff_titre", randomObj.titre || "");
+    setValue("aff_sous_titre", randomObj.sous_titre || "");
+    setValue("aff_tagline", randomObj.tagline || "");
+
+    if (randomObj.theme) {
+        setValue("aff_theme_custom", randomObj.theme);
+        const s = document.getElementById("aff_theme");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.ambiance) {
+        setValue("aff_ambiance_custom", randomObj.ambiance);
+        const s = document.getElementById("aff_ambiance");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.personnage) {
+        setValue("aff_perso_desc", randomObj.personnage);
+        const s = document.getElementById("aff_perso_sugg");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.environnement) {
+        setValue("aff_env_desc", randomObj.environnement);
+        const s = document.getElementById("aff_env_sugg");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.action) {
+        setValue("aff_action_desc", randomObj.action);
+        const s = document.getElementById("aff_action_sugg");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.details) {
+        setValue("aff_details", randomObj.details);
+    }
+
+    if (randomObj.palette) {
+        setValue("aff_palette_custom", randomObj.palette);
+        const s = document.getElementById("aff_palette");
+        if (s) s.value = "";
+    }
+
+    if (randomObj.style_titre) {
+        setValue("aff_style_titre_custom", randomObj.style_titre);
+        const s = document.getElementById("aff_style_titre");
+        if (s) s.value = "";
     }
 }
 
 // =========================================================
-// 🛡️ AUTHENTICATION FUNCTIONS (LOGIQUE ANTI-BOUCLE - depuis script (40).js)
+// INIT GLOBAL (DOMContentLoaded)
 // =========================================================
 
-let isAuthenticated = getToken() !== null;
+function autoClearOnSelect(selectId, customId) {
+    const sel = document.getElementById(selectId);
+    const custom = document.getElementById(customId);
 
-// Vérifie si un token est présent dans l'URL (après une redirection de login)
-function handleLoginRedirect() {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    const error = params.get('error');
+    if (!sel || !custom) return;
 
-    if (error) {
-        alert("Erreur d'authentification: " + error);
-        // Nettoyer l'URL
-        window.history.replaceState({}, document.title, FRONTEND_URL);
-        return;
-    }
-
-    if (token) {
-        console.log("Token reçu de l'URL.");
-        if (setToken(token)) {
-            isAuthenticated = true;
+    sel.addEventListener("change", () => {
+        if (sel.value && custom.value.trim() !== "") {
+            custom.value = ""; // Efface le champ libre
         }
-        // Utiliser sessionStorage pour empêcher une boucle de redirection si l'utilisateur rafraîchit
-        sessionStorage.setItem('auth_redirect_done', 'true');
-        // Nettoyer l'URL sans rafraîchir la page
-        window.history.replaceState({}, document.title, FRONTEND_URL);
-    }
-}
-
-// Fonction pour afficher/masquer les éléments d'interface en fonction de l'état d'auth
-function checkAuthStatusAndDisplayContent() {
-    const loginLink = document.getElementById('login-link');
-    const logoutButton = document.getElementById('logout-button');
-    const mainContentWrapper = document.getElementById('main-content-wrapper');
-
-    if (isAuthenticated) {
-        console.log("Statut: Authentifié. Affichage du contenu.");
-        if (loginLink) loginLink.style.display = 'none';
-        if (logoutButton) logoutButton.style.display = 'block';
-        if (mainContentWrapper) mainContentWrapper.style.display = 'block'; // Affiche l'interface principale
-    } else {
-        console.log("Statut: Non Authentifié. Contenu masqué.");
-        if (loginLink) loginLink.style.display = 'block';
-        if (logoutButton) logoutButton.style.display = 'none';
-        if (mainContentWrapper) mainContentWrapper.style.display = 'none'; // Masque l'interface principale
-    }
-}
-
-// =========================================================
-// 🧠 FONCTIONS DE L'INTERFACE ET DE GÉNÉRATION (depuis script.js)
-// =========================================================
-
-// ... (Les fonctions suivantes sont conservées de script.js) ...
-
-function populateTitleStyles() {
-    const select = document.getElementById('aff_style_titre');
-    if (!select) return;
-
-    // Ajouter l'option par défaut
-    const defaultOption = document.createElement('option');
-    defaultOption.value = "";
-    defaultOption.textContent = "Choose…";
-    select.appendChild(defaultOption);
-
-    STYLE_TITRE_OPTIONS.forEach(style => {
-        const option = document.createElement('option');
-        option.value = style.value;
-        option.textContent = style.label;
-        select.appendChild(option);
     });
 }
 
-// Récupère les données de la liste des options pour un <select> donné
-function populateSelectOptions(selectId, endpoint, defaultOptionText = "Loading…") {
-    const select = document.getElementById(selectId);
-    if (!select) return;
+document.addEventListener("DOMContentLoaded", () => {
 
-    select.innerHTML = `<option value="">${defaultOptionText}</option>`;
+    // =========================================================
+    // AUTO-CLEAR POUR CHAQUE SELECT → CHAMP CUSTOM
+    // =========================================================
+    autoClearOnSelect("aff_style_titre", "aff_style_titre_custom");
+    autoClearOnSelect("aff_theme", "aff_theme_custom");
+    autoClearOnSelect("aff_ambiance", "aff_ambiance_custom");
+    autoClearOnSelect("aff_perso_sugg", "aff_perso_desc");
+    autoClearOnSelect("aff_env_sugg", "aff_env_desc");
+    autoClearOnSelect("aff_action_sugg", "aff_action_desc");
+    autoClearOnSelect("aff_palette", "aff_palette_custom");
 
-    fetch(`${API_BASE_URL}/api/${endpoint}`, {
-        headers: {
-            'Authorization': `Bearer ${getToken()}`
-        }
-    })
-    .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.json();
-    })
-    .then(data => {
-        // Vider et ajouter l'option 'Choose…'
-        select.innerHTML = `<option value="">Choose…</option>`; 
-        data.forEach(item => {
-            const option = document.createElement('option');
-            // Assumer que les items sont des chaînes de caractères (noms de fichiers ou IDs)
-            option.value = item;
-            option.textContent = item.replace('.safetensors', '').replace(/_/g, ' '); // Nettoyage
-            select.appendChild(option);
+    // =========================================================
+    // LISTENERS GÉNÉRAUX
+    // =========================================================
+
+    const formEl = document.getElementById("generation-form");
+    if (formEl) {
+        formEl.addEventListener("submit", startGeneration);
+    }
+
+    const modal = document.getElementById("image-modal");
+    const modalClose = document.querySelector(".modal-close-btn");
+
+    if (modalClose && modal) {
+        modalClose.addEventListener("click", () => {
+            modal.style.display = "none";
         });
-        
-        // Si c'est la liste des checkpoints, essayer de sélectionner le premier si possible
-        if (selectId === 'checkpoint-select' && data.length > 0) {
-            select.value = data[0]; 
-        }
-    })
-    .catch(error => {
-        console.error(`Error loading ${endpoint}:`, error);
-        select.innerHTML = `<option value="">Error loading data.</option>`;
-    });
-}
-
-let currentWorkflow = null; // Stocke l'objet workflow actif
-
-function selectWorkflow(workflowPath) {
-    // 1. Mise à jour de l'input caché
-    const workflowSelectInput = document.getElementById('workflow-select');
-    if (workflowSelectInput) {
-        workflowSelectInput.value = workflowPath;
     }
 
-    // 2. Récupération des données du workflow pour afficher/masquer les inputs
-    fetch(`${API_BASE_URL}/api/workflows/${workflowPath}`, {
-        headers: {
-            'Authorization': `Bearer ${getToken()}`
-        }
-    })
-    .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.json();
-    })
-    .then(workflowData => {
-        currentWorkflow = workflowData;
-        console.log("Workflow chargé:", workflowData.name);
-        
-        // Logique pour afficher/masquer les groupes d'inputs
-        const elementsToToggle = [
-            'group-steps', 'group-cfg', 'group-width', 'group-height', 'group-sampler', 'group-seed',
-            'video-params-section', 'input-image-section', 'sdxl-panel', 'checkpoint-wrapper'
-        ];
-
-        elementsToToggle.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                // Par défaut, tout est masqué
-                el.style.display = 'none';
+    if (modal) {
+        modal.addEventListener("click", (ev) => {
+            if (ev.target === modal) {
+                modal.style.display = "none";
             }
         });
+    }
 
-        // Afficher les éléments en fonction des tags du workflow
-        if (workflowData.tags.includes('image')) {
-            document.getElementById('group-steps').style.display = 'block';
-            document.getElementById('group-cfg').style.display = 'block';
-            document.getElementById('group-width').style.display = 'block';
-            document.getElementById('group-height').style.display = 'block';
-            document.getElementById('group-sampler').style.display = 'block';
-            document.getElementById('group-seed').style.display = 'block';
-        }
-        if (workflowData.tags.includes('video')) {
-            document.getElementById('video-params-section').style.display = 'block';
-        }
-        if (workflowData.tags.includes('img2img')) {
-            document.getElementById('input-image-section').style.display = 'block';
-        }
-        if (workflowData.tags.includes('sdxl')) {
-            document.getElementById('sdxl-panel').style.display = 'block';
-        }
-        if (workflowData.tags.includes('checkpoint')) {
-            document.getElementById('checkpoint-wrapper').style.display = 'block';
-        }
+    const copyBtn = document.getElementById("copy-params-btn");
+    if (copyBtn) {
+        copyBtn.addEventListener("click", () => {
+            const wfName = document.getElementById("workflow-select")?.value || "–";
+            const width = document.getElementById("width-input")?.value || "–";
+            const height = document.getElementById("height-input")?.value || "–";
+            const steps = document.getElementById("steps-slider")?.value || "–";
+            const cfg = document.getElementById("cfg_scale-slider")?.value || "–";
+            const sampler = document.getElementById("sampler")?.value || "–";
+            const seed = document.getElementById("seed-input")?.value || "–";
 
-    })
-    .catch(error => {
-        console.error("Erreur lors du chargement du workflow:", error);
-    });
-}
-
-function loadWorkflows() {
-    const container = document.getElementById('workflow-groups-container');
-    if (!container) return;
-    container.innerHTML = 'Chargement...';
-
-    fetch(`${API_BASE_URL}/api/workflows`, {
-        headers: {
-            'Authorization': `Bearer ${getToken()}`
-        }
-    })
-    .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.json();
-    })
-    .then(data => {
-        container.innerHTML = '';
-        const workflowData = data.workflows || [];
-        const groups = {};
-
-        // 1. Groupement par catégorie
-        workflowData.forEach(item => {
-            const category = item.category || 'Other';
-            if (!groups[category]) {
-                groups[category] = [];
-            }
-            groups[category].push(item);
+            const txt = `Workflow: ${wfName}\nResolution: ${width}x${height}\nSteps: ${steps}\nCFG: ${cfg}\nSampler: ${sampler}\nSeed: ${seed}`;
+            navigator.clipboard.writeText(txt).then(() => {
+                log("Paramètres copiés dans le presse-papiers.");
+            });
         });
+    }
+    
+    // =========================================================
+    // RANDOM AFFICHE — CHARGEMENT + REMPLISSAGE SEUL
+    // =========================================================
 
-        // 2. Affichage (défilement horizontal)
-        Object.keys(groups).forEach(category => {
-            const groupDiv = document.createElement('div');
-            groupDiv.className = 'workflow-group';
+    const randomBtn = document.getElementById("affiche-random-btn");
+    if (randomBtn && formEl) {
+        randomBtn.addEventListener("click", async () => {
+            console.log("🎲 Clic random détecté !");
+
+            const data = await loadRandomAfficheJSON();
+            if (!data) return;
+
+            const theme = pickRandom(data.themes);
+            const ambiance = pickRandom(data.ambiances);
+            const perso = pickRandom(data.personnages);
+            const env = pickRandom(data.environnements);
+            const action = pickRandom(data.actions);
+            const palette = pickRandom(data.palettes);
+            const styleTitre = pickRandom(data.styles_titre);
+            const details = pickRandom(data.details);
+            const titre = pickRandom(data.titres);
+            const sousTitre = pickRandom(data.sous_titres);
+            const tagline = pickRandom(data.taglines || []);
+
+            const randomObj = {
+                titre,
+                sous_titre: sousTitre,
+                tagline,
+                theme,
+                ambiance,
+                personnage: perso,
+                environnement: env,
+                action,
+                palette,
+                style_titre: styleTitre,
+                details
+            };
+
+            fillAfficheFieldsFromRandom(randomObj);
+            generateAffichePrompt(); 
             
-            const groupTitle = document.createElement('h3');
-            groupTitle.textContent = category;
-            groupDiv.appendChild(groupTitle);
+            randomBtn.classList.add("clicked");
+            randomBtn.innerHTML = "🎲 Champs remplis !";
+            setTimeout(() => {
+                randomBtn.classList.remove("clicked");
+                randomBtn.innerHTML = "🎲 Aléatoire";
+            }, 600);
             
-            const carousel = document.createElement('div');
-            carousel.className = 'workflow-carousel';
-
-            groups[category].forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'workflow-card';
-                card.dataset.path = item.path;
-                
-                const img = document.createElement('img');
-                img.src = item.vignette_url;
-                img.alt = item.name;
-
-                const nameDiv = document.createElement('div');
-                nameDiv.className = 'workflow-name';
-                nameDiv.textContent = item.name;
-
-                card.appendChild(img);
-                card.appendChild(nameDiv);
-
-                // Gestion du clic pour sélectionner
-                card.addEventListener('click', () => {
-                    document.querySelectorAll('.workflow-card').forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    selectWorkflow(item.path);
-                });
-
-                // Gestion du survol pour le popover (à implémenter)
-
-                carousel.appendChild(card);
-            });
-
-            groupDiv.appendChild(carousel);
-            container.appendChild(groupDiv);
+            console.log("🎲 Champs affiche remplis aléatoirement:", randomObj);
         });
-        
-        // 3. Sélectionner le premier workflow par défaut, ou un workflow image par défaut
-        const defaultWorkflowCard = document.querySelector('.workflow-card[data-path="default_image.json"]') || document.querySelector('.workflow-card');
-        if (defaultWorkflowCard) {
-            defaultWorkflowCard.click();
-        }
-    })
-    .catch(error => {
-        console.error("Erreur lors du chargement des workflows:", error);
-        container.innerHTML = `<span style="color:red;">Erreur: Impossible de charger les workflows.</span>`;
-    });
-}
-
-function refreshGPU() {
-    // Si l'utilisateur n'est pas authentifié, ne rien faire
-    if (!isAuthenticated) return;
-    
-    fetch(`${API_BASE_URL}/api/gpu-status`, {
-        headers: {
-            'Authorization': `Bearer ${getToken()}`
-        }
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.json();
-    })
-    .then(data => {
-        document.getElementById('gpu-name').textContent = data.name || 'N/A';
-        document.getElementById('gpu-util').textContent = data.utilization_gpu ? `${data.utilization_gpu}%` : '0%';
-        document.getElementById('gpu-mem').textContent = data.memory_used && data.memory_total ? 
-            `${data.memory_used} / ${data.memory_total} GB` : '0 / 0 GB';
-        document.getElementById('gpu-temp').textContent = data.temperature_gpu ? `${data.temperature_gpu} °C` : '– °C';
-
-        const dot = document.querySelector('.gpu-dot');
-        if (dot) {
-            // Logique simple: rouge si > 70%, jaune si > 30%, vert sinon
-            const util = parseInt(data.utilization_gpu) || 0;
-            if (util > 70) {
-                dot.style.backgroundColor = 'red';
-            } else if (util > 30) {
-                dot.style.backgroundColor = 'orange';
-            } else {
-                dot.style.backgroundColor = 'green';
-            }
-        }
-    })
-    .catch(error => {
-        console.error("Erreur lors du rafraîchissement du statut GPU:", error);
-        // Afficher N/A en cas d'erreur
-        document.getElementById('gpu-name').textContent = 'N/A';
-        document.getElementById('gpu-util').textContent = '0%';
-        document.getElementById('gpu-mem').textContent = '0 / 0 GB';
-        document.getElementById('gpu-temp').textContent = '— °C';
-        const dot = document.querySelector('.gpu-dot');
-        if (dot) dot.style.backgroundColor = 'gray';
-    });
-}
-
-function generatePrompt() {
-    // Si l'utilisateur n'est pas authentifié, ne rien faire
-    if (!isAuthenticated) return;
-    
-    const elements = {
-        aff_titre: document.getElementById('aff_titre').value,
-        aff_sous_titre: document.getElementById('aff_sous_titre').value,
-        aff_tagline: document.getElementById('aff_tagline').value,
-        aff_theme: document.getElementById('aff_theme').value || document.getElementById('aff_theme_custom').value,
-        aff_ambiance: document.getElementById('aff_ambiance').value || document.getElementById('aff_ambiance_custom').value,
-        aff_perso: document.getElementById('aff_perso_sugg').value || document.getElementById('aff_perso_desc').value,
-        aff_env: document.getElementById('aff_env_sugg').value || document.getElementById('aff_env_desc').value,
-        aff_action: document.getElementById('aff_action_sugg').value || document.getElementById('aff_action_desc').value,
-        aff_details: document.getElementById('aff_details').value,
-        aff_palette: document.getElementById('aff_palette').value || document.getElementById('aff_palette_custom').value,
-        aff_style_titre: document.getElementById('aff_style_titre').value || document.getElementById('aff_style_titre_custom').value
-    };
-
-    // Construction du Prompt
-    const promptParts = [];
-
-    // 1. Description de la scène principale
-    let scene = '';
-    if (elements.aff_perso || elements.aff_env || elements.aff_action) {
-        scene += `A high-quality, photorealistic poster image of a scene where ${elements.aff_perso} is ${elements.aff_action} in ${elements.aff_env}.`;
-    } else {
-        scene += `A colorful and detailed event poster image, high resolution.`;
-    }
-    promptParts.push(scene);
-
-    // 2. Thème/Ambiance et Détails
-    if (elements.aff_theme) {
-        promptParts.push(`Theme: ${elements.aff_theme}.`);
-    }
-    if (elements.aff_ambiance) {
-        promptParts.push(`Mood/Style: ${elements.aff_ambiance}.`);
-    }
-    if (elements.aff_details) {
-        promptParts.push(`Details: ${elements.aff_details}.`);
     }
 
-    // 3. Typographie (Titres)
-    let titleSection = 'Prominently featuring text elements:';
+    // =========================================================
+    // GENERATE PROMPT BUTTON LISTENER (PROMPT SEUL)
+    // =========================================================
 
-    if (elements.aff_titre) {
-        titleSection += ` Main Title "${elements.aff_titre}".`;
-    }
-    if (elements.aff_sous_titre) {
-        titleSection += ` Subtitle "${elements.aff_sous_titre}".`;
-    }
-    if (elements.aff_tagline) {
-        titleSection += ` Tagline "${elements.aff_tagline}".`;
-    }
-    
-    // 4. Style du Titre
-    if (elements.aff_style_titre) {
-        titleSection += ` The title uses a font style described as: ${elements.aff_style_titre}.`;
-    }
-
-    if (titleSection !== 'Prominently featuring text elements:') {
-         promptParts.push(titleSection);
-    }
-
-    // 5. Palette de Couleurs
-    if (elements.aff_palette) {
-        promptParts.push(`Color Palette: ${elements.aff_palette}.`);
-    }
-
-    // 6. Style visuel final
-    promptParts.push(`High detail, cinematic lighting, dramatic composition, poster design, 4K resolution.`);
-
-    // 7. Negative Prompt (si nécessaire - ici on l'ajoute directement si on veut)
-    const negativePrompt = "blurry, worst quality, distorted, missing limbs, duplicate, ugly, signature, watermark, lowres, text artifacts, bad anatomy, deformed, monochrome";
-
-    document.getElementById('prompt').value = promptParts.filter(p => p.trim() !== '').join(' ') + ` --neg ${negativePrompt}`;
-    alert("Prompt généré avec succès ! (Vérifiez le panneau de résultats)");
-
-    // Afficher le bouton de génération d'image
-    document.getElementById('generate-button').style.display = 'block';
-}
-
-
-function submitGeneration(event) {
-    event.preventDefault(); // Empêche l'envoi de formulaire standard
-    
-    // Si l'utilisateur n'est pas authentifié, empêcher l'envoi
-    if (!isAuthenticated) {
-        document.getElementById('error-box').textContent = "Veuillez vous connecter pour lancer une génération.";
-        document.getElementById('error-box').style.display = 'block';
-        return;
-    }
-    
-    // Masquer les erreurs précédentes
-    document.getElementById('error-box').style.display = 'none';
-
-    // 1. Récupération des données du formulaire
-    const form = event.target;
-    const formData = new FormData(form);
-    const data = {};
-
-    // Données de base
-    formData.forEach((value, key) => {
-        // Ignorer le champ de seed si le random est coché
-        if (key === 'seed_value' && document.getElementById('seed-random-toggle').checked) {
-            data['seed'] = -1; // -1 est souvent utilisé pour indiquer un seed aléatoire
-            return;
-        }
-        if (key === 'prompt') {
-            data[key] = value;
-        } else if (!isNaN(parseFloat(value))) {
-            data[key] = parseFloat(value);
-        } else {
-            data[key] = value;
-        }
-    });
-
-    // Gestion du seed (si la valeur est absente ou si c'est le champ de toggle)
-    if (document.getElementById('seed-random-toggle') && document.getElementById('seed-random-toggle').checked) {
-        data['seed'] = -1;
-    } else {
-        // Utiliser la valeur textuelle si le random n'est pas coché
-        data['seed'] = parseInt(document.getElementById('seed-input').value) || 42; 
-    }
-    delete data.seed_random; // Supprimer le champ du toggle
-
-
-    // Si le workflow est un workflow 'affiche', s'assurer que le prompt est généré/disponible
-    if (document.getElementById('workflow-select').value.includes('affiche') && !data.prompt) {
-        document.getElementById('error-box').textContent = "Veuillez générer le Prompt d'abord !";
-        document.getElementById('error-box').style.display = 'block';
-        return;
-    }
-
-    // 2. Gestion du Refiner SDXL (si visible)
-    if (document.getElementById('sdxl-panel').style.display === 'block') {
-        data['sdxl_mode'] = document.getElementById('sdxl_mode').value;
-        data['sdxl_start'] = parseFloat(document.getElementById('sdxl_start-slider').value) / 100;
-        data['sdxl_end'] = parseFloat(document.getElementById('sdxl_end-slider').value) / 100;
-        data['sdxl_quality'] = document.getElementById('sdxl_quality').value;
-    }
-
-    // 3. Préparer l'interface utilisateur pour le lancement
-    document.getElementById('job-status-pill').textContent = 'STARTING...';
-    document.getElementById('job-status-pill').className = 'pill-yellow';
-    document.getElementById('progress-overlay').style.display = 'flex';
-    document.getElementById('result-placeholder').style.display = 'none';
-    const generateButton = document.getElementById('generate-button');
-    generateButton.disabled = true;
-    generateButton.querySelector('.dot').style.display = 'block';
-    
-    const startTime = Date.now();
-    let jobId = null;
-    let eventSource = null;
-
-    // Fonction de nettoyage
-    const cleanup = () => {
-        if (eventSource) {
-            eventSource.close();
-            eventSource = null;
-        }
-        generateButton.disabled = false;
-        generateButton.querySelector('.dot').style.display = 'none';
-    };
-
-    // 4. Lancement du job de génération via l'API
-    fetch(`${API_BASE_URL}/api/generate`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getToken()}`
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.message || 'La requête de génération a échoué.');
-            });
-        }
-        return response.json();
-    })
-    .then(jobData => {
-        jobId = jobData.job_id;
-        console.log("Job lancé:", jobId);
-
-        // 5. Connexion aux événements SSE (Server-Sent Events)
-        const sseUrl = `${API_BASE_URL}/api/stream-progress?job_id=${jobId}`;
-        eventSource = new EventSource(sseUrl);
-
-        eventSource.onmessage = (event) => {
-            const progress = JSON.parse(event.data);
+    const btnPrompt = document.getElementById("affiche-generate-btn");
+    if (btnPrompt && formEl) {
+        btnPrompt.addEventListener("click", () => {
             
-            document.getElementById('progress-label').textContent = progress.status || 'Processing...';
-            document.getElementById('progress-percent').textContent = progress.percent !== undefined ? `${progress.percent}%` : '...';
-            document.getElementById('progress-inner').style.width = progress.percent !== undefined ? `${progress.percent}%` : '0%';
+            generateAffichePrompt(); // Met à jour le champ
             
-            if (progress.status === 'DONE' && progress.result_url) {
-                // Succès: Affichage de l'image
-                cleanup();
-                document.getElementById('job-status-pill').textContent = 'DONE';
-                document.getElementById('job-status-pill').className = 'pill-green';
-                document.getElementById('progress-overlay').style.display = 'none';
-
-                const endTime = Date.now();
-                const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
-                document.getElementById('time-taken').textContent = `${timeTaken}s`;
-
-                const resultArea = document.getElementById('result-area');
-                resultArea.style.backgroundImage = `url('${progress.result_url}')`;
-                resultArea.style.backgroundSize = 'contain';
-                resultArea.style.backgroundRepeat = 'no-repeat';
-                resultArea.style.backgroundPosition = 'center';
-
-                // Mettre à jour les métadonnées
-                document.getElementById('meta-seed').textContent = progress.metadata.seed || 'N/A';
-                document.getElementById('meta-steps').textContent = progress.metadata.steps || 'N/A';
-                document.getElementById('meta-cfg').textContent = progress.metadata.cfg_scale || 'N/A';
-                document.getElementById('meta-sampler').textContent = progress.metadata.sampler || 'N/A';
-                
-            } else if (progress.status === 'FAILED') {
-                // Échec
-                cleanup();
-                document.getElementById('job-status-pill').textContent = 'FAILED';
-                document.getElementById('job-status-pill').className = 'pill-red';
-                document.getElementById('progress-overlay').style.display = 'none';
-                document.getElementById('error-box').textContent = `Erreur de génération: ${progress.message || 'Détails non spécifiés.'}`;
-                document.getElementById('error-box').style.display = 'block';
-            }
-        };
-
-        eventSource.onerror = (err) => {
-            console.error("Erreur SSE:", err);
-            // Vérifiez si l'erreur est due à une fermeture normale ou à une erreur de réseau
-            if (eventSource.readyState === EventSource.CLOSED) {
-                // C'est potentiellement une fermeture normale après "DONE"
-                return;
-            }
-            cleanup();
-            document.getElementById('job-status-pill').textContent = 'ERROR';
-            document.getElementById('job-status-pill').className = 'pill-red';
-            document.getElementById('progress-overlay').style.display = 'none';
-            document.getElementById('error-box').textContent = "Erreur de connexion (SSE). Vérifiez la console.";
-            document.getElementById('error-box').style.display = 'block';
-        };
-
-    })
-    .catch(error => {
-        // Erreur lors de la requête POST initiale
-        cleanup();
-        document.getElementById('job-status-pill').textContent = 'ERROR';
-        document.getElementById('job-status-pill').className = 'pill-red';
-        document.getElementById('progress-overlay').style.display = 'none';
-        document.getElementById('error-box').textContent = error.message || "Une erreur inconnue est survenue lors du lancement du job.";
-        document.getElementById('error-box').style.display = 'block';
-    });
-}
-
-// =========================================================
-// GESTION DU DOM ET DES ÉVÉNEMENTS
-// =========================================================
-
-document.addEventListener('DOMContentLoaded', () => {
-    // 🛡️ 1. GESTION DE L'AUTHENTIFICATION ET REDIRECTION
-    handleLoginRedirect();
-    checkAuthStatusAndDisplayContent();
-
-    // 2. Si l'utilisateur est authentifié, initialiser l'application
-    if (isAuthenticated) {
-        
-        // 2.1 Initialisation des listes déroulantes spécifiques
-        populateTitleStyles();
-        populateSelectOptions('checkpoint-select', 'checkpoints', 'Loading Checkpoints…');
-
-        // 2.2 Gestion de la déconnexion
-        const logoutButton = document.getElementById('logout-button');
-        if (logoutButton) {
-            logoutButton.addEventListener('click', () => {
-                clearToken();
-                isAuthenticated = false;
-                checkAuthStatusAndDisplayContent(); // Masque le contenu et affiche le bouton de connexion
-            });
-        }
-        
-        // 2.3 Initialisation de l'interface et des événements
-
-        // Bouton pour générer le prompt de l'affiche
-        const afficheGenerateBtn = document.getElementById('affiche-generate-btn');
-        if (afficheGenerateBtn) {
-            afficheGenerateBtn.addEventListener('click', generatePrompt);
-        }
-        
-        // Bouton pour la génération aléatoire (Affiche)
-        const afficheRandomBtn = document.getElementById('affiche-random-btn');
-        if (afficheRandomBtn) {
-            afficheRandomBtn.addEventListener('click', () => {
-                // Logique pour sélectionner aléatoirement des options
-                const selectIds = ['aff_theme', 'aff_ambiance', 'aff_perso_sugg', 'aff_env_sugg', 'aff_action_sugg', 'aff_palette', 'aff_style_titre'];
-                selectIds.forEach(id => {
-                    const select = document.getElementById(id);
-                    if (select && select.options.length > 1) {
-                        // Choisir une option aléatoire (sauf la première 'Choose…')
-                        const randomIndex = Math.floor(Math.random() * (select.options.length - 1)) + 1;
-                        select.value = select.options[randomIndex].value;
-                    }
-                });
-                
-                // Vider les champs custom/texte pour éviter les conflits
-                document.getElementById('aff_titre').value = "";
-                document.getElementById('aff_sous_titre').value = "";
-                document.getElementById('aff_tagline').value = "";
-                document.getElementById('aff_theme_custom').value = "";
-                document.getElementById('aff_ambiance_custom').value = "";
-                document.getElementById('aff_perso_desc').value = "";
-                document.getElementById('aff_env_desc').value = "";
-                document.getElementById('aff_action_desc').value = "";
-                document.getElementById('aff_details').value = "";
-                document.getElementById('aff_palette_custom').value = "";
-                document.getElementById('aff_style_titre_custom').value = "";
-
-                // Générer immédiatement le prompt après avoir mis à jour les champs
-                generatePrompt();
-                alert("Paramètres aléatoires appliqués et Prompt généré !");
-            });
-        }
-
-        // Événement de soumission du formulaire de génération
-        const generationForm = document.getElementById('generation-form');
-        if (generationForm) {
-            generationForm.addEventListener('submit', submitGeneration);
-        }
-
-        // Gestion de l'interrupteur des modes (Image vs Affiche)
-        const modeCards = document.querySelectorAll('.mode-card');
-        const afficheMenu = document.getElementById("affiche-menu");
-        const generateButton = document.getElementById('generate-button');
-        const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper");
-
-        modeCards.forEach(card => {
-            card.addEventListener('click', function() {
-                modeCards.forEach(c => c.classList.remove('active-mode'));
-                this.classList.add('active-mode');
-
-                const mode = this.dataset.mode;
-                
-                // Mettre à jour la visibilité des boutons
-                if (mode === "affiche") { 
-                    if (afficheMenu) afficheMenu.style.display = "block";
-                    selectWorkflow("affiche.json"); 
-
-                    if (generateButton) generateButton.style.display = 'none'; // Le bouton de soumission classique est masqué
-                    if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block'; // Le bouton 'Generate Prompt' est visible
-
-                } else { // Mode Image
-                    if (afficheMenu) afficheMenu.style.display = "none";
-                    selectWorkflow("default_image.json"); // Sélectionner un workflow image par défaut
-
-                    if (generateButton) generateButton.style.display = 'block'; // Le bouton de soumission classique est visible
-                    if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none'; // Le bouton 'Generate Prompt' est masqué
-                }
-            });
+            btnPrompt.classList.add("clicked");
+            btnPrompt.innerHTML = "✨ Prompt généré !";
+            setTimeout(() => {
+                btnPrompt.classList.remove("clicked");
+                btnPrompt.innerHTML = "✨ Générer le prompt de l’affiche";
+            }, 600);
         });
-        
-        // INITIALISATION FINAL (SIMULER UN CLIC POUR INITIALISER L'AFFICHAGE)
-        const defaultModeCard = document.querySelector(".mode-card.active-mode");
-        if (defaultModeCard) {
-            // Déclenche l'événement click pour appliquer la logique de visibilité et charger le workflow par défaut
-            defaultModeCard.dispatchEvent(new Event('click'));
-        }
+    }
 
-        // Chargement initial des données
-        setInterval(refreshGPU, 10000); // Rafraîchir toutes les 10s
-        refreshGPU();
-        loadWorkflows(); // Charger les workflows (avec la dépendance d'auth)
-        
-        // ... Ajouter ici d'autres listeners si nécessaire (e.g., Quick Format, Modal, etc.)
-    } 
-    // Si non authentifié, seul le code de checkAuthStatusAndDisplayContent() s'est exécuté.
+    // =========================================================
+    // ACTIVATION DES MENUS & BOUTONS (AFFICHE / IMAGE) - CORRECTION DE VISIBILITÉ
+    // =========================================================
+    const modeCards = document.querySelectorAll(".mode-card");
+    const afficheMenu = document.getElementById("affiche-menu");
+    const generateButton = document.getElementById("generate-button"); // Le bouton standard (SUBMIT)
+    const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper"); // Le conteneur du bouton Affiche
+
+
+    modeCards.forEach(card => {
+        card.addEventListener("click", () => {
+            const mode = card.dataset.mode;
+
+            // visuel actif
+            modeCards.forEach(c => c.classList.remove("active-mode"));
+            card.classList.add("active-mode");
+
+            // Le mode AFFICHE affiche le menu Affiche
+            if (mode === "affiche") {
+                afficheMenu.style.display = "block";
+                selectWorkflow("affiche.json"); 
+
+                // 🔥 CORRECTION : Le bouton SUBMIT et le wrapper AFFICHE sont visibles
+                if (generateButton) generateButton.style.display = 'block'; 
+                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
+
+            } else { // Mode Image
+                // Si ce n'est pas le mode AFFICHE, on le masque
+                afficheMenu.style.display = "none";
+                // L'appel selectWorkflow("default_image.json"); peut être ajouté ici
+
+                // Le bouton SUBMIT est visible, le wrapper AFFICHE est masqué
+                if (generateButton) generateButton.style.display = 'block'; 
+                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
+            }
+        });
+    });
+    // =========================================================
+    // INITIALISATION FINAL (SIMULER UN CLIC POUR INITIALISER L'AFFICHAGE)
+    // =========================================================
+    
+    // Simuler un clic sur la carte active par défaut pour initialiser l'affichage
+    const defaultModeCard = document.querySelector(".mode-card.active-mode");
+    if (defaultModeCard) {
+        // Déclenche l'événement click pour appliquer la logique de visibilité
+        defaultModeCard.dispatchEvent(new Event('click'));
+    }
+
+    setInterval(refreshGPU, 10000);
+    refreshGPU();
+    loadWorkflows();
+
 });
-
-// ... (Autres fonctions non listées comme les modals, Quick Format, Copy Params, etc. si elles existent dans l'un des scripts originaux et sont nécessaires) ...
