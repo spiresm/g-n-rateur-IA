@@ -30,12 +30,15 @@ function authHeaders() {
 
 // 🔒 OBLIGATOIRE : forcer le login
 (function enforceAuth() {
-  const isLoginPage = window.location.pathname.endsWith("/login.html");
+  const isLoginPage = window.location.pathname.endsWith("login.html");
   const token = localStorage.getItem("google_id_token");
 
-  if (!token && !isLoginPage) {
-    console.warn("🔒 Utilisateur non authentifié → redirection login");
-    window.location.href = "/login.html";
+  if (!token || isTokenExpired(token)) {
+    localStorage.removeItem("google_id_token");
+
+    if (!isLoginPage) {
+      console.warn("🔒 Token absent ou expiré → redirection login");
+      window.location.replace("login.html");
   }
 })();
 
