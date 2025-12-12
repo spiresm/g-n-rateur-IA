@@ -467,8 +467,11 @@ function pickRandom(arr) {
 function fillAfficheFieldsFromRandom(randomObj) {
     if (!randomObj) return;
 
-    setValue("aff_titre", randomObj.titre || "");
-    setValue("aff_sous_titre", randomObj.sous_titre || "");
+    // ATTENTION: Les clés ici correspondent aux IDs des champs du formulaire
+    // et DOIVENT rester en français (aff_titre, aff_sous_titre, etc.).
+    // Les valeurs reçues dans randomObj sont les clés anglaises du JSON.
+    setValue("aff_titre", randomObj.title || ""); // CORRIGÉ: de randomObj.titre à randomObj.title
+    setValue("aff_sous_titre", randomObj.subtitle || ""); // CORRIGÉ: de randomObj.sous_titre à randomObj.subtitle
     setValue("aff_tagline", randomObj.tagline || "");
 
     if (randomObj.theme) {
@@ -477,20 +480,20 @@ function fillAfficheFieldsFromRandom(randomObj) {
         if (s) s.value = "";
     }
 
-    if (randomObj.ambiance) {
-        setValue("aff_ambiance_custom", randomObj.ambiance);
+    if (randomObj.ambience) { // CORRIGÉ: de randomObj.ambiance à randomObj.ambience
+        setValue("aff_ambiance_custom", randomObj.ambience);
         const s = document.getElementById("aff_ambiance");
         if (s) s.value = "";
     }
 
-    if (randomObj.personnage) {
-        setValue("aff_perso_desc", randomObj.personnage);
+    if (randomObj.character) { // CORRIGÉ: de randomObj.personnage à randomObj.character
+        setValue("aff_perso_desc", randomObj.character);
         const s = document.getElementById("aff_perso_sugg");
         if (s) s.value = "";
     }
 
-    if (randomObj.environnement) {
-        setValue("aff_env_desc", randomObj.environnement);
+    if (randomObj.environment) { // CORRIGÉ: de randomObj.environnement à randomObj.environment
+        setValue("aff_env_desc", randomObj.environment);
         const s = document.getElementById("aff_env_sugg");
         if (s) s.value = "";
     }
@@ -511,8 +514,8 @@ function fillAfficheFieldsFromRandom(randomObj) {
         if (s) s.value = "";
     }
 
-    if (randomObj.style_titre) {
-        setValue("aff_style_titre_custom", randomObj.style_titre);
+    if (randomObj.title_style) { // CORRIGÉ: de randomObj.style_titre à randomObj.title_style
+        setValue("aff_style_titre_custom", randomObj.title_style);
         const s = document.getElementById("aff_style_titre");
         if (s) s.value = "";
     }
@@ -530,29 +533,30 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await loadRandomAfficheJSON();
         if (!data) return;
 
+        // CORRIGÉ: Utilisation des clés en ANGLAIS (titles, themes, etc.) pour pickRandom
         const theme = pickRandom(data.themes);
-        const ambiance = pickRandom(data.ambiances);
-        const perso = pickRandom(data.personnages);
-        const env = pickRandom(data.environnements);
+        const ambiance = pickRandom(data.ambiences);
+        const perso = pickRandom(data.characters);
+        const env = pickRandom(data.environments);
         const action = pickRandom(data.actions);
         const palette = pickRandom(data.palettes);
-        const styleTitre = pickRandom(data.styles_titre);
+        const styleTitre = pickRandom(data.title_styles); // CORRIGÉ: title_styles
         const details = pickRandom(data.details);
-        const titre = pickRandom(data.titres);
-        const sousTitre = pickRandom(data.sous_titres);
+        const titre = pickRandom(data.titles); // CORRIGÉ: titles
+        const sousTitre = pickRandom(data.subtitles); // CORRIGÉ: subtitles
         const tagline = pickRandom(data.taglines || []);
 
         const randomObj = {
-            titre,
-            sous_titre: sousTitre,
+            title: titre, // CORRIGÉ: Clés de l'objet temporaire en anglais
+            subtitle: sousTitre, // CORRIGÉ: Clés de l'objet temporaire en anglais
             tagline,
             theme,
-            ambiance,
-            personnage: perso,
-            environnement: env,
+            ambience: ambiance, // CORRIGÉ: Clés de l'objet temporaire en anglais
+            character: perso, // CORRIGÉ: Clés de l'objet temporaire en anglais
+            environment: env, // CORRIGÉ: Clés de l'objet temporaire en anglais
             action,
             palette,
-            style_titre: styleTitre,
+            title_style: styleTitre, // CORRIGÉ: Clés de l'objet temporaire en anglais
             details
         };
 
