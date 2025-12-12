@@ -790,7 +790,7 @@ async function startGeneration(e) {
             try {
                 log(`[Tentative ${attempt}/${maxAttempts}] Envoi de la requête de génération.`);
 
-                const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { method: "POST", body: formData });
+                const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { method: "POST", headers: { ...authHeaders() }, body: formData });
 
                 if (!resp.ok) {
                     // ... (gestion des erreurs de tentative) ...
