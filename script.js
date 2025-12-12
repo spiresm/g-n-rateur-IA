@@ -15,9 +15,10 @@
 
 // 🔒 OBLIGATOIRE : forcer le login
 (function enforceAuth() {
+  const isLoginPage = window.location.pathname.endsWith("/login.html");
   const token = localStorage.getItem("google_id_token");
 
-  if (!token) {
+  if (!token && !isLoginPage) {
     console.warn("🔒 Utilisateur non authentifié → redirection login");
     window.location.href = "/login.html";
   }
