@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         STYLE_TITRE_OPTIONS.forEach(opt => {
             const o = document.createElement("option");
             o.value = opt.value;
-            o.Content = opt.label;
+            o.textContent = opt.label;
             styleSelect.appendChild(o);
         });
     }
@@ -107,18 +107,18 @@ function setError(msg) {
 
     if (msg) {
         errBox.style.display = "block";
-        errBox.Content = msg;
+        errBox.textContent = msg;
         if (statusPill) {
-             statusPill.Content = "FAILED";
+             statusPill.textContent = "FAILED";
              statusPill.classList.remove("pill", "pill-green", "pill-warning");
              statusPill.classList.add("pill-danger"); 
         }
 
     } else {
         errBox.style.display = "none";
-        errBox.Content = "";
-        if (statusPill && statusPill.Content === "FAILED") {
-            statusPill.Content = "READY";
+        errBox.textContent = "";
+        if (statusPill && statusPill.textContent === "FAILED") {
+            statusPill.textContent = "READY";
             statusPill.classList.remove("pill-danger", "pill-warning");
             statusPill.classList.add("pill-green");
         }
@@ -135,8 +135,8 @@ function showProgressOverlay(show, label = "En attente…") {
 
     if (show) {
         overlay.classList.add("visible");
-        labelSpan.Content = label;
-        percentSpan.Content = "0%";
+        labelSpan.textContent = label;
+        percentSpan.textContent = "0%";
         innerBar.style.width = "0%";
         fakeProgress = 0;
     } else {
@@ -161,18 +161,18 @@ async function refreshGPU() {
         const resp = await fetch(`${API_BASE_URL}/gpu_status`);
         if (!resp.ok) throw new Error("GPU status fetch failed");
         const data = await resp.json();
-        nameEl.Content = data.name || "NVIDIA GPU";
-        utilEl.Content = (data.load ?? 0) + "%";
-        memEl.Content = `${data.memory_used ?? 0} / ${data.memory_total ?? 0} Go`;
-        tempEl.Content = (data.temperature ?? 0) + "°C";
+        nameEl.textContent = data.name || "NVIDIA GPU";
+        utilEl.textContent = (data.load ?? 0) + "%";
+        memEl.textContent = `${data.memory_used ?? 0} / ${data.memory_total ?? 0} Go`;
+        tempEl.textContent = (data.temperature ?? 0) + "°C";
 
         card.classList.remove("gpu-status-error");
     } catch (e) {
         card.classList.add("gpu-status-error");
-        nameEl.Content = "GPU indisponible";
-        utilEl.Content = "–%";
-        memEl.Content = "– / – Go";
-        tempEl.Content = "– °C";
+        nameEl.textContent = "GPU indisponible";
+        utilEl.textContent = "–%";
+        memEl.textContent = "– / – Go";
+        tempEl.textContent = "– °C";
         console.warn("Erreur GPU status:", e);
     }
 }
@@ -216,7 +216,7 @@ async function loadWorkflows() {
 
             const title = document.createElement("h4");
             title.className = "workflow-group-label";
-            title.Content = group.label;
+            title.textContent = group.label;
             wrap.appendChild(title);
 
             const grid = document.createElement("div");
@@ -268,13 +268,13 @@ async function loadWorkflows() {
         select.innerHTML = "";
         const optEmpty = document.createElement("option");
         optEmpty.value = "";
-        optEmpty.Content = "Aucun (par défaut du workflow)";
+        optEmpty.textContent = "Aucun (par défaut du workflow)";
         select.appendChild(optEmpty);
 
         (data.checkpoints || []).forEach(ckpt => {
             const opt = document.createElement("option");
             opt.value = ckpt;
-            opt.Content = ckpt;
+            opt.textContent = ckpt;
             select.appendChild(opt);
         });
 
@@ -398,13 +398,13 @@ function generateAffichePrompt() {
     if (styleTitre === "" || styleTitre === "aleatoire") {
         const styleSelect = document.getElementById("aff_style_titre");
         const options = styleSelect ? Array.from(styleSelect.options) : [];
-        const relevantOptions = options.filter(opt => opt.value !== '');
+        const relevantOptions = options.filter(opt => opt.value && opt.value !== 'aleatoire');
         
         if (relevantOptions.length > 0) {
             const randomIndex = Math.floor(Math.random() * relevantOptions.length);
             styleTitre = relevantOptions[randomIndex].value;
             styleSelect.value = styleTitre; // Mise à jour visuelle (optionnel)
-            log(`Style de titre aléatoire sélectionné : ${relevantOptions[randomIndex].Content}`);
+            log(`Style de titre aléatoire sélectionné : ${relevantOptions[randomIndex].textContent}`);
         } else {
              styleTitre = "cinematic, elegant contrast"; // Valeur de repli
         }
@@ -421,7 +421,7 @@ function generateAffichePrompt() {
     let textBlock = "";
 
     // Le prompt de texte complexe est injecté directement dans le prompt principal
-    if (!hasTitle && !hasSubtitle && !hasTagline) {
+    if (hasTitle || hasSubtitle || hasTagline) {
      textBlock = `
 ALLOWED TEXT ONLY:
 
@@ -433,7 +433,7 @@ ONLY ONE INSTANCE OF EACH TEXT ELEMENT.
 
 TEXT STYLE / MATERIAL (APPLIES ONLY TO LETTERING):
 ${styleTitre}
-`;;
+`;
     }
     
     // Filtrage des éléments visuels vides
