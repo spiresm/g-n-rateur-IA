@@ -2,57 +2,76 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion en cours...</title>
+    <title>Connexion au Générateur</title>
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css"> 
     <style>
-        /* Styles minimalistes pour cette page */
+        /* Styles minimalistes */
         body {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: var(--background);
-            color: var(--text-color);
+            background-color: var(--background, #202c3a); /* Fallback */
+            color: var(--text-color, #ffffff);
             font-family: Arial, sans-serif;
             margin: 0;
+            flex-direction: column;
         }
         .container {
             text-align: center;
-            padding: 30px;
+            padding: 40px;
             border-radius: 8px;
-            background: var(--surface);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: var(--surface, #2d3e50); /* Fallback */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 300px;
         }
         .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-top: 4px solid var(--primary-color);
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid var(--primary-color, #007bff);
             border-radius: 50%;
             width: 30px;
             height: 30px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+            margin: 0 auto 20px;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* Style pour l'élément d'erreur */
-        #error-message {
-            color: #ff5252;
-            margin-top: 15px;
+        #message-box {
+            min-height: 20px;
+            margin: 15px 0;
             font-weight: bold;
+        }
+        .btn-primary {
+            /* Assurez-vous d'avoir ce style dans styles.css ou ajoutez-le ici */
+            padding: 10px 20px;
+            background-color: var(--primary-color, #007bff);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="spinner"></div>
-    <h1>Authentification en cours</h1>
-    <p>Transfert de session en cours...</p>
-    
-    <p id="error-message" style="display: none;">Une erreur est survenue.</p>
+    <div id="loading-content">
+        <div class="spinner"></div>
+        <h2>Vérification de la session...</h2>
+    </div>
+
+    <div id="static-content" style="display: none;">
+        <h2>Connexion requise</h2>
+        <div id="message-box"></div>
+        <a id="login-google-link" href="https://g-n-rateur-backend-1.onrender.com/auth/google" class="btn-primary">
+            Se connecter avec Google
+        </a>
+    </div>
 </div>
 
 <script>
@@ -60,42 +79,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const error = urlParams.get('error');
-    const errorMessageElement = document.getElementById('error-message');
+    
+    const loadingContent = document.getElementById('loading-content');
+    const staticContent = document.getElementById('static-content');
+    const messageBox = document.getElementById('message-box');
 
-    const updateErrorDisplay = (message) => {
-        if (errorMessageElement) {
-            errorMessageElement.textContent = message;
-            errorMessageElement.style.display = 'block';
-        } else {
-            console.error("Erreur critique: L'élément 'error-message' est manquant.");
-        }
-    }
+    // 1. Gère le Token (Transfert de session)
+    if (token) {
+        // Le Backend nous a envoyé un token. On le renvoie immédiatement au script principal.
+        loadingContent.style.display = 'block';
+        staticContent.style.display = 'none';
 
-    if (error) {
-        // Cas 1: Erreur reçue du backend
-        updateErrorDisplay(`Erreur d'authentification : ${error}. Redirection vers la page de connexion.`);
-        console.error("Authentication Error:", error);
-        
-        // Redirection vers l'accueil (qui affichera le bouton de connexion)
-        setTimeout(() => {
-            window.location.replace('/'); 
-        }, 5000); 
-
-    } else if (token) {
-        // Cas 2: Token reçu du backend (flux normal)
         console.log("Token détecté. Redirection immédiate vers index.html pour traitement.");
         
-        // 🚨 NOUVELLE RÈGLE : NE PAS SAUVER DANS LE LOCALSTORAGE ICI. 
-        // On redirige vers index.html AVEC le token dans l'URL.
-        // C'est le script.js (robuste) qui va s'en occuper.
+        // 🚨 La redirection ne sauvegarde rien, elle transfère la responsabilité au script.js
         window.location.replace(`/index.html?token=${token}`); 
+        return;
 
+    } 
+    
+    // 2. Gère les Erreurs ou l'Accès Direct (Arrêt de la Boucle)
+    
+    // Si nous arrivons ici, c'est que nous n'avons PAS de token valide pour le transfert.
+    
+    // Afficher la page statique (bouton de connexion)
+    loadingContent.style.display = 'none';
+    staticContent.style.display = 'block';
+
+    if (error) {
+        // Si script.js a renvoyé une erreur (ex: synclost, la boucle est cassée ici)
+        messageBox.style.color = '#ff5252';
+        messageBox.textContent = `Erreur de synchronisation. Veuillez vous reconnecter. (Code: ${error})`;
+        console.error("Erreur de redirection détectée et stoppée:", error);
     } else {
-        // Cas 3: Accès direct ou autre cas sans token ni erreur
-        updateErrorDisplay("Pas de jeton trouvé. Redirection vers l'accueil...");
-        setTimeout(() => {
-            window.location.replace('/'); 
-        }, 3000); 
+        // Accès direct à login.html
+        messageBox.style.color = '#fff';
+        messageBox.textContent = 'Veuillez vous authentifier pour accéder à l\'application.';
     }
 });
 </script>
