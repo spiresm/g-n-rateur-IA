@@ -1,3 +1,18 @@
+(function storeGoogleTokenFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+
+  if (token) {
+    localStorage.setItem("google_id_token", token);
+
+    // Nettoie l'URL (propre)
+    const url = new URL(window.location.href);
+    url.searchParams.delete("token");
+    window.history.replaceState({}, document.title, url.toString());
+
+    console.log("✅ Token Google stocké");
+  }
+})();
 function authHeaders() {
   const token = localStorage.getItem("google_id_token");
   return token ? { Authorization: `Bearer ${token}` } : {};
