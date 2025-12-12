@@ -761,18 +761,3 @@ input[type=range]::-webkit-slider-thumb {
     background-color: var(--danger); /* Utilise la variable --danger: #ff4f4f */
     color: var(--bg);
 }
-CSS
-
-/* =========================================================
-   DÉBOGAGE TEMPORAIRE : Affichage forcé et bordure
-========================================================= */
-#generate-button-wrapper, 
-#affiche-generate-button-wrapper {
-    /* Ceci force le navigateur à le rendre visible quoi qu'il arrive (JS ou CSS) */
-    display: block !important; 
-    /* Ajoute une bordure bien visible pour le localiser */
-    border: 3px solid red !important;
-    /* Assure une hauteur minimale */
-    min-height: 50px !important; 
-    padding: 10px !important;
-}
