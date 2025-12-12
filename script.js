@@ -4,35 +4,34 @@
 
 const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
 // =========================================================
-// 🆕 TITLE STYLE LIST
+// 🆕 LISTE DES STYLES DE TITRE (NOUVEAU BLOC)
 // =========================================================
 
 const STYLE_TITRE_OPTIONS = [
-    // 🚨 NOTE: The value (the actual prompt) remains in English for the AI model's benefit.
-    { label: "Dripping bloody text", value: "dripping horror lettering, torn edges, glossy red liquid texture, glowing sinister vibe" },
-    { label: "Cyberpunk neon", value: "bright neon tube letters, electric glow, slight chromatic aberration, futuristic vaporwave look" },
-    { label: "Frosted / Ice typography", value: "frosted glass letters, icy texture, translucent frozen edges, cold blue inner glow" },
-    { label: "Hand-carved wooden lettering", value: "hand-carved wooden lettering, deep grooves, warm grain texture, rustic fantasy aesthetic" },
-    { label: "Engraved metallic text", value: "polished engraved steel letters, sharp reflections, industrial sci-fi shine" },
-    { label: "Cartoon / Bubble style", value: "rounded bubbly cartoon letters, colorful shading, outlined comic look" },
-    { label: "Bloody slasher effect", value: "sharp jagged letters, blood splatter texture, rough grain, violent horror tone" },
-    { label: "Crystal / Gemstone lettering", value: "faceted gemstone letters, prism reflections, diamond-like clarity, luminous highlights" },
-    { label: "Ancient stone runes", value: "weathered carved stone letters, cracks, moss details, archaeological fantasy mood" },
-    { label: "Flaming text", value: "burning fire lettering, glowing embers, smoke trails, intense heat distortion" },
-    { label: "Liquid / Water text", value: "transparent water-textured letters, droplets, soft reflections, fluid organic movement" },
-    { label: "Royal golden title", value: "polished gold lettering, embossed texture, warm specular highlights, luxury vibe" },
-    { label: "Urban graffiti", value: "spray-painted lettering, rough outlines, dripping paint, street-art" },
-    { label: "Futuristic hologram", value: "holographic translucent letters, digital flicker, refraction effects, sci-fi projection" },
-    { label: "Medieval Gothic", value: "blackletter-inspired carved metal, dark engraved texture, dramatic gothic atmosphere" },
-    { label: "Clay style (stop motion)", value: "hand-molded clay letters, fingerprint texture, soft studio lighting, claymation charm" },
-    { label: "Paper cut / collage", value: "layered paper-cut letters, soft shadows, handcrafted collage feel" },
-    { label: "Cosmic / Nebula", value: "letters filled with nebula textures, stars, glowing cosmic colors, ethereal space vibe" },
-    { label: "Brass Steampunk", value: "aged brass letters, rivets, gears, Victorian industrial detailing" },
-    { label: "Digital glitch text", value: "distorted corrupted letters, RGB glitch separation, pixel noise, digital malfunction look" }
+    { label: "Texte sanglant dégoulinant", value: "dripping horror lettering, torn edges, glossy red liquid texture, glowing sinister vibe" },
+    { label: "Néon cyberpunk", value: "bright neon tube letters, electric glow, slight chromatic aberration, futuristic vaporwave look" },
+    { label: "Typographie givrée / glace", value: "frosted glass letters, icy texture, translucent frozen edges, cold blue inner glow" },
+    { label: "Lettrage en bois sculpté", value: "hand-carved wooden lettering, deep grooves, warm grain texture, rustic fantasy aesthetic" },
+    { label: "Texte métallique gravé", value: "polished engraved steel letters, sharp reflections, industrial sci-fi shine" },
+    { label: "Style cartoon / bulle", value: "rounded bubbly cartoon letters, colorful shading, outlined comic look" },
+    { label: "Effet slasher sanglant", value: "sharp jagged letters, blood splatter texture, rough grain, violent horror tone" },
+    { label: "Lettrage en cristal / gemme", value: "faceted gemstone letters, prism reflections, diamond-like clarity, luminous highlights" },
+    { label: "Runes de pierre anciennes", value: "weathered carved stone letters, cracks, moss details, archaeological fantasy mood" },
+    { label: "Texte en flammes", value: "burning fire lettering, glowing embers, smoke trails, intense heat distortion" },
+    { label: "Texte liquide / eau", value: "transparent water-textured letters, droplets, soft reflections, fluid organic movement" },
+    { label: "Titre doré royal", value: "polished gold lettering, embossed texture, warm specular highlights, luxury vibe" },
+    { label: "Graffiti urbain", value: "spray-painted lettering, rough outlines, dripping paint, street-art" },
+    { label: "Hologramme futuriste", value: "holographic translucent letters, digital flicker, refraction effects, sci-fi projection" },
+    { label: "Gothique médiéval", value: "blackletter-inspired carved metal, dark engraved texture, dramatic gothic atmosphere" },
+    { label: "Style pâte à modeler (stop motion)", value: "hand-molded clay letters, fingerprint texture, soft studio lighting, claymation charm" },
+    { label: "Découpe papier / collage", value: "layered paper-cut letters, soft shadows, handcrafted collage feel" },
+    { label: "Cosmique / nébuleuse", value: "letters filled with nebula textures, stars, glowing cosmic colors, ethereal space vibe" },
+    { label: "Steampunk en laiton", value: "aged brass letters, rivets, gears, Victorian industrial detailing" },
+    { label: "Texte glitch numérique", value: "distorted corrupted letters, RGB glitch separation, pixel noise, digital malfunction look" }
 ];
 
 // =========================================================
-// 🆕 AUTOMATIC INJECTION INTO SELECT
+// 🆕 INJECTION AUTOMATIQUE DANS LE SELECT (NOUVEAU)
 // =========================================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -49,20 +48,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // =========================================================
-// HTTP POLLING CONFIGURATION (NEW SYSTEM WITHOUT WS)
+// CONFIGURATION DU POLLING HTTP (NOUVEAU SYSTEME SANS WS)
 // =========================================================
 const POLLING_INTERVAL_MS = 900;
 let pollingProgressInterval = null;
 let fakeProgress = 0;
 
 // =========================================================
-// GLOBAL VARIABLES
+// VARIABLES GLOBALES
 // =========================================================
 let currentPromptId = null;
 let lastGenerationStartTime = null;
 
 // =========================================================
-// DISPLAY TOOLS (LOGS, ERRORS, VISUAL PROGRESS)
+// OUTILS D’AFFICHAGE (LOGS, ERREURS, PROGRESSION VISUELLE)
 // =========================================================
 
 function log(...args) {
@@ -71,7 +70,7 @@ function log(...args) {
     if (!box) return;
     const line = document.createElement("div");
     line.className = "log-line";
-    const ts = new Date().toLocaleTimeString("en-US", { hour12: false });
+    const ts = new Date().toLocaleTimeString("fr-FR", { hour12: false });
     line.innerHTML = `<strong>[${ts}]</strong> ${args.join(" ")}`;
     box.appendChild(line);
     box.scrollTop = box.scrollHeight;
@@ -89,7 +88,7 @@ function setError(msg) {
     }
 }
 
-function showProgressOverlay(show, label = "Awaiting…") {
+function showProgressOverlay(show, label = "En attente…") {
     const overlay = document.getElementById("progress-overlay");
     const labelSpan = document.getElementById("progress-label");
     const percentSpan = document.getElementById("progress-percent");
@@ -109,7 +108,7 @@ function showProgressOverlay(show, label = "Awaiting…") {
 }
 
 // =========================================================
-// GPU STATUS (SIMPLIFIED)
+// GPU STATUS (SIMPLIFIÉ)
 // =========================================================
 
 async function refreshGPU() {
@@ -127,22 +126,22 @@ async function refreshGPU() {
         const data = await resp.json();
         nameEl.textContent = data.name || "NVIDIA GPU";
         utilEl.textContent = (data.load ?? 0) + "%";
-        memEl.textContent = `${data.memory_used ?? 0} / ${data.memory_total ?? 0} GB`;
+        memEl.textContent = `${data.memory_used ?? 0} / ${data.memory_total ?? 0} Go`;
         tempEl.textContent = (data.temperature ?? 0) + "°C";
 
         card.classList.remove("gpu-status-error");
     } catch (e) {
         card.classList.add("gpu-status-error");
-        nameEl.textContent = "GPU unavailable";
+        nameEl.textContent = "GPU indisponible";
         utilEl.textContent = "–%";
-        memEl.textContent = "– / – GB";
+        memEl.textContent = "– / – Go";
         tempEl.textContent = "– °C";
-        console.warn("GPU status error:", e);
+        console.warn("Erreur GPU status:", e);
     }
 }
 
 // =========================================================
-// WORKFLOWS & CHECKPOINTS MANAGEMENT
+// GESTION WORKFLOWS & CHECKPOINTS
 // =========================================================
 
 async function loadWorkflows() {
@@ -153,11 +152,11 @@ async function loadWorkflows() {
 
     try {
         const resp = await fetch(`${API_BASE_URL}/workflows`);
-        if (!resp.ok) throw new Error("Error loading workflows");
+        if (!resp.ok) throw new Error("Erreur chargement workflows");
         const data = await resp.json();
 
         const workflows = data.workflows || [];
-        log("Workflows received:", JSON.stringify(workflows));
+        log("Workflows reçus:", JSON.stringify(workflows));
 
         container.innerHTML = "";
 
@@ -216,9 +215,9 @@ async function loadWorkflows() {
         }
 
     } catch (e) {
-        console.error("Error loadWorkflows:", e);
+        console.error("Erreur loadWorkflows:", e);
         if (container) {
-            container.innerHTML = `<span style="font-size:12px;color:#f97373;">Error loading workflows.</span>`;
+            container.innerHTML = `<span style="font-size:12px;color:#f97373;">Erreur de chargement des workflows.</span>`;
         }
     }
 
@@ -231,7 +230,7 @@ async function loadWorkflows() {
         select.innerHTML = "";
         const optEmpty = document.createElement("option");
         optEmpty.value = "";
-        optEmpty.textContent = "None (workflow default)";
+        optEmpty.textContent = "Aucun (par défaut du workflow)";
         select.appendChild(optEmpty);
 
         (data.checkpoints || []).forEach(ckpt => {
@@ -242,7 +241,7 @@ async function loadWorkflows() {
         });
 
     } catch (e) {
-        console.warn("Error loading checkpoints:", e);
+        console.warn("Erreur chargement checkpoints:", e);
     }
 }
 
@@ -257,7 +256,7 @@ function selectWorkflow(workflowName) {
         el.classList.toggle("selected", el.dataset.workflowName === workflowName);
     });
 
-    log("Selected workflow:", workflowName);
+    log("Workflow sélectionné:", workflowName);
 
     const checkpointWrapper = document.getElementById("checkpoint-wrapper");
     const videoParamsSection = document.getElementById("video-params-section");
@@ -270,7 +269,6 @@ function selectWorkflow(workflowName) {
 
     const afficheMenu = document.getElementById("affiche-menu");
 
-    // Logic specific to the "affiche.json" workflow
     if (workflowName === "affiche.json") {
         if (afficheMenu) afficheMenu.style.display = "block";
         const wInput = document.getElementById("width-input");
@@ -287,7 +285,6 @@ function selectWorkflow(workflowName) {
             }
         });
 
-        // Hide specific groups for the poster workflow
         if (groupSteps) groupSteps.style.display = "none";
         if (groupCfg) groupCfg.style.display = "none";
         if (groupSampler) groupSampler.style.display = "none";
@@ -296,15 +293,8 @@ function selectWorkflow(workflowName) {
 
     } else {
         if (afficheMenu) afficheMenu.style.display = "none";
-        // Ensure standard groups are visible when not in poster mode
-        if (groupSteps) groupSteps.style.display = "block";
-        if (groupCfg) groupCfg.style.display = "block";
-        if (groupSampler) groupSampler.style.display = "block";
-        if (seedSection) seedSection.style.display = "block";
-        if (sdxlPanel) sdxlPanel.style.display = "block";
     }
 
-    // Logic specific to video workflows
     if (workflowName.includes("video")) {
         if (videoParamsSection) videoParamsSection.style.display = "block";
     } else {
@@ -313,7 +303,7 @@ function selectWorkflow(workflowName) {
 }
 
 // =========================================================
- // FIELD UTILITIES (SETVALUE + MERGE SELECT/CUSTOM)
+ // OUTILS POUR LES CHAMPS (SETVALUE + MERGE SELECT/CUSTOM)
  // =========================================================
 
 function setValue(id, val) {
@@ -341,7 +331,7 @@ function stripAccents(str) {
 }
 
 // =========================================================
-// POSTER MODE PROMPT GENERATION
+// GÉNÉRATION DU PROMPT POUR LE MODE AFFICHE
 // =========================================================
 
 document.getElementById("affiche-generate-btn")?.addEventListener("click", () => {
@@ -357,10 +347,7 @@ document.getElementById("affiche-generate-btn")?.addEventListener("click", () =>
     const action = mergeSelectAndCustom("aff_action_sugg", "aff_action_desc");
     const details = document.getElementById("aff_details")?.value.trim() || "";
     const palette = mergeSelectAndCustom("aff_palette", "aff_palette_custom");
-    
-    // 🔥 CORRECTION : Ensure a title style is always used for the title prompt block
-    const styleTitre = mergeSelectAndCustom("aff_style_titre", "aff_style_titre_custom") || "cinematic, elegant contrast";
-
+    const styleTitre = mergeSelectAndCustom("aff_style_titre", "aff_style_titre_custom");
 
     const hasTitle = Boolean(titre);
     const hasSubtitle = Boolean(sousTitre);
@@ -368,7 +355,7 @@ document.getElementById("affiche-generate-btn")?.addEventListener("click", () =>
 
     let textBlock = "";
 
-    // 👉 If no text is provided: total text neutralization
+    // 👉 Si aucun texte : neutralisation totale du texte
     if (!hasTitle && !hasSubtitle && !hasTagline) {
         textBlock = `
 NO TEXT MODE:
@@ -380,7 +367,7 @@ Avoid any shapes that resemble typography.
         textBlock = `
 ALLOWED TEXT ONLY (MODEL MUST NOT INVENT ANYTHING ELSE):
 
-${hasTitle ? `TITLE: "${titre}" (top area, clean, sharp, readable, no distortion, TEXT STYLE: ${styleTitre})` : ""}
+${hasTitle ? `TITLE: "${titre}" (top area, clean, sharp, readable, no distortion)` : ""}
 ${hasSubtitle ? `SUBTITLE: "${sousTitre}" (under title, smaller, crisp, readable)` : ""}
 ${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
 
@@ -390,7 +377,7 @@ Rules for text:
 - No extra letters, no random symbols.
 - No decorative scribbles resembling handwriting.
 - TEXT STYLE / MATERIAL (APPLIES ONLY TO LETTERING):
-  ${styleTitre}.
+  ${styleTitre || "cinematic, elegant contrast"}.
 - IMPORTANT: The text style applies ONLY to the lettering.
   Do NOT apply this style to the characters, environment, rendering,
   lighting, textures, materials, or the overall image.
@@ -426,52 +413,49 @@ Premium poster design, professional layout, ultra high resolution, visually stri
         promptArea.value = prompt;
     }
 
-    log("🎨 Poster prompt generated (anti-text-hallucination version)");
+    log("🎨 prompt affiche généré (version anti-texte parasite)");
 });
 
 // =========================================================
-// RANDOM POSTER — LOADING + AUTOMATIC GENERATION
+// RANDOM AFFICHE — CHARGEMENT + GÉNÉRATION AUTOMATIQUE
 // =========================================================
 
 let RANDOM_AFFICHE_DATA = null;
 
-// Load the JSON file once
+// Charge le fichier JSON une seule fois
 async function loadRandomAfficheJSON() {
     if (RANDOM_AFFICHE_DATA) return RANDOM_AFFICHE_DATA;
 
     try {
         const resp = await fetch("random_affiche_data.json");
         if (!resp.ok) {
-            console.error("❌ random_affiche_data.json file not found!");
+            console.error("❌ Fichier random_affiche_data.json introuvable !");
             return null;
         }
 
         RANDOM_AFFICHE_DATA = await resp.json();
-        console.log("📁 random_affiche_data.json loaded!");
+        console.log("📁 random_affiche_data.json chargé !");
         return RANDOM_AFFICHE_DATA;
 
     } catch (e) {
-        console.error("Error loading random JSON:", e);
+        console.error("Erreur lors du chargement JSON random :", e);
         return null;
     }
 }
 
-// Random pick
+// Pioche aléatoire
 function pickRandom(arr) {
     if (!arr || !arr.length) return "";
     const idx = Math.floor(Math.random() * arr.length);
     return arr[idx];
 }
 
-// Mass injection into fields
+// Injection massive dans les champs
 function fillAfficheFieldsFromRandom(randomObj) {
     if (!randomObj) return;
 
-    // ATTENTION: Les clés ici correspondent aux IDs des champs du formulaire
-    // et DOIVENT rester en français (aff_titre, aff_sous_titre, etc.).
-    // Les valeurs reçues dans randomObj sont les clés anglaises du JSON.
-    setValue("aff_titre", randomObj.title || ""); // CORRIGÉ: de randomObj.titre à randomObj.title
-    setValue("aff_sous_titre", randomObj.subtitle || ""); // CORRIGÉ: de randomObj.sous_titre à randomObj.subtitle
+    setValue("aff_titre", randomObj.titre || "");
+    setValue("aff_sous_titre", randomObj.sous_titre || "");
     setValue("aff_tagline", randomObj.tagline || "");
 
     if (randomObj.theme) {
@@ -480,20 +464,20 @@ function fillAfficheFieldsFromRandom(randomObj) {
         if (s) s.value = "";
     }
 
-    if (randomObj.ambience) { // CORRIGÉ: de randomObj.ambiance à randomObj.ambience
-        setValue("aff_ambiance_custom", randomObj.ambience);
+    if (randomObj.ambiance) {
+        setValue("aff_ambiance_custom", randomObj.ambiance);
         const s = document.getElementById("aff_ambiance");
         if (s) s.value = "";
     }
 
-    if (randomObj.character) { // CORRIGÉ: de randomObj.personnage à randomObj.character
-        setValue("aff_perso_desc", randomObj.character);
+    if (randomObj.personnage) {
+        setValue("aff_perso_desc", randomObj.personnage);
         const s = document.getElementById("aff_perso_sugg");
         if (s) s.value = "";
     }
 
-    if (randomObj.environment) { // CORRIGÉ: de randomObj.environnement à randomObj.environment
-        setValue("aff_env_desc", randomObj.environment);
+    if (randomObj.environnement) {
+        setValue("aff_env_desc", randomObj.environnement);
         const s = document.getElementById("aff_env_sugg");
         if (s) s.value = "";
     }
@@ -514,60 +498,59 @@ function fillAfficheFieldsFromRandom(randomObj) {
         if (s) s.value = "";
     }
 
-    if (randomObj.title_style) { // CORRIGÉ: de randomObj.style_titre à randomObj.title_style
-        setValue("aff_style_titre_custom", randomObj.title_style);
+    if (randomObj.style_titre) {
+        setValue("aff_style_titre_custom", randomObj.style_titre);
         const s = document.getElementById("aff_style_titre");
         if (s) s.value = "";
     }
 }
 
-// DOMContentLoaded → hook up random button
+// DOMContentLoaded → branche le bouton random
 document.addEventListener("DOMContentLoaded", () => {
 
     const randomBtn = document.getElementById("affiche-random-btn");
     if (!randomBtn) return;
 
     randomBtn.addEventListener("click", async () => {
-        console.log("🎲 Random click detected!");
+        console.log("🎲 Clic random détecté !");
 
         const data = await loadRandomAfficheJSON();
         if (!data) return;
 
-        // CORRIGÉ: Utilisation des clés en ANGLAIS (titles, themes, etc.) pour pickRandom
         const theme = pickRandom(data.themes);
-        const ambiance = pickRandom(data.ambiences);
-        const perso = pickRandom(data.characters);
-        const env = pickRandom(data.environments);
+        const ambiance = pickRandom(data.ambiances);
+        const perso = pickRandom(data.personnages);
+        const env = pickRandom(data.environnements);
         const action = pickRandom(data.actions);
         const palette = pickRandom(data.palettes);
-        const styleTitre = pickRandom(data.title_styles); // CORRIGÉ: title_styles
+        const styleTitre = pickRandom(data.styles_titre);
         const details = pickRandom(data.details);
-        const titre = pickRandom(data.titles); // CORRIGÉ: titles
-        const sousTitre = pickRandom(data.subtitles); // CORRIGÉ: subtitles
+        const titre = pickRandom(data.titres);
+        const sousTitre = pickRandom(data.sous_titres);
         const tagline = pickRandom(data.taglines || []);
 
         const randomObj = {
-            title: titre, // CORRIGÉ: Clés de l'objet temporaire en anglais
-            subtitle: sousTitre, // CORRIGÉ: Clés de l'objet temporaire en anglais
+            titre,
+            sous_titre: sousTitre,
             tagline,
             theme,
-            ambience: ambiance, // CORRIGÉ: Clés de l'objet temporaire en anglais
-            character: perso, // CORRIGÉ: Clés de l'objet temporaire en anglais
-            environment: env, // CORRIGÉ: Clés de l'objet temporaire en anglais
+            ambiance,
+            personnage: perso,
+            environnement: env,
             action,
             palette,
-            title_style: styleTitre, // CORRIGÉ: Clés de l'objet temporaire en anglais
+            style_titre: styleTitre,
             details
         };
 
         fillAfficheFieldsFromRandom(randomObj);
 
-        console.log("🎲 Poster fields filled randomly:", randomObj);
+        console.log("🎲 Champs affiche remplis aléatoirement:", randomObj);
     });
 });
 
 // =========================================================
-// QUICK FORMATS MANAGEMENT
+// GESTION FORMATS RAPIDES
 // =========================================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -587,19 +570,19 @@ document.addEventListener("DOMContentLoaded", () => {
             if (widthInput) widthInput.value = w;
             if (heightInput) heightInput.value = h;
 
-            log(`Quick format selected: ${w}x${h}`);
+            log(`Format rapide sélectionné: ${w}x${h}`);
         });
     });
 });
 
 // =========================================================
-// FAKE PROGRESS + AUTO /result DETECTION (POLLING)
+// PROGRESSION FAKE + DÉTECTION AUTO /result
 // =========================================================
 async function pollProgress(promptId) {
     if (!promptId) return;
 
     fakeProgress = 0;
-    showProgressOverlay(true, "Generation in progress…");
+    showProgressOverlay(true, "Génération en cours…");
 
     if (pollingProgressInterval) {
         clearInterval(pollingProgressInterval);
@@ -616,21 +599,21 @@ async function pollProgress(promptId) {
     }
 
     pollingProgressInterval = setInterval(async () => {
-        // FAKE Animation up to 92 %
+        // Animation FAKE jusqu'à 92 %
         fakeProgress = Math.min(fakeProgress + 7, 92);
 
         if (percentSpan) percentSpan.textContent = fakeProgress + "%";
         if (innerBar) innerBar.style.width = fakeProgress + "%";
 
-        // Direct test if result is available
+        // Test direct si le résultat est disponible
         try {
-            // Use /progress for status
+            // CORRECTION 1: Utiliser /progress pour le statut au lieu de /result
             const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`); 
 
             if (resCheck.ok) {
                 const data = await resCheck.json();
                 
-                // Check if status indicates generation is complete
+                // Vérifier si le statut indique que la génération est terminée (comme attendu par l'API)
                 if (data.status && data.status.completed) {
                     clearInterval(pollingProgressInterval);
                     pollingProgressInterval = null;
@@ -646,30 +629,30 @@ async function pollProgress(promptId) {
                         statusPill.classList.add("pill-green");
                     }
 
-                    fetchResult(promptId); // Calls the function to fetch the final image
+                    fetchResult(promptId); // Appelle la fonction qui va chercher l'image finale
                     return;
                 }
             }
 
         } catch (e) {
-            // Not ready yet or JSON parsing error → continue polling
+            // Pas encore prêt ou erreur de parsing JSON → on continue
         }
 
     }, POLLING_INTERVAL_MS);
 }
 
 // =========================================================
-// RESULT RETRIEVAL /result/{prompt_id}
+// RÉCUPÉRATION RESULTAT /result/{prompt_id}
 // =========================================================
 
 async function fetchResult(promptId) {
     try {
-        log("Retrieving result for:", promptId);
-        // Use /result for the final image
+        log("Récupération du résultat pour:", promptId);
+        // CORRECTION 2: Utiliser /result pour l'image finale
         const resp = await fetch(`${API_BASE_URL}/result/${promptId}`); 
         if (!resp.ok) {
-            log("Result HTTP not OK:", resp.status);
-            setError("Could not retrieve result at this time.");
+            log("Result HTTP non OK:", resp.status);
+            setError("Impossible de récupérer le résultat pour l’instant.");
             return;
         }
 
@@ -688,7 +671,7 @@ async function fetchResult(promptId) {
         const img = document.createElement("img");
         img.className = "result-image mj-img mj-blur clickable";
         img.src = `data:image/png;base64,${base64}`;
-        img.alt = "Generated image";
+        img.alt = "Image générée";
         img.style.maxWidth = "100%";
         img.style.height = "auto";
         img.style.display = "block";
@@ -708,26 +691,21 @@ async function fetchResult(promptId) {
                 modalImg.src = img.src;
                 dlLink.href = img.src;
                 dlLink.download = filename;
-                
-                // Update the download link text (translated)
-                dlLink.textContent = `Download (${filename})`; 
                 modal.style.display = "flex";
             }
         });
 
         resultArea.appendChild(img);
 
-        // Update metadata (translated from the French file)
         const metaSeed = document.getElementById("meta-seed");
         const metaSteps = document.getElementById("meta-steps");
         const metaCfg = document.getElementById("meta-cfg");
         const metaSampler = document.getElementById("meta-sampler");
 
-        if (metaSeed) metaSeed.textContent = data.seed || "–";
-        if (metaSteps) metaSteps.textContent = data.steps || "–";
-        if (metaCfg) metaCfg.textContent = data.cfg_scale || "–";
-        if (metaSampler) metaSampler.textContent = data.sampler || "–";
-
+        if (metaSeed) metaSeed.textContent = "–";
+        if (metaSteps) metaSteps.textContent = "–";
+        if (metaCfg) metaCfg.textContent = "–";
+        if (metaSampler) metaSampler.textContent = "–";
 
         if (lastGenerationStartTime) {
             const diffMs = Date.now() - lastGenerationStartTime;
@@ -739,13 +717,13 @@ async function fetchResult(promptId) {
         setError("");
 
     } catch (e) {
-        console.error("Error fetchResult:", e);
-        setError("Error while retrieving the generated image.");
+        console.error("Erreur fetchResult:", e);
+        setError("Erreur lors de la récupération de l’image générée.");
     }
 }
 
 // =========================================================
-// FORM SUBMISSION → /generate
+// ENVOI DU FORMULAIRE → /generate
 // =========================================================
 
 async function startGeneration(e) {
@@ -760,21 +738,21 @@ async function startGeneration(e) {
 
     const wfName = document.getElementById("workflow-select")?.value;
     if (!wfName) {
-        setError("Please select a workflow.");
+        setError("Veuillez sélectionner un workflow.");
         return;
     }
 
-    log("Starting actual generation sequence (Max 3 attempts)...");
+    log("Début de la séquence de génération réelle (Max 3 tentatives)...");
 
     const generateBtn = document.getElementById("generate-button");
     if (generateBtn) {
         generateBtn.disabled = true;
         generateBtn.querySelector(".dot").style.background = "#fbbf24";
-        generateBtn.innerHTML = `<span class="dot"></span>Generation in progress…`;
+        generateBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
     }
 
     lastGenerationStartTime = Date.now();
-    showProgressOverlay(true, "Initialization…");
+    showProgressOverlay(true, "Initialisation…");
     fakeProgress = 0;
 
     const statusPill = document.getElementById("job-status-pill");
@@ -792,38 +770,37 @@ async function startGeneration(e) {
     while (attempt < maxAttempts && !success) {
         attempt++;
         try {
-            log(`[Attempt ${attempt}/${maxAttempts}] Sending generation request.`);
+            log(`[Tentative ${attempt}/${maxAttempts}] Envoi de la requête de génération.`);
 
-            // Use /generate with the workflow_name query parameter
-            const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { 
-                method: "POST",
-                body: formData
+            // CORRECTION 2
+            const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { method: "POST",
+        body: formData
             });
 
             if (!resp.ok) {
-                log(`Attempt ${attempt} → HTTP ${resp.status}`);
+                log(`Tentative ${attempt} → HTTP ${resp.status}`);
                 if (attempt < maxAttempts) {
                     await new Promise(r => setTimeout(r, 5000));
                     continue;
                 } else {
-                    throw new Error("Failed after multiple attempts.");
+                    throw new Error("Échec après plusieurs tentatives.");
                 }
             }
 
             const data = await resp.json();
             if (!data.prompt_id) {
-                throw new Error("Invalid response from /generate (missing prompt_id)");
+                throw new Error("Réponse invalide de /generate (missing prompt_id)");
             }
 
             success = true;
             finalPromptId = data.prompt_id;
 
         } catch (err) {
-            console.error(`Error attempt ${attempt}:`, err);
-            log(`Attempt ${attempt}/${maxAttempts}: Failed. Retrying in 5 seconds...`);
+            console.error(`Erreur tentative ${attempt}:`, err);
+            log(`Tentative ${attempt}/${maxAttempts} : Échec. Ré-essai dans 5 secondes...`);
 
             if (attempt >= maxAttempts) {
-                setError("Failed to send generation after multiple attempts.");
+                setError("Échec de l’envoi de la génération après plusieurs tentatives.");
             }
 
             await new Promise(r => setTimeout(r, 5000));
@@ -832,19 +809,19 @@ async function startGeneration(e) {
 
     if (success && finalPromptId) {
         currentPromptId = finalPromptId;
-        log("Final Prompt ID:", finalPromptId);
+        log("Prompt ID final:", finalPromptId);
         pollProgress(finalPromptId);
     }
 
     if (generateBtn) {
         generateBtn.disabled = false;
         generateBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
-        generateBtn.innerHTML = `<span class="dot"></span>Start Generation`;
+        generateBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
     }
 }
 
 // =========================================================
-// GLOBAL INIT (DOMContentLoaded)
+// INIT GLOBAL (DOMContentLoaded)
 // =========================================================
 
 function autoClearOnSelect(selectId, customId) {
@@ -855,7 +832,7 @@ function autoClearOnSelect(selectId, customId) {
 
     sel.addEventListener("change", () => {
         if (sel.value && custom.value.trim() !== "") {
-            custom.value = ""; // Clear the custom field
+            custom.value = ""; // Efface le champ libre
         }
     });
 }
@@ -863,7 +840,7 @@ function autoClearOnSelect(selectId, customId) {
 document.addEventListener("DOMContentLoaded", () => {
 
     // =========================================================
-    // AUTO-CLEAR FOR EACH SELECT → CUSTOM FIELD
+    // AUTO-CLEAR POUR CHAQUE SELECT → CHAMP CUSTOM
     // =========================================================
     autoClearOnSelect("aff_style_titre", "aff_style_titre_custom");
     autoClearOnSelect("aff_theme", "aff_theme_custom");
@@ -874,7 +851,7 @@ document.addEventListener("DOMContentLoaded", () => {
     autoClearOnSelect("aff_palette", "aff_palette_custom");
 
     // =========================================================
-    // GENERAL INIT
+    // (TON INIT GLOBAL NORMAL)
     // =========================================================
 
     const formEl = document.getElementById("generation-form");
@@ -899,7 +876,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Copy parameters button (translated)
     const copyBtn = document.getElementById("copy-params-btn");
     if (copyBtn) {
         copyBtn.addEventListener("click", () => {
@@ -913,71 +889,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const txt = `Workflow: ${wfName}\nResolution: ${width}x${height}\nSteps: ${steps}\nCFG: ${cfg}\nSampler: ${sampler}\nSeed: ${seed}`;
             navigator.clipboard.writeText(txt).then(() => {
-                log("Parameters copied to clipboard.");
+                log("Paramètres copiés dans le presse-papiers.");
             });
         });
     }
 
-    // Generate Poster Prompt button (translated)
     const btnPrompt = document.getElementById("affiche-generate-btn");
     if (btnPrompt) {
         btnPrompt.addEventListener("click", () => {
             btnPrompt.classList.add("clicked");
-            btnPrompt.innerHTML = "✨ Generating...";
+            btnPrompt.innerHTML = "✨ Génération...";
             setTimeout(() => {
                 btnPrompt.classList.remove("clicked");
-                btnPrompt.innerHTML = "✨ Generate Poster Prompt";
+                btnPrompt.innerHTML = "✨ Générer le prompt de l’affiche";
             }, 600);
         });
     }
 
-    // =========================================================
-    // MODE SWITCHER LOGIC
-    // =========================================================
-    const modeCards = document.querySelectorAll(".mode-card");
-    const afficheMenu = document.getElementById("affiche-menu");
-    const generateButton = document.getElementById("generate-button");
-    const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper");
-
-    modeCards.forEach(card => {
-        card.addEventListener("click", () => {
-            modeCards.forEach(c => c.classList.remove("active-mode"));
-            card.classList.add("active-mode");
-
-            const mode = card.dataset.mode;
-
-            if (mode === "affiche") { // Poster Mode
-                if (afficheMenu) afficheMenu.style.display = "block";
-                selectWorkflow("affiche.json"); 
-
-                // The SUBMIT button and the POSTER wrapper are visible
-                if (generateButton) generateButton.style.display = 'block'; 
-                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
-
-            } else { // Image Mode (default)
-                // If not POSTER mode, hide it
-                if (afficheMenu) afficheMenu.style.display = "none";
-                // selectWorkflow("default_image.json"); could be added here
-
-                // The SUBMIT button is visible, the POSTER wrapper is hidden
-                if (generateButton) generateButton.style.display = 'block'; 
-                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
-            }
-        });
-    });
-    // =========================================================
-    // FINAL INITIALIZATION (SIMULATE CLICK TO INITIALIZE DISPLAY)
-    // =========================================================
-    
-    // Simulate a click on the default active card to initialize display
-    const defaultModeCard = document.querySelector(".mode-card.active-mode");
-    if (defaultModeCard) {
-        // Trigger the click event to apply visibility logic
-        defaultModeCard.dispatchEvent(new Event('click'));
-    }
-
     setInterval(refreshGPU, 10000);
     refreshGPU();
-    loadWorkflows();
 
+    loadWorkflows();
 });
