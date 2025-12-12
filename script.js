@@ -3,77 +3,93 @@
 // =========================================================
 
 const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
+const FRONTEND_URL = "https://genrateuria.netlify.app"; // Assurez-vous que c'est votre URL Netlify correcte
 
 // =========================================================
-// 🛡️ NOUVEAU: AUTHENTICATION MANAGEMENT (JWT)
+// 🛡️ AUTHENTICATION FUNCTIONS
 // =========================================================
-
-const JWT_TOKEN_KEY = "genrator_jwt"; // Clé pour stocker le jeton dans localStorage
-let currentToken = localStorage.getItem(JWT_TOKEN_KEY); // Charge le jeton existant
 
 function handleAuthRedirect() {
-    // Vérifie si l'URL contient le jeton après la redirection OAuth (#logged_in?token=...)
-    const hash = window.location.hash;
-    
-    if (hash.includes("#logged_in") && hash.includes("token=")) {
-        try {
-            const tokenParam = hash.substring(hash.indexOf("token=") + 6);
-            
-            // Le token est la première partie jusqu'à l'esperluette (&) ou la fin
-            const token = tokenParam.split('&')[0]; 
-            
-            if (token) {
-                // 1. Stocke le nouveau jeton
-                localStorage.setItem(JWT_TOKEN_KEY, token);
-                currentToken = token;
-                log("✅ User authenticated. JWT stored.");
+    // Vérifie si l'URL contient un fragment (le "#")
+    if (window.location.hash) {
+        const hash = window.location.hash.substring(1); // Retire le '#'
+        const params = new URLSearchParams(hash);
 
-                // 2. Nettoie l'URL (supprime #logged_in?token=...)
-                // Utilise replaceState pour éviter le rechargement et nettoyer la barre d'adresse
-                window.history.replaceState(null, '', window.location.pathname + window.location.search);
-                
-                // Mette à jour l'interface utilisateur pour montrer que l'utilisateur est connecté
-                updateLoginStatus(true);
-            }
-        } catch (e) {
-            console.error("Error processing auth token:", e);
+        // Si l'URL contient un token
+        if (params.has('token')) {
+            const token = params.get('token');
+            localStorage.setItem('google_auth_token', token);
+            console.log("Token d'authentification enregistré.");
+
+            // Nettoie l'URL et redirige vers la page d'application (index.html)
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+            window.location.href = FRONTEND_URL + "/index.html";
         }
-    } else {
-        // Vérifie l'état de connexion au chargement initial
-        updateLoginStatus(!!currentToken);
-    }
-}
-
-function updateLoginStatus(isLoggedIn) {
-    // 🚨 ASSUREZ-VOUS QUE CES IDs EXISTENT DANS VOTRE HTML !
-    const loginLink = document.getElementById("login-link"); // Lien vers la connexion Google/Facebook
-    const logoutBtn = document.getElementById("logout-button"); // Bouton de déconnexion
-    const authStatus = document.getElementById("auth-status"); // Afficher "Connecté" ou "Déconnecté"
-    
-    if (isLoggedIn) {
-        log("Connection status: Logged In.");
-        if (loginLink) loginLink.style.display = 'none';
-        if (logoutBtn) logoutBtn.style.display = 'block';
-        if (authStatus) authStatus.textContent = 'Connected';
-    } else {
-        log("Connection status: Logged Out. Generation restricted.");
-        if (loginLink) loginLink.style.display = 'block';
-        if (logoutBtn) logoutBtn.style.display = 'none';
-        if (authStatus) authStatus.textContent = 'Disconnected';
     }
 }
 
 function logout() {
-    localStorage.removeItem(JWT_TOKEN_KEY);
-    currentToken = null;
-    log("👋 Disconnected.");
-    updateLoginStatus(false);
-    // Rediriger vers la page de connexion ou recharger la page
-    window.location.reload(); 
+    localStorage.removeItem('google_auth_token');
+    // Redirige vers la page de connexion
+    window.location.href = FRONTEND_URL + "/login.html";
 }
 
+function checkAuthenticationAndDisplayUI() {
+    const token = localStorage.getItem('google_auth_token');
+    
+    // Récupère le nom du fichier actuel (ex: index.html ou login.html)
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    
+    // Éléments UI spécifiques à index.html (page protégée)
+    const logoutButton = document.getElementById('logout-button');
+    const mainContent = document.getElementById('main-content-wrapper');
+    const sidebar = document.getElementById('sidebar');
+
+    // Éléments UI spécifiques à login.html (page de connexion)
+    const loginLink = document.getElementById('login-link'); // N'existe que sur login.html
+
+    if (token) {
+        // --- UTILISATEUR CONNECTÉ ---
+        
+        // S'il est sur la page de connexion, rediriger vers l'application
+        if (currentPage === 'login.html') {
+            console.log("Connecté, redirection vers l'application.");
+            window.location.href = FRONTEND_URL + "/index.html";
+            return true;
+        }
+
+        // Sinon, il est sur index.html: afficher l'UI d'application et le bouton de déconnexion
+        if (logoutButton) logoutButton.style.display = 'block';
+        if (mainContent) mainContent.style.display = 'block';
+        if (sidebar) sidebar.style.display = 'block'; 
+
+        console.log("Utilisateur authentifié sur l'application.");
+        return true;
+    } else {
+        // --- UTILISATEUR DÉCONNECTÉ ---
+        
+        // S'il n'est PAS sur la page de connexion, rediriger vers login.html
+        if (currentPage !== 'login.html') {
+            console.log("Non connecté, redirection vers la page de connexion.");
+            window.location.href = FRONTEND_URL + "/login.html";
+            return false;
+        }
+        
+        // Sinon, il est sur login.html: s'assurer que le bouton de connexion est visible
+        if (loginLink) loginLink.style.display = 'block';
+        
+        // S'assurer que les éléments de l'application sont masqués s'ils existent par erreur
+        if (mainContent) mainContent.style.display = 'none'; 
+        if (sidebar) sidebar.style.display = 'none';
+        
+        console.log("Page de connexion affichée.");
+        return false;
+    }
+}
+
+
 // =========================================================
-// 🆕 TITLE STYLE LIST
+// 🆕 TITLE STYLE LIST (reste inchangé)
 // =========================================================
 
 const STYLE_TITRE_OPTIONS = [
@@ -101,7 +117,7 @@ const STYLE_TITRE_OPTIONS = [
 ];
 
 // =========================================================
-// 🆕 AUTOMATIC INJECTION INTO SELECT
+// 🆕 AUTOMATIC INJECTION INTO SELECT (reste inchangé)
 // =========================================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -118,20 +134,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // =========================================================
-// HTTP POLLING CONFIGURATION (NEW SYSTEM WITHOUT WS)
+// HTTP POLLING CONFIGURATION (NEW SYSTEM WITHOUT WS) (reste inchangé)
 // =========================================================
 const POLLING_INTERVAL_MS = 900;
 let pollingProgressInterval = null;
 let fakeProgress = 0;
 
 // =========================================================
-// GLOBAL VARIABLES
+// GLOBAL VARIABLES (reste inchangé)
 // =========================================================
 let currentPromptId = null;
 let lastGenerationStartTime = null;
 
 // =========================================================
-// DISPLAY TOOLS (LOGS, ERRORS, VISUAL PROGRESS)
+// DISPLAY TOOLS (LOGS, ERRORS, VISUAL PROGRESS) (reste inchangé)
 // =========================================================
 
 function log(...args) {
@@ -178,7 +194,7 @@ function showProgressOverlay(show, label = "Awaiting…") {
 }
 
 // =========================================================
-// GPU STATUS (SIMPLIFIED)
+// GPU STATUS (SIMPLIFIED) (reste inchangé)
 // =========================================================
 
 async function refreshGPU() {
@@ -211,7 +227,7 @@ async function refreshGPU() {
 }
 
 // =========================================================
-// WORKFLOWS & CHECKPOINTS MANAGEMENT
+// WORKFLOWS & CHECKPOINTS MANAGEMENT (reste inchangé)
 // =========================================================
 
 async function loadWorkflows() {
@@ -382,7 +398,7 @@ function selectWorkflow(workflowName) {
 }
 
 // =========================================================
- // FIELD UTILITIES (SETVALUE + MERGE SELECT/CUSTOM)
+ // FIELD UTILITIES (SETVALUE + MERGE SELECT/CUSTOM) (reste inchangé)
  // =========================================================
 
 function setValue(id, val) {
@@ -410,7 +426,7 @@ function stripAccents(str) {
 }
 
 // =========================================================
-// POSTER MODE PROMPT GENERATION
+// POSTER MODE PROMPT GENERATION (reste inchangé)
 // =========================================================
 
 document.getElementById("affiche-generate-btn")?.addEventListener("click", () => {
@@ -499,7 +515,7 @@ Premium poster design, professional layout, ultra high resolution, visually stri
 });
 
 // =========================================================
-// RANDOM POSTER — LOADING + AUTOMATIC GENERATION
+// RANDOM POSTER — LOADING + AUTOMATIC GENERATION (reste inchangé)
 // =========================================================
 
 let RANDOM_AFFICHE_DATA = null;
@@ -636,7 +652,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // =========================================================
-// QUICK FORMATS MANAGEMENT
+// QUICK FORMATS MANAGEMENT (reste inchangé)
 // =========================================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -662,7 +678,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // =========================================================
-// FAKE PROGRESS + AUTO /result DETECTION (POLLING)
+// FAKE PROGRESS + AUTO /result DETECTION (POLLING) (reste inchangé)
 // =========================================================
 async function pollProgress(promptId) {
     if (!promptId) return;
@@ -695,9 +711,8 @@ async function pollProgress(promptId) {
         try {
             // Use /progress for status
             const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`, {
-                // 🛡️ NOUVEAU : Ajout de l'en-tête d'autorisation
                 headers: {
-                    "Authorization": `Bearer ${currentToken}`
+                    'Authorization': `Bearer ${localStorage.getItem('google_auth_token')}`
                 }
             }); 
 
@@ -723,6 +738,12 @@ async function pollProgress(promptId) {
                     fetchResult(promptId); // Calls the function to fetch the final image
                     return;
                 }
+            } else if (resCheck.status === 401) {
+                // Si l'authentification échoue pendant le polling, déconnecter l'utilisateur.
+                console.error("Polling 401: Token invalide ou expiré.");
+                clearInterval(pollingProgressInterval);
+                logout();
+                return;
             }
 
         } catch (e) {
@@ -733,22 +754,27 @@ async function pollProgress(promptId) {
 }
 
 // =========================================================
-// RESULT RETRIEVAL /result/{prompt_id}
+// RESULT RETRIEVAL /result/{prompt_id} (Ajout du token)
 // =========================================================
 
 async function fetchResult(promptId) {
     try {
         log("Retrieving result for:", promptId);
         // Use /result for the final image
-        const resp = await fetch(`${API_BASE_URL}/result/${promptId}`, { 
-            // 🛡️ NOUVEAU : Ajout de l'en-tête d'autorisation
+        const resp = await fetch(`${API_BASE_URL}/result/${promptId}`, {
             headers: {
-                "Authorization": `Bearer ${currentToken}`
+                'Authorization': `Bearer ${localStorage.getItem('google_auth_token')}`
             }
         }); 
+        
         if (!resp.ok) {
             log("Result HTTP not OK:", resp.status);
-            setError("Could not retrieve result at this time.");
+            if (resp.status === 401) {
+                setError("Session expirée. Veuillez vous reconnecter.");
+                logout();
+            } else {
+                setError("Could not retrieve result at this time.");
+            }
             return;
         }
 
@@ -789,12 +815,24 @@ async function fetchResult(promptId) {
                 dlLink.download = filename;
                 
                 // Update the download link text (translated)
-                dlLink.textContent = `Download (${filename})`; 
+                dlLink.textContent = `Télécharger (${filename})`; 
                 modal.style.display = "flex";
             }
         });
 
-        resultArea.appendChild(img);
+        const resultImageWrapper = document.getElementById("result-image-wrapper");
+        if (resultImageWrapper) {
+            // S'assurer que l'ancienne image est retirée et la nouvelle est insérée
+            const oldImg = document.getElementById("result-image");
+            if (oldImg) oldImg.remove();
+            img.id = "result-image";
+            resultImageWrapper.appendChild(img);
+            img.style.display = 'block'; // Rendre l'image visible
+        }
+
+        // Rendre les métadonnées visibles
+        const metadataArea = document.getElementById("metadata-area");
+        if (metadataArea) metadataArea.style.display = 'flex';
 
         // Update metadata (translated from the French file)
         const metaSeed = document.getElementById("meta-seed");
@@ -824,42 +862,71 @@ async function fetchResult(promptId) {
 }
 
 // =========================================================
-// FORM SUBMISSION → /generate
+// FORM SUBMISSION → /generate (Ajout du token)
 // =========================================================
 
 async function startGeneration(e) {
     e.preventDefault();
+
+    const token = localStorage.getItem('google_auth_token');
+    if (!token) {
+        setError("Veuillez vous connecter pour lancer la génération.");
+        return;
+    }
 
     setError("");
 
     const formEl = document.getElementById("generation-form");
     if (!formEl) return;
 
-    const formData = new FormData(formEl);
+    // Créer les FormData et ajouter les en-têtes d'authentification
+    const formData = new FormData();
+    const headers = new Headers();
+    
+    // Ajouter l'authentification
+    headers.append('Authorization', `Bearer ${token}`);
+
+    // Collecter les données du formulaire
+    const inputs = document.querySelectorAll('#sidebar input, #sidebar select, #sidebar textarea');
+    inputs.forEach(input => {
+        if (input.name && input.value) {
+            formData.append(input.name, input.value);
+        }
+    });
+    
+    // Ajoutez l'élément prompt manquant
+    const promptValue = document.getElementById("prompt")?.value;
+    if (promptValue) {
+         formData.append("prompt", promptValue);
+    }
+    
+    // Logique pour le bouton Générer
+    const generateButton = document.querySelector('#generate-button');
+    const afficheGenerateButton = document.querySelector('#affiche-generate-button');
+    let generateBtn;
+    
+    if (generateButton && generateButton.style.display !== 'none') {
+        generateBtn = generateButton;
+    } else if (afficheGenerateButton && afficheGenerateButton.style.display !== 'none') {
+        generateBtn = afficheGenerateButton;
+    }
+
+    if (generateBtn) {
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = `Génération en cours…`;
+    }
 
     const wfName = document.getElementById("workflow-select")?.value;
     if (!wfName) {
-        setError("Please select a workflow.");
-        return;
-    }
-    
-    // 🛡️ NOUVEAU : Vérification de la connexion
-    if (!currentToken) {
-        setError("You must be logged in to start the generation. Please connect via Google/Facebook.");
-        const generateBtn = document.getElementById("generate-button");
-        if (generateBtn) generateBtn.disabled = false;
-        showProgressOverlay(false);
+        setError("Veuillez sélectionner un workflow.");
+        if (generateBtn) {
+             generateBtn.disabled = false;
+             generateBtn.innerHTML = `Générer l'Image`;
+        }
         return;
     }
 
     log("Starting actual generation sequence (Max 3 attempts)...");
-
-    const generateBtn = document.getElementById("generate-button");
-    if (generateBtn) {
-        generateBtn.disabled = true;
-        generateBtn.querySelector(".dot").style.background = "#fbbf24";
-        generateBtn.innerHTML = `<span class="dot"></span>Generation in progress…`;
-    }
 
     lastGenerationStartTime = Date.now();
     showProgressOverlay(true, "Initialization…");
@@ -886,14 +953,14 @@ async function startGeneration(e) {
             const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { 
                 method: "POST",
                 body: formData,
-                // 🛡️ NOUVEAU : Ajout de l'en-tête d'autorisation
-                headers: {
-                    "Authorization": `Bearer ${currentToken}`
-                }
+                headers: headers // Utiliser les en-têtes avec le token
             });
 
             if (!resp.ok) {
                 log(`Attempt ${attempt} → HTTP ${resp.status}`);
+                if (resp.status === 401) {
+                    throw new Error("Authentification échouée (401).");
+                }
                 if (attempt < maxAttempts) {
                     await new Promise(r => setTimeout(r, 5000));
                     continue;
@@ -914,6 +981,12 @@ async function startGeneration(e) {
             console.error(`Error attempt ${attempt}:`, err);
             log(`Attempt ${attempt}/${maxAttempts}: Failed. Retrying in 5 seconds...`);
 
+            if (err.message.includes("401")) {
+                 setError("Session expirée. Veuillez vous reconnecter.");
+                 logout();
+                 break; 
+            }
+
             if (attempt >= maxAttempts) {
                 setError("Failed to send generation after multiple attempts.");
             }
@@ -930,8 +1003,7 @@ async function startGeneration(e) {
 
     if (generateBtn) {
         generateBtn.disabled = false;
-        generateBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
-        generateBtn.innerHTML = `<span class="dot"></span>Start Generation`;
+        generateBtn.innerHTML = `Générer l'Image`; // Ou l'Affiche
     }
 }
 
@@ -953,9 +1025,19 @@ function autoClearOnSelect(selectId, customId) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-
+    
+    // 🛡️ 1. GESTION DE L'AUTHENTIFICATION ET DE LA REDIRECTION
+    handleAuthRedirect();
+    checkAuthenticationAndDisplayUI();
+    
+    // 🛡️ 2. ÉCOUTEUR DU BOUTON DE DÉCONNEXION
+    const logoutBtn = document.getElementById('logout-button');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+    }
+    
     // =========================================================
-    // AUTO-CLEAR FOR EACH SELECT → CUSTOM FIELD
+    // AUTO-CLEAR FOR EACH SELECT → CUSTOM FIELD (reste inchangé)
     // =========================================================
     autoClearOnSelect("aff_style_titre", "aff_style_titre_custom");
     autoClearOnSelect("aff_theme", "aff_theme_custom");
@@ -964,25 +1046,33 @@ document.addEventListener("DOMContentLoaded", () => {
     autoClearOnSelect("aff_env_sugg", "aff_env_desc");
     autoClearOnSelect("aff_action_sugg", "aff_action_desc");
     autoClearOnSelect("aff_palette", "aff_palette_custom");
+
+    // =========================================================
+    // GENERAL INIT (reste inchangé)
+    // =========================================================
     
-    // =========================================================
-    // AUTHENTICATION INIT
-    // =========================================================
-    handleAuthRedirect(); // 🛡️ NOUVEAU : Gère la connexion après OAuth
-    
-    const logoutButton = document.getElementById("logout-button");
-    if(logoutButton) {
-        logoutButton.addEventListener('click', logout); // Ajoute la déconnexion
-    }
+    // ⚠️ IMPORTANT: Votre formulaire d'origine n'a pas d'ID 'generation-form' 
+    // et vous n'avez pas de balises <form> explicites. 
+    // J'ai mis à jour la logique de 'startGeneration' pour ne pas utiliser form.submit(), 
+    // mais plutôt un écouteur sur les boutons 'Générer'. 
+    // La fonction 'startGeneration' est maintenant appelée via les clics sur les boutons.
+    // L'ancienne logique ci-dessous est commentée.
 
-
-    // =========================================================
-    // GENERAL INIT
-    // =========================================================
-
+    /*
     const formEl = document.getElementById("generation-form");
     if (formEl) {
         formEl.addEventListener("submit", startGeneration);
+    }
+    */
+
+    const generateButton = document.getElementById("generate-button");
+    const afficheGenerateButton = document.getElementById("affiche-generate-button");
+
+    if (generateButton) {
+        generateButton.addEventListener("click", startGeneration);
+    }
+    if (afficheGenerateButton) {
+        afficheGenerateButton.addEventListener("click", startGeneration);
     }
 
     const modal = document.getElementById("image-modal");
@@ -1026,21 +1116,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnPrompt) {
         btnPrompt.addEventListener("click", () => {
             btnPrompt.classList.add("clicked");
-            btnPrompt.innerHTML = "✨ Generating...";
+            btnPrompt.innerHTML = "✨ Génération…";
             setTimeout(() => {
                 btnPrompt.classList.remove("clicked");
-                btnPrompt.innerHTML = "✨ Generate Poster Prompt";
+                btnPrompt.innerHTML = "✨ Générer le Prompt Affiche";
             }, 600);
         });
     }
 
     // =========================================================
-    // MODE SWITCHER LOGIC
+    // MODE SWITCHER LOGIC (reste inchangé)
     // =========================================================
     const modeCards = document.querySelectorAll(".mode-card");
     const afficheMenu = document.getElementById("affiche-menu");
-    const generateButton = document.getElementById("generate-button");
-    const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper");
+    const generateButtonWrapper = document.getElementById("generate-btn-wrapper"); // Wrapper pour le bouton image
+    const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-btn-wrapper"); // Wrapper pour le bouton affiche
 
     modeCards.forEach(card => {
         card.addEventListener("click", () => {
@@ -1049,21 +1139,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const mode = card.dataset.mode;
 
-            if (mode === "affiche") { // Poster Mode
+            if (mode === "poster") { // Poster Mode
                 if (afficheMenu) afficheMenu.style.display = "block";
                 selectWorkflow("affiche.json"); 
 
-                // The SUBMIT button and the POSTER wrapper are visible
-                if (generateButton) generateButton.style.display = 'block'; 
+                // Affiche le bouton Affiche et masque le bouton Image
+                if (generateButtonWrapper) generateButtonWrapper.style.display = 'none'; 
                 if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
 
             } else { // Image Mode (default)
-                // If not POSTER mode, hide it
+                // Si pas en mode POSTER, masquer le menu Affiche
                 if (afficheMenu) afficheMenu.style.display = "none";
-                // selectWorkflow("default_image.json"); could be added here
+                // selectWorkflow("default_image.json");
 
-                // The SUBMIT button is visible, the POSTER wrapper is hidden
-                if (generateButton) generateButton.style.display = 'block'; 
+                // Affiche le bouton Image et masque le bouton Affiche
+                if (generateButtonWrapper) generateButtonWrapper.style.display = 'block'; 
                 if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
             }
         });
