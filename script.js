@@ -10,6 +10,7 @@ const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
 
 const STYLE_TITRE_OPTIONS = [
     { label: "Texte sanglant dégoulinant", value: "dripping horror lettering, torn edges, glossy red liquid texture, glowing sinister vibe" },
+    { label: "Texte liquide / eau", value: "liquid flowing water texture, translucent blue glow, smooth wavy effect, dynamic fluid lettering" }, // Style ajouté
     { label: "Néon cyberpunk", value: "bright neon tube letters, electric glow, slight chromatic aberration, futuristic vaporwave look" },
     { label: "Typographie givrée / glace", value: "frosted glass letters, icy texture, translucent frozen edges, cold blue inner glow" },
     { label: "Lettrage en bois sculpté", value: "hand-carved wooden lettering, deep grooves, warm grain texture, rustic fantasy aesthetic" },
@@ -17,8 +18,8 @@ const STYLE_TITRE_OPTIONS = [
     { label: "Style cartoon / bulle", value: "rounded bubbly cartoon letters, colorful shading, outlined comic look" },
     { label: "Effet slasher sanglant", value: "sharp jagged letters, blood splatter texture, rough grain, violent horror tone" },
     { label: "Lettrage en cristal / gemme", value: "faceted gemstone letters, prism reflections, diamond-like clarity, luminous highlights" },
-    { label: "Runes de pierre anciennes", value: "weathered carved stone letters, cracks, moss details, archaeological fantasy mood" },
-    { label: "Texte en flammes", value: "burning fire lettering, glowing embers, smoke trails, intense heat distortion" },
+    { label: "Rune gravée dans la pierre", value: "ancient stone carved runes, glowing energy inside cracks, epic fantasy atmosphere" },
+    { label: "Texte en flammes", value: "burning fire letters, intense orange and yellow glow, smoke trails, dramatic lighting" },
     { label: "Texte liquide / eau", value: "transparent water-textured letters, droplets, soft reflections, fluid organic movement" },
     { label: "Titre doré royal", value: "polished gold lettering, embossed texture, warm specular highlights, luxury vibe" },
     { label: "Graffiti urbain", value: "spray-painted lettering, rough outlines, dripping paint, street-art" },
