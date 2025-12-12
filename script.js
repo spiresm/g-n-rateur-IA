@@ -5,7 +5,6 @@
   if (token) {
     localStorage.setItem("google_id_token", token);
 
-    // Nettoie l'URL (propre)
     const url = new URL(window.location.href);
     url.searchParams.delete("token");
     window.history.replaceState({}, document.title, url.toString());
@@ -13,10 +12,16 @@
     console.log("✅ Token Google stocké");
   }
 })();
-function authHeaders() {
+
+// 🔒 OBLIGATOIRE : forcer le login
+(function enforceAuth() {
   const token = localStorage.getItem("google_id_token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+
+  if (!token) {
+    console.warn("🔒 Utilisateur non authentifié → redirection login");
+    window.location.href = "/login.html";
+  }
+})();
 
 // =========================================================
 // CONFIGURATION (FRONTEND)
