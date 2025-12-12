@@ -433,12 +433,13 @@ Avoid any shapes that resemble typography.
         textBlock = `
 ALLOWED TEXT ONLY:
 
-${hasTitle ? `TITLE: "${titre}"` : ""}
-${hasSubtitle ? `SUBTITLE: "${sousTitre}"` : ""}
-${hasTagline ? `TAGLINE: "${tagline}"` : ""}
+${hasTitle ? `TITLE: "${titre}" (top area, clean, sharp, readable, no distortion)` : ""}
+${hasSubtitle ? `SUBTITLE: "${sousTitre}" (under title, smaller, crisp, readable)` : ""}
+${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
 
-TEXT STYLE / MATERIAL (LETTERING ONLY):
-${styleTitre || "cinematic, elegant contrast"}
+TEXT STYLE / MATERIAL (APPLIES ONLY TO LETTERING):
+${styleTitre}
+
 `;
     }
     
