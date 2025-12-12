@@ -21,7 +21,6 @@
                 Déconnexion
             </button>
         </div>
-
         <div class="title-group">
             <h1>AI Content Generator</h1>
             <div class="title-chip">
@@ -100,32 +99,11 @@
 
                         <h3 style="margin-bottom:15px;">🎨 Playful Poster Generator</h3>
 
-                        <button
-  type="button"
-  id="affiche-random-btn"
-  class="btn-secondary btn-random-aff"
-  style="margin-bottom:12px; width:100%;">
-  🎲 Generate Random Poster
-</button>
-
-<!-- GENERATE PROMPT -->
-<button
-  type="button"
-  id="affiche-generate-button"
-  class="btn-main"
-  style="margin-bottom:12px; width:100%;">
-  ✨ Generate Poster Prompt
-</button>
-
-<!-- GENERATE IMAGE -->
-<button
-  id="generate-button"
-  type="submit"
-  class="btn-main"
-  form="generation-form"
-  style="width:100%;">
-  ▶ Generate Image
-</button>
+                        <button type="button" id="affiche-random-btn" 
+                            class="btn-secondary btn-random-aff" 
+                            style="margin-bottom:20px; width:100%; font-weight:600;">
+                            🎲 Generate Random Poster
+                        </button>
                         <label for="aff_titre">Poster Title (optional)</label>
                         <input id="aff_titre" type="text" placeholder="Ex: THE GREAT ADVENTURE" class="ui-input custom-field">
 
@@ -391,27 +369,17 @@
                 </div>
 
                 <div id="affiche-generate-button-wrapper" style="margin-bottom: 12px;"> 
-    <button
-        type="button"
-        id="affiche-generate-button"
-        class="btn-main"
-        style="font-size:15px; padding:12px; width:100%;">
-        ✨ Generate Poster Prompt
-    </button>
-</div>
-
-<div id="generate-button-wrapper" style="margin-bottom: 12px;">
-    <button
-        id="generate-button"
-        type="submit"
-        class="btn-main"
-        form="generation-form"
-        style="width:100%; display:none;">
-        <span class="dot"></span>
-        Start Generation
-    </button>
-</div>
+                    <button type="button" id="affiche-generate-btn" class="btn-main" style="font-size:15px; padding:12px; width: 100%;">
+                        ✨ Generate Poster Prompt
+                    </button>
+                </div>
                 
+                <div style="margin-bottom: 12px;">
+                    <button id="generate-button" type="submit" class="btn-main" form="generation-form" style="width: 100%; display: none;">
+                        <span class="dot"></span>
+                        Start Generation
+                    </button>
+                </div>
                 <div id="result-area">
                     <div id="progress-overlay">
                         <div id="progress-spinner"></div>
@@ -461,7 +429,7 @@
             </div>
         </div>
     </div>
-</div>
+    </div>
 
 <div id="image-modal" class="modal">
     <div class="modal-content">
