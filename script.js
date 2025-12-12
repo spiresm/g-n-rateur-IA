@@ -6,11 +6,10 @@ const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
 const FRONTEND_URL = "https://genrateuria.netlify.app"; 
 
 // =========================================================
-// 🛡️ AUTHENTICATION FUNCTIONS (CORRIGÉES)
+// 🛡️ AUTHENTICATION FUNCTIONS (CORRIGÉES POUR STOPPER LA BOUCLE)
 // =========================================================
 
 function handleTokenTransferFromURL() {
-    // CORRIGÉ : utilise window.location.search pour les paramètres de requête '?'
     const urlParams = new URLSearchParams(window.location.search);
 
     if (urlParams.has('token')) {
@@ -18,15 +17,17 @@ function handleTokenTransferFromURL() {
         localStorage.setItem('google_auth_token', token);
         console.log("Token d'authentification enregistré depuis l'URL.");
 
-        // Nettoie l'URL (enlève ?token=...)
+        // 1. Nettoie l'URL (enlève ?token=...) sans recharger
         window.history.replaceState({}, document.title, window.location.pathname);
         
-        // Redirige IMMÉDIATEMENT vers la page principale
-        window.location.href = FRONTEND_URL + "/index.html";
+        // 2. Redirige IMMÉDIATEMENT vers la page principale
+        // On utilise location.replace pour ne pas polluer l'historique de navigation
+        window.location.replace(FRONTEND_URL + "/index.html"); 
+        
+        // 🚨 CRITIQUE : Retourne VRAI pour stopper l'exécution du reste du script
         return true; 
     }
     
-    // Gère une erreur possible (Nettoyage de l'URL si erreur=...)
     if (urlParams.has('error')) {
         console.error("Erreur d'authentification reçue:", urlParams.get('error'));
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -38,16 +39,17 @@ function handleTokenTransferFromURL() {
 function logout() {
     localStorage.removeItem('google_auth_token');
     // Redirige vers la page de connexion
-    window.location.href = FRONTEND_URL + "/login.html";
+    window.location.replace(FRONTEND_URL + "/login.html");
 }
 
 function checkAuthenticationAndDisplayUI() {
     const token = localStorage.getItem('google_auth_token');
     
-    // Récupère le nom du fichier actuel (ex: index.html ou login.html)
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    // NOUVELLE MÉTHODE : Vérifie si l'URL contient '/login.html' (plus robuste)
+    // Utile si le script est chargé sur login.html ou index.html
+    const isLoginPage = window.location.pathname.includes('/login.html');
     
-    // Éléments UI
+    // Éléments UI (même si le reste du script est incomplet, ces sélecteurs sont généralement corrects)
     const logoutButton = document.getElementById('logout-button');
     const mainContent = document.getElementById('main-content-wrapper');
     const sidebar = document.getElementById('sidebar');
@@ -55,28 +57,27 @@ function checkAuthenticationAndDisplayUI() {
     const errorBox = document.getElementById('error-box');
 
 
-    // Cache l'interface par défaut pour éviter le flash
+    // Initialisation UI
     if (mainContent) mainContent.style.display = 'none'; 
     if (sidebar) sidebar.style.display = 'none';
     if (errorBox) errorBox.style.display = 'none';
     if (loginLink) loginLink.style.display = 'none';
     if (logoutButton) logoutButton.style.display = 'none';
-    
-    // Assure que le lien de connexion est correct, même sur index.html
     if (loginLink) loginLink.href = `${API_BASE_URL}/auth/google`;
 
 
     if (token) {
         // --- UTILISATEUR CONNECTÉ ---
         
-        // Si la page est 'login.html' ou la racine, rediriger vers l'application
-        if (currentPage === 'login.html' || currentPage === '') {
+        // Si la page est 'login.html', rediriger vers l'application
+        if (isLoginPage) {
             console.log("Connecté, redirection vers l'application.");
-            window.location.href = FRONTEND_URL + "/index.html"; 
-            return true;
+            // Utilise location.replace pour ne pas polluer l'historique
+            window.location.replace(FRONTEND_URL + "/index.html"); 
+            return true; // Bloque l'affichage du contenu de login.html
         }
 
-        // Sinon, afficher l'UI d'application et le bouton de déconnexion
+        // Sinon, afficher l'UI d'application (index.html)
         if (logoutButton) logoutButton.style.display = 'block';
         if (mainContent) mainContent.style.display = 'block';
         if (sidebar) sidebar.style.display = 'block'; 
@@ -86,11 +87,11 @@ function checkAuthenticationAndDisplayUI() {
     } else {
         // --- UTILISATEUR DÉCONNECTÉ ---
         
-        // S'il n'est PAS sur la page de connexion (donc sur index.html), rediriger
-        if (currentPage !== 'login.html' && currentPage !== '') {
-            console.log("Non connecté, redirection vers la page de connexion.");
-            window.location.href = FRONTEND_URL + "/login.html";
-            return false;
+        // S'il n'est PAS sur la page de connexion, rediriger
+        if (!isLoginPage) {
+            console.log("Aucun jeton d'authentification trouvé. Redirection vers la page de connexion.");
+            window.location.replace(FRONTEND_URL + "/login.html");
+            return false; // Bloque l'affichage du contenu de index.html
         }
         
         // S'il est sur login.html, afficher le bouton de connexion
@@ -100,7 +101,6 @@ function checkAuthenticationAndDisplayUI() {
         return false;
     }
 }
-
 
 // =========================================================
 // 🆕 TITLE STYLE LIST (reste inchangé)
@@ -495,23 +495,6 @@ function randomizePosterPrompt() {
     // ⚠️ NOTE: La fonction getRandomPosterValues n'est pas fournie ici.
     
     // Vous devez la définir ou la commenter si vous ne l'utilisez pas.
-    // Exemple minimal:
-    /*
-    function getRandomPosterValues() {
-        return {
-            title: "The Final Act",
-            tagline: "The world ends now.",
-            theme: "dystopian",
-            ambience: "dark, rainy city",
-            character: "female rogue in leather",
-            title_style: "Cyberpunk neon"
-        };
-    }
-    const randomObj = getRandomPosterValues();
-    
-    if (randomObj.title) setValue("aff_titre", randomObj.title);
-    // ... (le reste de la logique de randomisation) ...
-    */
     
     buildPrompt();
 }
@@ -530,8 +513,6 @@ async function startGeneration(e) {
 
     if (!authToken) {
         setError("Authentification requise. Veuillez vous connecter pour lancer la génération.");
-        // Optionnel: rediriger immédiatement l'utilisateur
-        // setTimeout(logout, 1500);
         return;
     }
 
@@ -814,15 +795,24 @@ function displayImage(base64Data, filename, metadata) {
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 🔥 APPEL CRUCIAL 1: Gérer le token reçu dans l'URL (s'applique à login.html)
-    // Va sauvegarder le token et rediriger vers index.html
+    // 🔥 APPEL CRUCIAL 1: Gérer le token reçu dans l'URL (s'applique à login.html ou index.html)
+    // Va sauvegarder le token et rediriger vers index.html.
+    // Si cette fonction retourne 'true', on stoppe l'exécution du reste du script
+    // pour éviter toute interférence.
     if (handleTokenTransferFromURL()) {
-        return; // Stoppe l'exécution si une redirection immédiate a été lancée.
+        return; 
     }
 
-    // 🔥 APPEL CRUCIAL 2: Vérifier l'authentification et afficher/rediriger (s'applique à index.html et login.html)
-    // Va rediriger vers login.html si pas de token (et si on n'est pas déjà sur login.html)
-    checkAuthenticationAndDisplayUI();
+    // 🔥 APPEL CRUCIAL 2: Vérifier l'authentification et afficher/rediriger 
+    // Si la fonction retourne 'false', cela signifie qu'une redirection vers login.html 
+    // a été lancée ou que le script est sur login.html sans token.
+    if (!checkAuthenticationAndDisplayUI()) {
+        // Si checkAuthenticationAndDisplayUI a lancé une redirection, 
+        // le reste du script ne s'exécutera pas, mais on peut ajouter un return
+        // par précaution (surtout si la redirection ne se fait pas immédiatement).
+        // Cependant, le 'return true' à l'intérieur de la fonction est plus efficace.
+    }
+
 
     // Ajoutez l'événement de déconnexion
     const logoutButton = document.getElementById('logout-button');
