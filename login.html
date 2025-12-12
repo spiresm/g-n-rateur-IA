@@ -1,17 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion en cours...</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Styles minimalistes basés sur votre snippet */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--background); /* Assurez-vous d'avoir des variables CSS définies */
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            padding: 30px;
+            border-radius: 8px;
+            background: var(--surface);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Style pour l'élément d'erreur */
+        #error-message {
+            color: #ff5252;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="spinner"></div>
+    <h1>Authentification en cours</h1>
+    <p>Veuillez patienter pendant la vérification de votre session...</p>
+    
+    <p id="error-message" style="display: none;">Une erreur est survenue lors de la connexion.</p>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Récupérer l'URL complète
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const error = urlParams.get('error');
+    
+    // Récupère l'élément du message d'erreur (maintenant garanti d'exister)
     const errorMessageElement = document.getElementById('error-message');
 
+    // Fonction pour mettre à jour l'affichage de l'erreur
+    const updateErrorDisplay = (message) => {
+        if (errorMessageElement) {
+            errorMessageElement.textContent = message;
+            errorMessageElement.style.display = 'block';
+        } else {
+            // Fallback si l'élément était vraiment absent
+            console.error("Erreur critique: L'élément 'error-message' est manquant dans le HTML de login.html.");
+        }
+    }
+
     if (error) {
-        // En cas d'erreur (ex: échec de la vérification du token)
-        errorMessageElement.textContent = `Erreur: ${error}`;
-        errorMessageElement.style.display = 'block';
+        // En cas d'erreur
+        updateErrorDisplay(`Erreur d'authentification: ${error}`);
         console.error("Authentication Error:", error);
-        // Retour à la page de connexion
+        
+        // Redirection vers index.html après un délai pour afficher l'interface de connexion
         setTimeout(() => {
             window.location.href = '/'; 
         }, 5000); 
@@ -20,18 +90,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // 2. Sauvegarder le token et rediriger
         console.log("Token received. Saving and redirecting...");
         
-        // 🚨 CORRECTION CRITIQUE : Utiliser 'google_auth_token' pour correspondre à script.js
+        // 🔑 CORRECTION CRITIQUE : Utiliser 'google_auth_token' pour correspondre à script.js
         localStorage.setItem('google_auth_token', token);
         
         // 3. Redirection vers la page principale de l'application
         window.location.href = '/'; 
     } else {
-        // Si aucun token n'est présent (accès direct à login.html)
-        errorMessageElement.textContent = "Aucun jeton d'authentification trouvé. Redirection...";
-        errorMessageElement.style.display = 'block';
+        // Si aucun token ni erreur (accès direct à login.html)
+        updateErrorDisplay("Page d'authentification consultée directement. Redirection vers l'accueil...");
         setTimeout(() => {
             window.location.href = '/'; 
         }, 3000); 
     }
 });
 </script>
+
+</body>
+</html>
