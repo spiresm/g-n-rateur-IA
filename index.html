@@ -262,15 +262,6 @@
                     </div>
                 </div>
 
-                <div class="section">
-                    <label>Quick Format</label>
-                    <div class="quick-format-icons">
-                        <span class="fmt-icon" data-w="1920" data-h="1080">🖥️</span>
-                        <span class="fmt-icon" data-w="1080" data-h="1920">📱</span>
-                        <span class="fmt-icon" data-w="1080" data-h="1080">⬛</span>
-                    </div>
-                </div>
-
                 <div class="section row" style="margin-top: 15px; display: none !important;">
                     <div id="group-width" style="display:none;" title="The width of the image to generate.">
                         <label for="width-input">Width</label>
@@ -358,7 +349,16 @@
                 </div>
                 <span class="pill-green" id="job-status-pill">READY</span>
             </div>
-
+            
+<!-- QUICK FORMAT (AU-DESSUS DU PROMPT AFFICHE) -->
+<div class="section" id="quick-format-affiche" style="margin-bottom:12px;">
+  <label style="font-size:13px;">Quick Format</label>
+  <div class="quick-format-icons">
+    <span class="fmt-icon" data-w="1920" data-h="1080" title="Paysage">🖥️</span>
+    <span class="fmt-icon" data-w="1080" data-h="1920" title="Portrait">📱</span>
+    <span class="fmt-icon" data-w="1080" data-h="1080" title="Carré">⬛</span>
+  </div>
+</div>
             <div id="affiche-generate-button-wrapper" style="margin-bottom: 12px;"> 
                 <button type="button" id="affiche-generate-btn" class="btn-main" style="font-size:15px; padding:12px; width: 100%;">
                     ✨ Generate Poster Prompt
