@@ -431,16 +431,14 @@ Avoid any shapes that resemble typography.
     } else {
         // 🛑 BLOC CRUCIAL POUR DISSOCIER LE STYLE DE TITRE 🛑
         textBlock = `
-ALLOWED TEXT ONLY (MODEL MUST NOT INVENT ANYTHING ELSE):
+ALLOWED TEXT ONLY:
 
-${hasTitle ? `TITLE: "${titre}" (top area, clean, sharp, readable, no distortion)` : ""}
-${hasSubtitle ? `SUBTITLE: "${sousTitre}" (under title, smaller, crisp, readable)` : ""}
-${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
+${hasTitle ? `TITLE: "${titre}"` : ""}
+${hasSubtitle ? `SUBTITLE: "${sousTitre}"` : ""}
+${hasTagline ? `TAGLINE: "${tagline}"` : ""}
 
-RULES FOR TEXT:
-- Only the items above are permitted. No additional text, no hallucinated wording.
-- **TEXT STYLE/MATERIAL (APPLIES ONLY TO LETTERING)**: ${styleTitre || "cinematic, elegant contrast"}.
-- **CRITICAL INSTRUCTION: DO NOT APPLY** the text style (e.g., 'dripping horror', 'neon', 'frosted') to the **characters, environment, lighting, or overall rendering**. The main image's mood and style must be defined exclusively by the 'Visual elements' below.
+TEXT STYLE / MATERIAL (LETTERING ONLY):
+${styleTitre || "cinematic, elegant contrast"}
 `;
     }
     
