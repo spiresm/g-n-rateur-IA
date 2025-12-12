@@ -1,40 +1,97 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8" />
-    <title>AI Content Generator - Connexion</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <link rel="stylesheet" href="styles.css"> <style>
-        /* Styles simples pour centrer le contenu de connexion */
+    <meta charset="UTF-8">
+    <title>Connexion en cours...</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Styles minimalistes pour cette page */
         body {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            background-color: var(--background); /* Assurez-vous d'avoir des variables CSS définies */
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
             margin: 0;
-            background-color: #f4f4f4; /* Couleur de fond légère */
-            text-align: center;
         }
-        .login-container {
-            padding: 40px;
-            background: white;
+        .container {
+            text-align: center;
+            padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: var(--surface);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h1 {
+            font-size: 20px;
+            color: var(--text);
+        }
+        p {
+            font-size: 14px;
+            color: var(--muted);
         }
     </style>
 </head>
 <body>
 
-<div class="login-container">
-    <h1>Bienvenue sur l'AI Content Generator</h1>
-    <p>Veuillez vous connecter avec votre compte Google pour accéder à l'outil de génération d'images.</p>
-
-    <a href="https://g-n-rateur-backend-1.onrender.com/auth/google" class="btn-link" style="text-decoration: none;">
-        <button class="btn-primary" style="padding: 15px 30px; font-size: 1.1em; margin-top: 20px;">
-            Se connecter avec Google
-        </button>
-    </a>
+<div class="container">
+    <div class="spinner"></div>
+    <h1>Authentification réussie</h1>
+    <p>Redirection vers l'application principale...</p>
+    <p id="error-message" style="color: #ff5252; display: none;">Une erreur est survenue lors de la connexion.</p>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Récupérer l'URL complète
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const error = urlParams.get('error');
+    const errorMessageElement = document.getElementById('error-message');
+
+    if (error) {
+        // En cas d'erreur (ex: échec de la vérification du token)
+        errorMessageElement.textContent = `Erreur: ${error}`;
+        errorMessageElement.style.display = 'block';
+        console.error("Authentication Error:", error);
+        // Optionnel: Afficher un lien de retour à la page de connexion
+        setTimeout(() => {
+            window.location.href = '/'; // Redirige vers index.html (qui devrait afficher le bouton de connexion si déconnecté)
+        }, 5000); 
+
+    } else if (token) {
+        // 2. Sauvegarder le token et rediriger
+        console.log("Token received. Saving and redirecting...");
+        localStorage.setItem('auth_token', token);
+        
+        // 3. Redirection vers la page principale de l'application
+        // Important: Utiliser '/' pour revenir à la racine (index.html)
+        window.location.href = '/'; 
+    } else {
+        // Si aucun token n'est présent (accès direct à login.html)
+        errorMessageElement.textContent = "Aucun jeton d'authentification trouvé. Redirection...";
+        errorMessageElement.style.display = 'block';
+        setTimeout(() => {
+            window.location.href = '/'; 
+        }, 3000); 
+    }
+});
+</script>
 
 </body>
 </html>
