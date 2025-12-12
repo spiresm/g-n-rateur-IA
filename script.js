@@ -29,26 +29,26 @@ const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
 // =========================================================
 
 const STYLE_TITRE_OPTIONS = [
-    { label: "Texte sanglant dégoulinant", value: "dripping horror lettering, torn edges, glossy red liquid texture, glowing sinister vibe" },
+    { label: "e sanglant dégoulinant", value: "dripping horror lettering, torn edges, glossy red liquid ure, glowing sinister vibe" },
     { label: "Néon cyberpunk", value: "bright neon tube letters, electric glow, slight chromatic aberration, futuristic vaporwave look" },
-    { label: "Typographie givrée / glace", value: "frosted glass letters, icy texture, translucent frozen edges, cold blue inner glow" },
-    { label: "Lettrage en bois sculpté", value: "hand-carved wooden lettering, deep grooves, warm grain texture, rustic fantasy aesthetic" },
-    { label: "Texte métallique gravé", value: "polished engraved steel letters, sharp reflections, industrial sci-fi shine" },
+    { label: "Typographie givrée / glace", value: "frosted glass letters, icy ure, translucent frozen edges, cold blue inner glow" },
+    { label: "Lettrage en bois sculpté", value: "hand-carved wooden lettering, deep grooves, warm grain ure, rustic fantasy aesthetic" },
+    { label: "e métallique gravé", value: "polished engraved steel letters, sharp reflections, industrial sci-fi shine" },
     { label: "Style cartoon / bulle", value: "rounded bubbly cartoon letters, colorful shading, outlined comic look" },
-    { label: "Effet slasher sanglant", value: "sharp jagged letters, blood splatter texture, rough grain, violent horror tone" },
+    { label: "Effet slasher sanglant", value: "sharp jagged letters, blood splatter ure, rough grain, violent horror tone" },
     { label: "Lettrage en cristal / gemme", value: "faceted gemstone letters, prism reflections, diamond-like clarity, luminous highlights" },
     { label: "Runes de pierre anciennes", value: "weathered carved stone letters, cracks, moss details, archaeological fantasy mood" },
-    { label: "Texte en flammes", value: "burning fire lettering, glowing embers, smoke trails, intense heat distortion" },
-    { label: "Texte liquide / eau", value: "transparent water-textured letters, droplets, soft reflections, fluid organic movement" },
-    { label: "Titre doré royal", value: "polished gold lettering, embossed texture, warm specular highlights, luxury vibe" },
+    { label: "e en flammes", value: "burning fire lettering, glowing embers, smoke trails, intense heat distortion" },
+    { label: "e liquide / eau", value: "transparent water-ured letters, droplets, soft reflections, fluid organic movement" },
+    { label: "Titre doré royal", value: "polished gold lettering, embossed ure, warm specular highlights, luxury vibe" },
     { label: "Graffiti urbain", value: "spray-painted lettering, rough outlines, dripping paint, street-art" },
     { label: "Hologramme futuriste", value: "holographic translucent letters, digital flicker, refraction effects, sci-fi projection" },
-    { label: "Gothique médiéval", value: "blackletter-inspired carved metal, dark engraved texture, dramatic gothic atmosphere" },
-    { label: "Style pâte à modeler (stop motion)", value: "hand-molded clay letters, fingerprint texture, soft studio lighting, claymation charm" },
+    { label: "Gothique médiéval", value: "blackletter-inspired carved metal, dark engraved ure, dramatic gothic atmosphere" },
+    { label: "Style pâte à modeler (stop motion)", value: "hand-molded clay letters, fingerprint ure, soft studio lighting, claymation charm" },
     { label: "Découpe papier / collage", value: "layered paper-cut letters, soft shadows, handcrafted collage feel" },
-    { label: "Cosmique / nébuleuse", value: "letters filled with nebula textures, stars, glowing cosmic colors, ethereal space vibe" },
+    { label: "Cosmique / nébuleuse", value: "letters filled with nebula ures, stars, glowing cosmic colors, ethereal space vibe" },
     { label: "Steampunk en laiton", value: "aged brass letters, rivets, gears, Victorian industrial detailing" },
-    { label: "Texte glitch numérique", value: "distorted corrupted letters, RGB glitch separation, pixel noise, digital malfunction look" }
+    { label: "e glitch numérique", value: "distorted corrupted letters, RGB glitch separation, pixel noise, digital malfunction look" }
 ];
 
 // =========================================================
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         STYLE_TITRE_OPTIONS.forEach(opt => {
             const o = document.createElement("option");
             o.value = opt.value;
-            o.textContent = opt.label;
+            o.Content = opt.label;
             styleSelect.appendChild(o);
         });
     }
@@ -107,18 +107,18 @@ function setError(msg) {
 
     if (msg) {
         errBox.style.display = "block";
-        errBox.textContent = msg;
+        errBox.Content = msg;
         if (statusPill) {
-             statusPill.textContent = "FAILED";
+             statusPill.Content = "FAILED";
              statusPill.classList.remove("pill", "pill-green", "pill-warning");
              statusPill.classList.add("pill-danger"); 
         }
 
     } else {
         errBox.style.display = "none";
-        errBox.textContent = "";
-        if (statusPill && statusPill.textContent === "FAILED") {
-            statusPill.textContent = "READY";
+        errBox.Content = "";
+        if (statusPill && statusPill.Content === "FAILED") {
+            statusPill.Content = "READY";
             statusPill.classList.remove("pill-danger", "pill-warning");
             statusPill.classList.add("pill-green");
         }
@@ -135,8 +135,8 @@ function showProgressOverlay(show, label = "En attente…") {
 
     if (show) {
         overlay.classList.add("visible");
-        labelSpan.textContent = label;
-        percentSpan.textContent = "0%";
+        labelSpan.Content = label;
+        percentSpan.Content = "0%";
         innerBar.style.width = "0%";
         fakeProgress = 0;
     } else {
@@ -161,18 +161,18 @@ async function refreshGPU() {
         const resp = await fetch(`${API_BASE_URL}/gpu_status`);
         if (!resp.ok) throw new Error("GPU status fetch failed");
         const data = await resp.json();
-        nameEl.textContent = data.name || "NVIDIA GPU";
-        utilEl.textContent = (data.load ?? 0) + "%";
-        memEl.textContent = `${data.memory_used ?? 0} / ${data.memory_total ?? 0} Go`;
-        tempEl.textContent = (data.temperature ?? 0) + "°C";
+        nameEl.Content = data.name || "NVIDIA GPU";
+        utilEl.Content = (data.load ?? 0) + "%";
+        memEl.Content = `${data.memory_used ?? 0} / ${data.memory_total ?? 0} Go`;
+        tempEl.Content = (data.temperature ?? 0) + "°C";
 
         card.classList.remove("gpu-status-error");
     } catch (e) {
         card.classList.add("gpu-status-error");
-        nameEl.textContent = "GPU indisponible";
-        utilEl.textContent = "–%";
-        memEl.textContent = "– / – Go";
-        tempEl.textContent = "– °C";
+        nameEl.Content = "GPU indisponible";
+        utilEl.Content = "–%";
+        memEl.Content = "– / – Go";
+        tempEl.Content = "– °C";
         console.warn("Erreur GPU status:", e);
     }
 }
@@ -216,7 +216,7 @@ async function loadWorkflows() {
 
             const title = document.createElement("h4");
             title.className = "workflow-group-label";
-            title.textContent = group.label;
+            title.Content = group.label;
             wrap.appendChild(title);
 
             const grid = document.createElement("div");
@@ -268,13 +268,13 @@ async function loadWorkflows() {
         select.innerHTML = "";
         const optEmpty = document.createElement("option");
         optEmpty.value = "";
-        optEmpty.textContent = "Aucun (par défaut du workflow)";
+        optEmpty.Content = "Aucun (par défaut du workflow)";
         select.appendChild(optEmpty);
 
         (data.checkpoints || []).forEach(ckpt => {
             const opt = document.createElement("option");
             opt.value = ckpt;
-            opt.textContent = ckpt;
+            opt.Content = ckpt;
             select.appendChild(opt);
         });
 
@@ -376,7 +376,7 @@ function mergeSelectAndCustom(selectId, customId) {
 // =========================================================
 
 function generateAffichePrompt() {
-    // Récupération des champs de texte simples (Titre, Sous-Titre, Tagline)
+    // Récupération des champs de e simples (Titre, Sous-Titre, Tagline)
     const titre = document.getElementById("aff_titre")?.value.trim() || "";
     const sousTitre = document.getElementById("aff_sous_titre")?.value.trim() || "";
     const tagline = document.getElementById("aff_tagline")?.value.trim() || "";
@@ -404,7 +404,7 @@ function generateAffichePrompt() {
             const randomIndex = Math.floor(Math.random() * relevantOptions.length);
             styleTitre = relevantOptions[randomIndex].value;
             styleSelect.value = styleTitre; // Mise à jour visuelle (optionnel)
-            log(`Style de titre aléatoire sélectionné : ${relevantOptions[randomIndex].textContent}`);
+            log(`Style de titre aléatoire sélectionné : ${relevantOptions[randomIndex].Content}`);
         } else {
              styleTitre = "cinematic, elegant contrast"; // Valeur de repli
         }
@@ -422,25 +422,18 @@ function generateAffichePrompt() {
 
     // Le prompt de texte complexe est injecté directement dans le prompt principal
     if (!hasTitle && !hasSubtitle && !hasTagline) {
-        textBlock = `
-NO TEXT MODE:
-The poster must contain ZERO text, letters, symbols or numbers.
-Do not invent any title, subtitle or tagline.
-Avoid any shapes that resemble typography.
-`;
-    } else {
-        // 🛑 BLOC CRUCIAL POUR DISSOCIER LE STYLE DE TITRE 🛑
-        textBlock = `
+     textBlock = `
 ALLOWED TEXT ONLY:
 
 ${hasTitle ? `TITLE: "${titre}" (top area, clean, sharp, readable, no distortion)` : ""}
 ${hasSubtitle ? `SUBTITLE: "${sousTitre}" (under title, smaller, crisp, readable)` : ""}
 ${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
 
+ONLY ONE INSTANCE OF EACH TEXT ELEMENT.
+
 TEXT STYLE / MATERIAL (APPLIES ONLY TO LETTERING):
 ${styleTitre}
-
-`;
+`;;
     }
     
     // Filtrage des éléments visuels vides
