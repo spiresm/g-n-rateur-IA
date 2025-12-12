@@ -6,7 +6,42 @@ const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
 const FRONTEND_URL = "https://genrateuria.netlify.app"; 
 
 // =========================================================
-// 🛡️ AUTHENTICATION FUNCTIONS (CORRIGÉES POUR STOPPER LA BOUCLE)
+// 🛡️ UTILITIES DE SÉCURITÉ (Gestion du Token dans localStorage)
+// =========================================================
+
+function setToken(token) {
+    try {
+        localStorage.setItem('google_auth_token', token);
+        console.log("SUCCESS: Token sauvegardé dans localStorage.");
+        return true;
+    } catch (e) {
+        console.error("ERREUR CRITIQUE: Impossible de sauvegarder dans localStorage. La session ne peut pas être maintenue.", e);
+        return false;
+    }
+}
+
+function getToken() {
+    try {
+        const token = localStorage.getItem('google_auth_token');
+        return token;
+    } catch (e) {
+        console.error("ERREUR CRITIQUE: Impossible de lire le token dans localStorage.", e);
+        return null;
+    }
+}
+
+function clearToken() {
+    try {
+        localStorage.removeItem('google_auth_token');
+        sessionStorage.removeItem('auth_redirect_done'); // Nettoyage de sécurité
+    } catch (e) {
+        console.warn("Avertissement: Impossible de retirer le token de localStorage.");
+    }
+}
+
+
+// =========================================================
+// 🛡️ AUTHENTICATION FUNCTIONS (LOGIQUE ANTI-BOUCLE)
 // =========================================================
 
 function handleTokenTransferFromURL() {
@@ -14,20 +49,25 @@ function handleTokenTransferFromURL() {
 
     if (urlParams.has('token')) {
         const token = urlParams.get('token');
-        localStorage.setItem('google_auth_token', token);
-        console.log("Token d'authentification enregistré depuis l'URL.");
-
-        // 1. Nettoie l'URL (enlève ?token=...) sans recharger
-        window.history.replaceState({}, document.title, window.location.pathname);
+        console.log("Étape 1: Token détecté dans l'URL. Sauvegarde et redirection en cours...");
         
-        // 2. Redirige IMMÉDIATEMENT vers la page principale
-        // On utilise location.replace pour ne pas polluer l'historique de navigation
-        window.location.replace(FRONTEND_URL + "/index.html"); 
-        
-        // 🚨 CRITIQUE : Retourne VRAI pour stopper l'exécution du reste du script
-        return true; 
+        if (setToken(token)) {
+            // 🚨 AJOUT CRITIQUE: Drapeaux de session pour bloquer la boucle
+            sessionStorage.setItem('auth_redirect_done', 'true');
+            
+            // 1. Nettoie l'URL (enlève ?token=...)
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // 2. Redirige IMMÉDIATEMENT vers la page principale propre
+            // Utilise un chemin relatif (/index.html)
+            window.location.replace("/index.html"); 
+            
+            // Bloque le reste du script
+            return true; 
+        }
     }
     
+    // Gère les erreurs ou les cas sans token
     if (urlParams.has('error')) {
         console.error("Erreur d'authentification reçue:", urlParams.get('error'));
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -37,70 +77,95 @@ function handleTokenTransferFromURL() {
 }
 
 function logout() {
-    localStorage.removeItem('google_auth_token');
-    // Redirige vers la page de connexion
-    window.location.replace(FRONTEND_URL + "/login.html");
+    clearToken();
+    // Redirige vers la page de connexion (chemin relatif)
+    window.location.replace("/login.html");
 }
 
 function checkAuthenticationAndDisplayUI() {
-    const token = localStorage.getItem('google_auth_token');
+    const token = getToken();
+    const isRedirectedFromAuth = sessionStorage.getItem('auth_redirect_done') === 'true';
     
-    // NOUVELLE MÉTHODE : Vérifie si l'URL contient '/login.html' (plus robuste)
-    // Utile si le script est chargé sur login.html ou index.html
-    const isLoginPage = window.location.pathname.includes('/login.html');
+    // Simplification du chemin pour la vérification
+    const path = window.location.pathname;
+    const isLoginPage = path.includes('/login.html');
+    const isIndexPage = path === '/' || path.includes('/index.html');
     
-    // Éléments UI (même si le reste du script est incomplet, ces sélecteurs sont généralement corrects)
+    
+    // Référence aux éléments UI
     const logoutButton = document.getElementById('logout-button');
     const mainContent = document.getElementById('main-content-wrapper');
     const sidebar = document.getElementById('sidebar');
     const loginLink = document.getElementById('login-link'); 
-    const errorBox = document.getElementById('error-box');
+    const errorBox = document.getElementById('error-box'); // Assurez-vous d'avoir cet élément
 
-
-    // Initialisation UI
+    
+    // Initialisation UI (cachée par défaut pour éviter le "flash")
     if (mainContent) mainContent.style.display = 'none'; 
     if (sidebar) sidebar.style.display = 'none';
-    if (errorBox) errorBox.style.display = 'none';
     if (loginLink) loginLink.style.display = 'none';
     if (logoutButton) logoutButton.style.display = 'none';
     if (loginLink) loginLink.href = `${API_BASE_URL}/auth/google`;
 
-
+    
     if (token) {
         // --- UTILISATEUR CONNECTÉ ---
         
-        // Si la page est 'login.html', rediriger vers l'application
         if (isLoginPage) {
-            console.log("Connecté, redirection vers l'application.");
-            // Utilise location.replace pour ne pas polluer l'historique
-            window.location.replace(FRONTEND_URL + "/index.html"); 
-            return true; // Bloque l'affichage du contenu de login.html
+            console.log("Étape 2a: Token présent. Redirection de login.html vers index.html.");
+            window.location.replace("/index.html"); 
+            return true; 
         }
 
-        // Sinon, afficher l'UI d'application (index.html)
-        if (logoutButton) logoutButton.style.display = 'block';
-        if (mainContent) mainContent.style.display = 'block';
-        if (sidebar) sidebar.style.display = 'block'; 
+        if (isIndexPage) {
+            console.log("Étape 2b: Utilisateur authentifié sur index.html. Affichage de l'interface.");
+            
+            // Nettoyer le drapeau de redirection pour confirmer que le login est stable
+            if (isRedirectedFromAuth) {
+                sessionStorage.removeItem('auth_redirect_done');
+                console.log("Drapeau de redirection nettoyé. Authentification stabilisée.");
+            }
+            
+            // Affichage de l'UI d'application
+            if (logoutButton) logoutButton.style.display = 'block';
+            if (mainContent) mainContent.style.display = 'block';
+            if (sidebar) sidebar.style.display = 'block'; 
 
-        console.log("Utilisateur authentifié sur l'application.");
-        return true;
+            return true;
+        }
+
     } else {
         // --- UTILISATEUR DÉCONNECTÉ ---
         
-        // S'il n'est PAS sur la page de connexion, rediriger
-        if (!isLoginPage) {
-            console.log("Aucun jeton d'authentification trouvé. Redirection vers la page de connexion.");
-            window.location.replace(FRONTEND_URL + "/login.html");
-            return false; // Bloque l'affichage du contenu de index.html
+        // 🚨 CAS CRITIQUE : Token absent mais on vient d'être redirigé de l'authentification (boucle potentielle)
+        if (isIndexPage && isRedirectedFromAuth) {
+             console.error("ERREUR DE SYNCHRONISATION MAJEURE: Le jeton a été perdu ou n'a pas été lu après la redirection. La boucle a été détectée et stoppée.");
+             setError("La session est instable. Veuillez vous reconnecter.");
+             clearToken(); 
+             sessionStorage.removeItem('auth_redirect_done'); 
+             // Redirection vers login.html pour éviter la boucle infinie
+             window.location.replace("/login.html?error=synclost");
+             return false;
+        }
+
+        // CAS NORMAL : Token absent et on est sur la page principale (index.html), redirection vers login.html
+        if (isIndexPage) {
+            console.log("Étape 3: Token absent sur index.html. Redirection vers login.html.");
+            window.location.replace("/login.html");
+            return false; 
         }
         
-        // S'il est sur login.html, afficher le bouton de connexion
-        if (loginLink) loginLink.style.display = 'block';
-
-        console.log("Page de connexion affichée.");
-        return false;
+        // CAS FINAL : Token absent et on est sur la page de connexion (login.html)
+        if (isLoginPage) {
+            if (loginLink) loginLink.style.display = 'block';
+            console.log("Étape 4: Page de connexion (login.html) affichée.");
+            return false;
+        }
     }
+    
+    return false;
 }
+
 
 // =========================================================
 // 🆕 TITLE STYLE LIST (reste inchangé)
@@ -161,7 +226,7 @@ let currentPromptId = null;
 let lastGenerationStartTime = null;
 
 // =========================================================
-// DISPLAY TOOLS (LOGS, ERRORS, VISUAL PROGRESS) (reste inchangé)
+// DISPLAY TOOLS (LOGS, ERRORS, VISUAL PROGRESS) 
 // =========================================================
 
 function log(...args) {
@@ -478,9 +543,8 @@ function buildPrompt() {
 
     } else {
         // --- STANDARD PROMPT LOGIC ---
-        // Simplement copier les valeurs des champs dédiés au prompt si existant
         const promptArea = document.getElementById("prompt");
-        const customPrompt = getValue("custom-prompt-input"); // Assuming you have a standard prompt input
+        const customPrompt = getValue("custom-prompt-input"); 
         if (promptArea && customPrompt) {
             promptArea.value = customPrompt;
         }
@@ -488,14 +552,14 @@ function buildPrompt() {
 }
 
 // =========================================================
-// RANDOMIZER (reste inchangé)
+// RANDOMIZER (A DEFINIR PAR L'UTILISATEUR OU COMMENTER)
 // =========================================================
 
 function randomizePosterPrompt() {
     // ⚠️ NOTE: La fonction getRandomPosterValues n'est pas fournie ici.
-    
     // Vous devez la définir ou la commenter si vous ne l'utilisez pas.
-    
+    // Exemple minimal:
+    // setValue("aff_titre", "TITRE ALEATOIRE");
     buildPrompt();
 }
 
@@ -509,7 +573,7 @@ async function startGeneration(e) {
 
     const generateBtn = document.getElementById("generate-button") || document.getElementById("affiche-generate-button");
     const wfName = getValue("workflow-select");
-    const authToken = localStorage.getItem('google_auth_token'); // 🔑 RÉCUPÉRATION DU TOKEN
+    const authToken = getToken(); // 🔑 RÉCUPÉRATION DU TOKEN
 
     if (!authToken) {
         setError("Authentification requise. Veuillez vous connecter pour lancer la génération.");
@@ -613,7 +677,7 @@ async function startGeneration(e) {
 
 
 // =========================================================
-// FAKE PROGRESS + AUTO /result DETECTION (POLLING) (reste inchangé)
+// FAKE PROGRESS + AUTO /result DETECTION (POLLING) 
 // =========================================================
 
 async function pollProgress(promptId) {
@@ -637,7 +701,7 @@ async function pollProgress(promptId) {
     }
 
     pollingProgressInterval = setInterval(async () => {
-        const authToken = localStorage.getItem('google_auth_token'); // 🔑 RÉCUPÉRATION DU TOKEN
+        const authToken = getToken(); // 🔑 RÉCUPÉRATION DU TOKEN
 
         // FAKE Animation up to 92 %
         fakeProgress = Math.min(fakeProgress + 7, 92);
@@ -677,14 +741,14 @@ async function pollProgress(promptId) {
 }
 
 // =========================================================
-// RESULT FETCH (reste inchangé)
+// RESULT FETCH 
 // =========================================================
 
 async function fetchResult(promptId) {
     showProgressOverlay(true, "Finalizing and downloading...");
     const generateBtn = document.getElementById("generate-button") || document.getElementById("affiche-generate-button");
     const statusPill = document.getElementById("job-status-pill");
-    const authToken = localStorage.getItem('google_auth_token'); // 🔑 RÉCUPÉRATION DU TOKEN
+    const authToken = getToken(); // 🔑 RÉCUPÉRATION DU TOKEN
 
 
     try {
@@ -735,7 +799,7 @@ async function fetchResult(promptId) {
 }
 
 // =========================================================
-// DISPLAY IMAGE (reste inchangé)
+// DISPLAY IMAGE 
 // =========================================================
 
 function displayImage(base64Data, filename, metadata) {
@@ -795,45 +859,37 @@ function displayImage(base64Data, filename, metadata) {
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // 🔥 APPEL CRUCIAL 1: Gérer le token reçu dans l'URL (s'applique à login.html ou index.html)
-    // Va sauvegarder le token et rediriger vers index.html.
-    // Si cette fonction retourne 'true', on stoppe l'exécution du reste du script
-    // pour éviter toute interférence.
+    // 1. Gérer le token reçu dans l'URL (index.html?token=...)
     if (handleTokenTransferFromURL()) {
         return; 
     }
 
-    // 🔥 APPEL CRUCIAL 2: Vérifier l'authentification et afficher/rediriger 
-    // Si la fonction retourne 'false', cela signifie qu'une redirection vers login.html 
-    // a été lancée ou que le script est sur login.html sans token.
-    if (!checkAuthenticationAndDisplayUI()) {
-        // Si checkAuthenticationAndDisplayUI a lancé une redirection, 
-        // le reste du script ne s'exécutera pas, mais on peut ajouter un return
-        // par précaution (surtout si la redirection ne se fait pas immédiatement).
-        // Cependant, le 'return true' à l'intérieur de la fonction est plus efficace.
-    }
+    // 2. Vérifier l'authentification et afficher/rediriger 
+    // On stocke le résultat pour savoir si une redirection a été lancée.
+    const isAuthenticated = checkAuthenticationAndDisplayUI();
 
 
-    // Ajoutez l'événement de déconnexion
+    // --- Le reste du code (loadWorkflows, refreshGPU, event listeners, etc.) ---
+    
     const logoutButton = document.getElementById('logout-button');
     if (logoutButton) {
         logoutButton.addEventListener('click', logout);
     }
-
-    // --- Génération de Prompt (Affichée) ---
+    
+    // Événements pour la construction du Prompt
     const promptInputs = document.querySelectorAll('#affiche-menu-wrapper input, #affiche-menu-wrapper textarea, #affiche-menu-wrapper select');
     promptInputs.forEach(input => {
         input.addEventListener('change', buildPrompt);
         input.addEventListener('keyup', buildPrompt);
     });
 
-    // --- Bouton Randomize ---
+    // Bouton Randomize
     const randomizeButton = document.getElementById("randomize-button");
     if (randomizeButton) {
         randomizeButton.addEventListener("click", randomizePosterPrompt);
     }
     
-    // --- Boutons de Génération ---
+    // Boutons de Génération
     const generateButton = document.getElementById("generate-button");
     const afficheGenerateButton = document.getElementById("affiche-generate-button");
 
@@ -844,7 +900,7 @@ document.addEventListener('DOMContentLoaded', () => {
         afficheGenerateButton.addEventListener("click", startGeneration);
     }
 
-    // --- Modale d'image ---
+    // Initialisation de la modale d'image
     const modal = document.getElementById("image-modal");
     if (modal) {
         modal.querySelector(".modal-close-btn").addEventListener('click', () => {
@@ -857,7 +913,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Sélection de Mode (Image / Affiche) ---
+    // Sélection de Mode (Image / Affiche)
     const modeCards = document.querySelectorAll(".mode-card");
     const generateButtonWrapper = document.getElementById("generate-button-wrapper");
     const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper");
@@ -870,39 +926,32 @@ document.addEventListener('DOMContentLoaded', () => {
             const mode = this.dataset.mode;
             const afficheMenu = document.getElementById("affiche-menu-wrapper");
 
-            if (mode === "poster") { // Poster Mode
+            if (mode === "poster") { 
                 if (afficheMenu) afficheMenu.style.display = "block";
                 selectWorkflow("affiche.json"); 
 
-                // Affiche le bouton Affiche et masque le bouton Image
                 if (generateButtonWrapper) generateButtonWrapper.style.display = 'none'; 
                 if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
 
-            } else { // Image Mode (default)
-                // Si pas en mode POSTER, masquer le menu Affiche
+            } else { 
                 if (afficheMenu) afficheMenu.style.display = "none";
-                // selectWorkflow("default_image.json");
 
-                // Affiche le bouton Image et masque le bouton Affiche
                 if (generateButtonWrapper) generateButtonWrapper.style.display = 'block'; 
                 if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
             }
         });
     });
     
-    // =========================================================
-    // FINAL INITIALIZATION (SIMULATE CLICK TO INITIALIZE DISPLAY)
-    // =========================================================
-    
-    // Simuler un clic sur la carte active par défaut pour initialiser l'affichage
+    // FINAL INITIALIZATION (charger les données uniquement si l'utilisateur est potentiellement connecté)
     const defaultModeCard = document.querySelector(".mode-card.active-mode");
     if (defaultModeCard) {
-        // Déclencher l'événement de clic pour appliquer la logique de visibilité
         defaultModeCard.dispatchEvent(new Event('click'));
     }
 
-    setInterval(refreshGPU, 10000);
-    refreshGPU();
-    loadWorkflows();
-
+    // Chargement des données (uniquement si le token est présent)
+    if (isAuthenticated) { 
+        setInterval(refreshGPU, 10000);
+        refreshGPU();
+        loadWorkflows();
+    }
 });
