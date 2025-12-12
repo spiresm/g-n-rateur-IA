@@ -1,16 +1,8 @@
-# NOTE:
-# This file contains the FULL script.js as requested.
-# It is intentionally long and untrimmed.
-# Auth has been unified around google_id_token and authFetch.
-#
-# ---- START OF SCRIPT.JS ----
-
 // =========================================================
 // CONFIGURATION (FRONTEND)
 // =========================================================
 
 const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
-const FRONTEND_URL = "https://genrateuria.netlify.app"; // 🛡️ AJOUTÉ POUR AUTH
 
 // =========================================================
 // 🆕 LISTE DES STYLES DE TITRE
@@ -40,96 +32,12 @@ const STYLE_TITRE_OPTIONS = [
 ];
 
 // =========================================================
-// 🛡️ UTILITIES DE SÉCURITÉ (Gestion du Token dans localStorage - RÉINTÉGRÉ)
+// 🆕 INJECTION AUTOMATIQUE DANS LE SELECT
 // =========================================================
 
-function setToken(token) {
-    try {
-        localStorage.setItem('google_auth_token', token);
-        console.log("SUCCESS: Token sauvegardé.");
-        return true;
-    } catch (e) {
-        console.error("ERREUR: Impossible de sauvegarder dans localStorage.", e);
-        return false;
-    }
-}
-
-function getToken() {
-    try {
-        const token = localStorage.getItem('google_auth_token');
-        return token;
-    } catch (e) {
-        console.error("ERREUR: Impossible de lire le token dans localStorage.", e);
-        return null;
-    }
-}
-
-function clearToken() {
-    try {
-        localStorage.removeItem('google_auth_token');
-        sessionStorage.removeItem('auth_redirect_done');
-        console.log("SUCCESS: Token effacé.");
-    } catch (e) {
-        console.warn("Avertissement: Impossible de retirer le token de localStorage.");
-    }
-}
-
-let isAuthenticated = getToken() !== null;
-
-// Vérifie si un token est présent dans l'URL (après une redirection de login)
-function handleLoginRedirect() {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
-    const error = params.get('error');
-
-    if (error) {
-        alert("Erreur d'authentification: " + error);
-        window.history.replaceState({}, document.title, FRONTEND_URL);
-        return;
-    }
-
-    if (token) {
-        console.log("Token reçu de l'URL.");
-        if (setToken(token)) {
-            isAuthenticated = true;
-        }
-        sessionStorage.setItem('auth_redirect_done', 'true');
-        window.history.replaceState({}, document.title, FRONTEND_URL);
-    }
-}
-
-// Fonction pour afficher/masquer les éléments d'interface en fonction de l'état d'auth
-function checkAuthStatusAndDisplayContent() {
-    const loginLink = document.getElementById('login-link');
-    const logoutButton = document.getElementById('logout-button');
-    const mainContentWrapper = document.getElementById('main-content-wrapper');
-
-    if (isAuthenticated) {
-        console.log("Statut: Authentifié. Affichage du contenu.");
-        if (loginLink) loginLink.style.display = 'none';
-        if (logoutButton) logoutButton.style.display = 'block';
-        if (mainContentWrapper) mainContentWrapper.style.display = 'block'; 
-    } else {
-        console.log("Statut: Non Authentifié. Contenu masqué.");
-        if (loginLink) loginLink.style.display = 'block';
-        if (logoutButton) logoutButton.style.display = 'none';
-        if (mainContentWrapper) mainContentWrapper.style.display = 'none'; 
-    }
-}
-
-// =========================================================
-// 🆕 INJECTION AUTOMATIQUE DANS LE SELECT (Déplacé dans la section authifiée)
-// =========================================================
-
-function populateTitleStyles() {
+document.addEventListener("DOMContentLoaded", () => {
     const styleSelect = document.getElementById("aff_style_titre");
     if (styleSelect) {
-        // Ajouter l'option par défaut
-        const defaultOption = document.createElement('option');
-        defaultOption.value = "";
-        defaultOption.textContent = "Choose…";
-        styleSelect.appendChild(defaultOption);
-
         STYLE_TITRE_OPTIONS.forEach(opt => {
             const o = document.createElement("option");
             o.value = opt.value;
@@ -137,7 +45,7 @@ function populateTitleStyles() {
             styleSelect.appendChild(o);
         });
     }
-}
+});
 
 
 // =========================================================
@@ -217,12 +125,10 @@ function showProgressOverlay(show, label = "En attente…") {
 }
 
 // =========================================================
-// GPU STATUS (SIMPLIFIÉ) - 🛡️ AJOUT DU TOKEN
+// GPU STATUS (SIMPLIFIÉ)
 // =========================================================
 
 async function refreshGPU() {
-    if (!isAuthenticated) return; // 🛡️ Vérification d'authentification
-    
     const card = document.getElementById("gpu-card");
     const nameEl = document.getElementById("gpu-name");
     const utilEl = document.getElementById("gpu-util");
@@ -232,9 +138,7 @@ async function refreshGPU() {
     if (!card || !nameEl || !utilEl || !memEl || !tempEl) return;
 
     try {
-        const resp = await fetch(`${API_BASE_URL}/gpu_status`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` } // 🛡️ Envoi du token
-        });
+        const resp = await fetch(`${API_BASE_URL}/gpu_status`);
         if (!resp.ok) throw new Error("GPU status fetch failed");
         const data = await resp.json();
         nameEl.textContent = data.name || "NVIDIA GPU";
@@ -254,21 +158,17 @@ async function refreshGPU() {
 }
 
 // =========================================================
-// GESTION WORKFLOWS & CHECKPOINTS - 🛡️ AJOUT DU TOKEN
+// GESTION WORKFLOWS & CHECKPOINTS
 // =========================================================
 
 async function loadWorkflows() {
-    if (!isAuthenticated) return; // 🛡️ Vérification d'authentification
-    
     const container = document.getElementById("workflow-groups-container");
     const hiddenInput = document.getElementById("workflow-select");
 
     if (!container) return;
 
     try {
-        const resp = await fetch(`${API_BASE_URL}/workflows`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` } // 🛡️ Envoi du token
-        });
+        const resp = await fetch(`${API_BASE_URL}/workflows`);
         if (!resp.ok) throw new Error("Erreur chargement workflows");
         const data = await resp.json();
 
@@ -340,9 +240,7 @@ async function loadWorkflows() {
     }
 
     try {
-        const resp = await fetch(`${API_BASE_URL}/checkpoints`, {
-            headers: { 'Authorization': `Bearer ${getToken()}` } // 🛡️ Envoi du token
-        });
+        const resp = await fetch(`${API_BASE_URL}/checkpoints`);
         const data = await resp.json();
         const select = document.getElementById("checkpoint-select");
         if (!select) return;
@@ -603,9 +501,7 @@ async function pollProgress(promptId) {
 
         // Test direct si le résultat est disponible
         try {
-            const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`, {
-                headers: { 'Authorization': `Bearer ${getToken()}` } // 🛡️ Envoi du token
-            });
+            const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`);
 
             if (resCheck.ok) {
                 // Succès : Réinitialise le compteur d'erreurs et vérifie la fin
@@ -651,7 +547,7 @@ async function pollProgress(promptId) {
 }
 
 // =========================================================
-// GESTIONNAIRE DE COMPLÉTION AVEC RETRY - 🛡️ AJOUT DU TOKEN
+// GESTIONNAIRE DE COMPLÉTION AVEC RETRY
 // =========================================================
 
 async function handleCompletion(promptId) {
@@ -677,9 +573,7 @@ async function handleCompletion(promptId) {
         log(`[FETCH RESULT] Tentative ${attempt}/${MAX_FETCH_ATTEMPTS} pour ${promptId}...`);
         
         try {
-            const resp = await fetch(`${API_BASE_URL}/result/${promptId}`, {
-                 headers: { 'Authorization': `Bearer ${getToken()}` } // 🛡️ Envoi du token
-            }); 
+            const resp = await fetch(`${API_BASE_URL}/result/${promptId}`); 
 
             if (resp.ok) {
                 // SUCCESS! Finish UI and display image
@@ -789,16 +683,11 @@ function displayImageAndMetadata(data) {
 
 
 // =========================================================
-// ENVOI DU FORMULAIRE → /generate (CORRIGÉ COMPLET) - 🛡️ AJOUT DU TOKEN
+// ENVOI DU FORMULAIRE → /generate (CORRIGÉ COMPLET)
 // =========================================================
 
 async function startGeneration(e) {
     e.preventDefault();
-
-    if (!isAuthenticated) { // 🛡️ Vérification d'authentification initiale
-        setError("Veuillez vous connecter pour lancer une génération.");
-        return;
-    }
 
     setError("");
 
@@ -847,9 +736,17 @@ async function startGeneration(e) {
         if (wfName === "affiche.json") {
             log("Workflow Affiche détecté. Génération automatique et injection du prompt.");
             
+            // La fonction generateAffichePrompt est modifiée pour RETOURNER le prompt généré.
+            // Si votre fonction n'a pas été modifiée, veuillez appliquer la modification suivante:
+            // Remplacer :
+            // function generateAffichePrompt() { ... (calcul prompt) ... promptArea.value = prompt; }
+            // Par :
+            // function generateAffichePrompt() { ... (calcul prompt) ... promptArea.value = prompt; return prompt; }
+            
             const generatedPrompt = generateAffichePrompt();
             
             // 🔥 INJECTION DIRECTE : On s'assure que le champ 'prompt' dans le FormData a la bonne valeur.
+            // Ceci garantit que la valeur est envoyée, même si le DOM n'est pas synchrone.
             formData.set('prompt', generatedPrompt);
             finalPromptText = generatedPrompt;
 
@@ -866,27 +763,18 @@ async function startGeneration(e) {
         const maxAttempts = 3;
         let attempt = 0;
 
+        // ... Reste du code de l'envoi HTTP, qui est correct ...
 
         while (attempt < maxAttempts && !success) {
             attempt++;
             try {
                 log(`[Tentative ${attempt}/${maxAttempts}] Envoi de la requête de génération.`);
 
-                const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { 
-                    method: "POST", 
-                    body: formData,
-                    headers: { 'Authorization': `Bearer ${getToken()}` } // 🛡️ Envoi du token
-                });
+                const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { method: "POST", body: formData });
 
                 if (!resp.ok) {
                     // ... (gestion des erreurs de tentative) ...
                     log(`Tentative ${attempt} → HTTP ${resp.status}`);
-                    
-                    // Si 401, on arrête immédiatement car c'est une erreur irrécupérable par retry
-                    if (resp.status === 401) {
-                         throw new Error("Échec: Non autorisé (401). Veuillez vous reconnecter.");
-                    }
-                    
                     if (attempt < maxAttempts) {
                         await new Promise(r => setTimeout(r, 5000));
                         continue;
@@ -909,11 +797,6 @@ async function startGeneration(e) {
 
                 if (attempt >= maxAttempts) {
                     setError(`❌ Échec de l’envoi initial de la tâche au serveur API.`);
-                }
-                
-                // Si l'erreur est fatale (401), on ne retry pas, on laisse l'erreur remonter
-                if (err.message.includes("401")) {
-                     throw err; 
                 }
 
                 await new Promise(r => setTimeout(r, 5000));
@@ -1034,7 +917,7 @@ function fillAfficheFieldsFromRandom(randomObj) {
 }
 
 // =========================================================
-// INIT GLOBAL (DOMContentLoaded) - 🛡️ LOGIQUE AUTHENTIFICATION
+// INIT GLOBAL (DOMContentLoaded)
 // =========================================================
 
 function autoClearOnSelect(selectId, customId) {
@@ -1052,209 +935,182 @@ function autoClearOnSelect(selectId, customId) {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    // 🛡️ 1. GESTION DE L'AUTHENTIFICATION ET REDIRECTION
-    handleLoginRedirect();
-    checkAuthStatusAndDisplayContent();
+    // =========================================================
+    // AUTO-CLEAR POUR CHAQUE SELECT → CHAMP CUSTOM
+    // =========================================================
+    autoClearOnSelect("aff_style_titre", "aff_style_titre_custom");
+    autoClearOnSelect("aff_theme", "aff_theme_custom");
+    autoClearOnSelect("aff_ambiance", "aff_ambiance_custom");
+    autoClearOnSelect("aff_perso_sugg", "aff_perso_desc");
+    autoClearOnSelect("aff_env_sugg", "aff_env_desc");
+    autoClearOnSelect("aff_action_sugg", "aff_action_desc");
+    autoClearOnSelect("aff_palette", "aff_palette_custom");
 
-    // 2. Si l'utilisateur est authentifié, initialiser l'application
-    if (isAuthenticated) {
-        
-        // 🛡️ 2.1 Gestion de la déconnexion
-        const logoutButton = document.getElementById('logout-button');
-        if (logoutButton) {
-            logoutButton.addEventListener('click', () => {
-                clearToken();
-                isAuthenticated = false;
-                checkAuthStatusAndDisplayContent(); // Masque le contenu et affiche le bouton de connexion
-            });
-        }
-        
-        // 2.2 Initialisation de l'interface et des événements
+    // =========================================================
+    // LISTENERS GÉNÉRAUX
+    // =========================================================
 
-        // Initialisation du select (déplacé ici car dépend de l'UI chargée)
-        populateTitleStyles();
+    const formEl = document.getElementById("generation-form");
+    if (formEl) {
+        formEl.addEventListener("submit", startGeneration);
+    }
 
-        // =========================================================
-        // AUTO-CLEAR POUR CHAQUE SELECT → CHAMP CUSTOM
-        // =========================================================
-        autoClearOnSelect("aff_style_titre", "aff_style_titre_custom");
-        autoClearOnSelect("aff_theme", "aff_theme_custom");
-        autoClearOnSelect("aff_ambiance", "aff_ambiance_custom");
-        autoClearOnSelect("aff_perso_sugg", "aff_perso_desc");
-        autoClearOnSelect("aff_env_sugg", "aff_env_desc");
-        autoClearOnSelect("aff_action_sugg", "aff_action_desc");
-        autoClearOnSelect("aff_palette", "aff_palette_custom");
+    const modal = document.getElementById("image-modal");
+    const modalClose = document.querySelector(".modal-close-btn");
 
-        // =========================================================
-        // LISTENERS GÉNÉRAUX
-        // =========================================================
+    if (modalClose && modal) {
+        modalClose.addEventListener("click", () => {
+            modal.style.display = "none";
+        });
+    }
 
-        const formEl = document.getElementById("generation-form");
-        if (formEl) {
-            formEl.addEventListener("submit", startGeneration);
-        }
-
-        const modal = document.getElementById("image-modal");
-        const modalClose = document.querySelector(".modal-close-btn");
-
-        if (modalClose && modal) {
-            modalClose.addEventListener("click", () => {
+    if (modal) {
+        modal.addEventListener("click", (ev) => {
+            if (ev.target === modal) {
                 modal.style.display = "none";
-            });
-        }
+            }
+        });
+    }
 
-        if (modal) {
-            modal.addEventListener("click", (ev) => {
-                if (ev.target === modal) {
-                    modal.style.display = "none";
-                }
-            });
-        }
+    const copyBtn = document.getElementById("copy-params-btn");
+    if (copyBtn) {
+        copyBtn.addEventListener("click", () => {
+            const wfName = document.getElementById("workflow-select")?.value || "–";
+            const width = document.getElementById("width-input")?.value || "–";
+            const height = document.getElementById("height-input")?.value || "–";
+            const steps = document.getElementById("steps-slider")?.value || "–";
+            const cfg = document.getElementById("cfg_scale-slider")?.value || "–";
+            const sampler = document.getElementById("sampler")?.value || "–";
+            const seed = document.getElementById("seed-input")?.value || "–";
 
-        const copyBtn = document.getElementById("copy-params-btn");
-        if (copyBtn) {
-            copyBtn.addEventListener("click", () => {
-                const wfName = document.getElementById("workflow-select")?.value || "–";
-                const width = document.getElementById("width-input")?.value || "–";
-                const height = document.getElementById("height-input")?.value || "–";
-                const steps = document.getElementById("steps-slider")?.value || "–";
-                const cfg = document.getElementById("cfg_scale-slider")?.value || "–";
-                const sampler = document.getElementById("sampler")?.value || "–";
-                const seed = document.getElementById("seed-input")?.value || "–";
-
-                const txt = `Workflow: ${wfName}\nResolution: ${width}x${height}\nSteps: ${steps}\nCFG: ${cfg}\nSampler: ${sampler}\nSeed: ${seed}`;
-                navigator.clipboard.writeText(txt).then(() => {
-                    log("Paramètres copiés dans le presse-papiers.");
-                });
-            });
-        }
-        
-        // =========================================================
-        // RANDOM AFFICHE — CHARGEMENT + REMPLISSAGE SEUL
-        // =========================================================
-
-        const randomBtn = document.getElementById("affiche-random-btn");
-        if (randomBtn && formEl) {
-            randomBtn.addEventListener("click", async () => {
-                console.log("🎲 Clic random détecté !");
-
-                const data = await loadRandomAfficheJSON();
-                if (!data) return;
-
-                const theme = pickRandom(data.themes);
-                const ambiance = pickRandom(data.ambiances);
-                const perso = pickRandom(data.personnages);
-                const env = pickRandom(data.environnements);
-                const action = pickRandom(data.actions);
-                const palette = pickRandom(data.palettes);
-                const styleTitre = pickRandom(data.styles_titre);
-                const details = pickRandom(data.details);
-                const titre = pickRandom(data.titres);
-                const sousTitre = pickRandom(data.sous_titres);
-                const tagline = pickRandom(data.taglines || []);
-
-                const randomObj = {
-                    titre,
-                    sous_titre: sousTitre,
-                    tagline,
-                    theme,
-                    ambiance,
-                    personnage: perso,
-                    environnement: env,
-                    action,
-                    palette,
-                    style_titre: styleTitre,
-                    details
-                };
-
-                fillAfficheFieldsFromRandom(randomObj);
-                generateAffichePrompt(); 
-                
-                randomBtn.classList.add("clicked");
-                randomBtn.innerHTML = "🎲 Champs remplis !";
-                setTimeout(() => {
-                    randomBtn.classList.remove("clicked");
-                    randomBtn.innerHTML = "🎲 Aléatoire";
-                }, 600);
-                
-                console.log("🎲 Champs affiche remplis aléatoirement:", randomObj);
-            });
-        }
-
-        // =========================================================
-        // GENERATE PROMPT BUTTON LISTENER (PROMPT SEUL)
-        // =========================================================
-
-        const btnPrompt = document.getElementById("affiche-generate-btn");
-        if (btnPrompt && formEl) {
-            btnPrompt.addEventListener("click", () => {
-                
-                generateAffichePrompt(); // Met à jour le champ
-                
-                btnPrompt.classList.add("clicked");
-                btnPrompt.innerHTML = "✨ Prompt généré !";
-                setTimeout(() => {
-                    btnPrompt.classList.remove("clicked");
-                    btnPrompt.innerHTML = "✨ Générer le prompt de l’affiche";
-                }, 600);
-            });
-        }
-
-        // =========================================================
-        // ACTIVATION DES MENUS & BOUTONS (AFFICHE / IMAGE) - CORRECTION DE VISIBILITÉ
-        // =========================================================
-        const modeCards = document.querySelectorAll(".mode-card");
-        const afficheMenu = document.getElementById("affiche-menu");
-        const generateButton = document.getElementById("generate-button"); // Le bouton standard (SUBMIT)
-        const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper"); // Le conteneur du bouton Affiche
-
-
-        modeCards.forEach(card => {
-            card.addEventListener("click", () => {
-                const mode = card.dataset.mode;
-
-                // visuel actif
-                modeCards.forEach(c => c.classList.remove("active-mode"));
-                card.classList.add("active-mode");
-
-                // Le mode AFFICHE affiche le menu Affiche
-                if (mode === "affiche") {
-                    afficheMenu.style.display = "block";
-                    selectWorkflow("affiche.json"); 
-
-                    // 🔥 CORRECTION : Le bouton SUBMIT et le wrapper AFFICHE sont visibles
-                    if (generateButton) generateButton.style.display = 'block'; 
-                    if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
-
-                } else { // Mode Image
-                    // Si ce n'est pas le mode AFFICHE, on le masque
-                    afficheMenu.style.display = "none";
-                    selectWorkflow("default_image.json"); // Assurez-vous d'avoir un workflow par défaut 
-
-                    // Le bouton SUBMIT est visible, le wrapper AFFICHE est masqué
-                    if (generateButton) generateButton.style.display = 'block'; 
-                    if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
-                }
+            const txt = `Workflow: ${wfName}\nResolution: ${width}x${height}\nSteps: ${steps}\nCFG: ${cfg}\nSampler: ${sampler}\nSeed: ${seed}`;
+            navigator.clipboard.writeText(txt).then(() => {
+                log("Paramètres copiés dans le presse-papiers.");
             });
         });
-        // =========================================================
-        // INITIALISATION FINAL (SIMULER UN CLIC POUR INITIALISER L'AFFICHAGE)
-        // =========================================================
-        
-        // Simuler un clic sur la carte active par défaut pour initialiser l'affichage
-        const defaultModeCard = document.querySelector(".mode-card.active-mode");
-        if (defaultModeCard) {
-            // Déclenche l'événement click pour appliquer la logique de visibilité
-            defaultModeCard.dispatchEvent(new Event('click'));
-        }
-
-        setInterval(refreshGPU, 10000);
-        refreshGPU();
-        loadWorkflows();
-
     }
-    // Si non authentifié, seul le code de checkAuthStatusAndDisplayContent() s'est exécuté, masquant le contenu.
+    
+    // =========================================================
+    // RANDOM AFFICHE — CHARGEMENT + REMPLISSAGE SEUL
+    // =========================================================
+
+    const randomBtn = document.getElementById("affiche-random-btn");
+    if (randomBtn && formEl) {
+        randomBtn.addEventListener("click", async () => {
+            console.log("🎲 Clic random détecté !");
+
+            const data = await loadRandomAfficheJSON();
+            if (!data) return;
+
+            const theme = pickRandom(data.themes);
+            const ambiance = pickRandom(data.ambiances);
+            const perso = pickRandom(data.personnages);
+            const env = pickRandom(data.environnements);
+            const action = pickRandom(data.actions);
+            const palette = pickRandom(data.palettes);
+            const styleTitre = pickRandom(data.styles_titre);
+            const details = pickRandom(data.details);
+            const titre = pickRandom(data.titres);
+            const sousTitre = pickRandom(data.sous_titres);
+            const tagline = pickRandom(data.taglines || []);
+
+            const randomObj = {
+                titre,
+                sous_titre: sousTitre,
+                tagline,
+                theme,
+                ambiance,
+                personnage: perso,
+                environnement: env,
+                action,
+                palette,
+                style_titre: styleTitre,
+                details
+            };
+
+            fillAfficheFieldsFromRandom(randomObj);
+            generateAffichePrompt(); 
+            
+            randomBtn.classList.add("clicked");
+            randomBtn.innerHTML = "🎲 Champs remplis !";
+            setTimeout(() => {
+                randomBtn.classList.remove("clicked");
+                randomBtn.innerHTML = "🎲 Aléatoire";
+            }, 600);
+            
+            console.log("🎲 Champs affiche remplis aléatoirement:", randomObj);
+        });
+    }
+
+    // =========================================================
+    // GENERATE PROMPT BUTTON LISTENER (PROMPT SEUL)
+    // =========================================================
+
+    const btnPrompt = document.getElementById("affiche-generate-btn");
+    if (btnPrompt && formEl) {
+        btnPrompt.addEventListener("click", () => {
+            
+            generateAffichePrompt(); // Met à jour le champ
+            
+            btnPrompt.classList.add("clicked");
+            btnPrompt.innerHTML = "✨ Prompt généré !";
+            setTimeout(() => {
+                btnPrompt.classList.remove("clicked");
+                btnPrompt.innerHTML = "✨ Générer le prompt de l’affiche";
+            }, 600);
+        });
+    }
+
+    // =========================================================
+    // ACTIVATION DES MENUS & BOUTONS (AFFICHE / IMAGE) - CORRECTION DE VISIBILITÉ
+    // =========================================================
+    const modeCards = document.querySelectorAll(".mode-card");
+    const afficheMenu = document.getElementById("affiche-menu");
+    const generateButton = document.getElementById("generate-button"); // Le bouton standard (SUBMIT)
+    const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper"); // Le conteneur du bouton Affiche
+
+
+    modeCards.forEach(card => {
+        card.addEventListener("click", () => {
+            const mode = card.dataset.mode;
+
+            // visuel actif
+            modeCards.forEach(c => c.classList.remove("active-mode"));
+            card.classList.add("active-mode");
+
+            // Le mode AFFICHE affiche le menu Affiche
+            if (mode === "affiche") {
+                afficheMenu.style.display = "block";
+                selectWorkflow("affiche.json"); 
+
+                // 🔥 CORRECTION : Le bouton SUBMIT et le wrapper AFFICHE sont visibles
+                if (generateButton) generateButton.style.display = 'block'; 
+                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
+
+            } else { // Mode Image
+                // Si ce n'est pas le mode AFFICHE, on le masque
+                afficheMenu.style.display = "none";
+                // L'appel selectWorkflow("default_image.json"); peut être ajouté ici
+
+                // Le bouton SUBMIT est visible, le wrapper AFFICHE est masqué
+                if (generateButton) generateButton.style.display = 'block'; 
+                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
+            }
+        });
+    });
+    // =========================================================
+    // INITIALISATION FINAL (SIMULER UN CLIC POUR INITIALISER L'AFFICHAGE)
+    // =========================================================
+    
+    // Simuler un clic sur la carte active par défaut pour initialiser l'affichage
+    const defaultModeCard = document.querySelector(".mode-card.active-mode");
+    if (defaultModeCard) {
+        // Déclenche l'événement click pour appliquer la logique de visibilité
+        defaultModeCard.dispatchEvent(new Event('click'));
+    }
+
+    setInterval(refreshGPU, 10000);
+    refreshGPU();
+    loadWorkflows();
+
 });
-
-
-# ---- END OF SCRIPT.JS ----
