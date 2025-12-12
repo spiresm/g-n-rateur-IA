@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Styles minimalistes basés sur votre snippet */
+        /* Styles minimalistes pour cette page */
         body {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: var(--background); /* Assurez-vous d'avoir des variables CSS définies */
+            background-color: var(--background);
             color: var(--text-color);
             font-family: Arial, sans-serif;
             margin: 0;
@@ -50,56 +50,51 @@
 <div class="container">
     <div class="spinner"></div>
     <h1>Authentification en cours</h1>
-    <p>Veuillez patienter pendant la vérification de votre session...</p>
+    <p>Transfert de session en cours...</p>
     
-    <p id="error-message" style="display: none;">Une erreur est survenue lors de la connexion.</p>
+    <p id="error-message" style="display: none;">Une erreur est survenue.</p>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Récupérer l'URL complète
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const error = urlParams.get('error');
-    
-    // Récupère l'élément du message d'erreur (maintenant garanti d'exister)
     const errorMessageElement = document.getElementById('error-message');
 
-    // Fonction pour mettre à jour l'affichage de l'erreur
     const updateErrorDisplay = (message) => {
         if (errorMessageElement) {
             errorMessageElement.textContent = message;
             errorMessageElement.style.display = 'block';
         } else {
-            // Fallback si l'élément était vraiment absent
-            console.error("Erreur critique: L'élément 'error-message' est manquant dans le HTML de login.html.");
+            console.error("Erreur critique: L'élément 'error-message' est manquant.");
         }
     }
 
     if (error) {
-        // En cas d'erreur
-        updateErrorDisplay(`Erreur d'authentification: ${error}`);
+        // Cas 1: Erreur reçue du backend
+        updateErrorDisplay(`Erreur d'authentification : ${error}. Redirection vers la page de connexion.`);
         console.error("Authentication Error:", error);
         
-        // Redirection vers index.html après un délai pour afficher l'interface de connexion
+        // Redirection vers l'accueil (qui affichera le bouton de connexion)
         setTimeout(() => {
-            window.location.href = '/'; 
+            window.location.replace('/'); 
         }, 5000); 
 
     } else if (token) {
-        // 2. Sauvegarder le token et rediriger
-        console.log("Token received. Saving and redirecting...");
+        // Cas 2: Token reçu du backend (flux normal)
+        console.log("Token détecté. Redirection immédiate vers index.html pour traitement.");
         
-        // 🔑 CORRECTION CRITIQUE : Utiliser 'google_auth_token' pour correspondre à script.js
-        localStorage.setItem('google_auth_token', token);
-        
-        // 3. Redirection vers la page principale de l'application
-        window.location.href = '/'; 
+        // 🚨 NOUVELLE RÈGLE : NE PAS SAUVER DANS LE LOCALSTORAGE ICI. 
+        // On redirige vers index.html AVEC le token dans l'URL.
+        // C'est le script.js (robuste) qui va s'en occuper.
+        window.location.replace(`/index.html?token=${token}`); 
+
     } else {
-        // Si aucun token ni erreur (accès direct à login.html)
-        updateErrorDisplay("Page d'authentification consultée directement. Redirection vers l'accueil...");
+        // Cas 3: Accès direct ou autre cas sans token ni erreur
+        updateErrorDisplay("Pas de jeton trouvé. Redirection vers l'accueil...");
         setTimeout(() => {
-            window.location.href = '/'; 
+            window.location.replace('/'); 
         }, 3000); 
     }
 });
