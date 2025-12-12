@@ -980,7 +980,22 @@ function autoClearOnSelect(selectId, customId) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+// =========================================================
+// 🔓 LOGOUT
+// =========================================================
+const logoutBtn = document.getElementById("logout-btn");
 
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    console.log("🔓 Déconnexion utilisateur");
+
+    // Supprime le token
+    localStorage.removeItem("google_id_token");
+
+    // Redirection vers la page login
+    window.location.replace("login.html");
+  });
+}
     // =========================================================
     // AUTO-CLEAR POUR CHAQUE SELECT → CHAMP CUSTOM
     // =========================================================
