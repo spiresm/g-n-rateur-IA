@@ -1,3 +1,8 @@
+function authHeaders() {
+  const token = localStorage.getItem("google_id_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 // =========================================================
 // CONFIGURATION (FRONTEND)
 // =========================================================
@@ -501,7 +506,7 @@ async function pollProgress(promptId) {
 
         // Test direct si le résultat est disponible
         try {
-            const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`);
+            const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`, { headers: { ...authHeaders() } });
 
             if (resCheck.ok) {
                 // Succès : Réinitialise le compteur d'erreurs et vérifie la fin
@@ -573,7 +578,7 @@ async function handleCompletion(promptId) {
         log(`[FETCH RESULT] Tentative ${attempt}/${MAX_FETCH_ATTEMPTS} pour ${promptId}...`);
         
         try {
-            const resp = await fetch(`${API_BASE_URL}/result/${promptId}`); 
+            const resp = await fetch(`${API_BASE_URL}/result/${promptId}`, { headers: { ...authHeaders() } }); 
 
             if (resp.ok) {
                 // SUCCESS! Finish UI and display image
