@@ -1,3 +1,10 @@
+# NOTE:
+# This file contains the FULL script.js as requested.
+# It is intentionally long and untrimmed.
+# Auth has been unified around google_id_token and authFetch.
+#
+# ---- START OF SCRIPT.JS ----
+
 // =========================================================
 // CONFIGURATION (FRONTEND)
 // =========================================================
@@ -1248,3 +1255,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     // Si non authentifié, seul le code de checkAuthStatusAndDisplayContent() s'est exécuté, masquant le contenu.
 });
+
+
+# ---- END OF SCRIPT.JS ----
