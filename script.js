@@ -3,10 +3,27 @@
 // =========================================================
 
 const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
-const FRONTEND_URL = "https://genrateuria.netlify.app"; 
+const FRONTEND_URL = "https://genrateuria.netlify.app"; // Utilisé pour la redirection après l'authentification
 
 // =========================================================
-// 🛡️ UTILITIES DE SÉCURITÉ (Gestion du Token dans localStorage)
+// 🆕 LISTE DES STYLES DE TITRE (depuis script.js)
+// =========================================================
+
+const STYLE_TITRE_OPTIONS = [
+    { label: "Texte sanglant dégoulinant", value: "dripping horror lettering, torn edges, glossy red liquid texture, glowing sinister vibe" },
+    { label: "Néon cyberpunk", value: "bright neon tube letters, electric glow, slight chromatic aberration, futuristic vaporwave look" },
+    { label: "Typographie givrée / glace", value: "frosted glass letters, icy texture, translucent frozen edges, cold blue inner glow" },
+    { label: "Lettrage en bois sculpté", value: "hand-carved wooden lettering, deep grooves, warm grain texture, rustic fantasy aesthetic" },
+    { label: "Texte métallique gravé", value: "polished engraved steel letters, sharp reflections, industrial sci-fi shine" },
+    { label: "Style cartoon / bulle", value: "rounded bubbly cartoon letters, colorful shading, outlined comic look" },
+    { label: "Effet slasher sanglant", value: "sharp jagged letters, blood splatter texture, rough grain, violent horror tone" },
+    { label: "Lettrage en cristal / gemme", value: "faceted gemstone letters, prism reflections, diamond-like clarity, luminous highlights" },
+    { label: "Ruban de soie flottant", value: "silk ribbon floating letters, soft smooth texture, ethereal lighting, elegant flow" },
+    { label: "Peinture murale style art déco", value: "art deco mural painting typography, stylized geometric patterns, gold leaf accents, flat design" }
+];
+
+// =========================================================
+// 🛡️ UTILITIES DE SÉCURITÉ (Gestion du Token dans localStorage - depuis script (40).js)
 // =========================================================
 
 function setToken(token) {
@@ -39,919 +56,689 @@ function clearToken() {
     }
 }
 
-
 // =========================================================
-// 🛡️ AUTHENTICATION FUNCTIONS (LOGIQUE ANTI-BOUCLE)
+// 🛡️ AUTHENTICATION FUNCTIONS (LOGIQUE ANTI-BOUCLE - depuis script (40).js)
 // =========================================================
 
-function handleTokenTransferFromURL() {
-    const urlParams = new URLSearchParams(window.location.search);
+let isAuthenticated = getToken() !== null;
 
-    if (urlParams.has('token')) {
-        const token = urlParams.get('token');
-        console.log("Étape 1: Token détecté dans l'URL. Sauvegarde et redirection en cours...");
-        
-        if (setToken(token)) {
-            // 🚨 AJOUT CRITIQUE: Drapeaux de session pour bloquer la boucle
-            sessionStorage.setItem('auth_redirect_done', 'true');
-            
-            // 1. Nettoie l'URL (enlève ?token=...)
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            // 2. Redirige IMMÉDIATEMENT vers la page principale propre
-            // Utilise un chemin relatif (/index.html)
-            window.location.replace("/index.html"); 
-            
-            // Bloque le reste du script
-            return true; 
-        }
-    }
-    
-    // Gère les erreurs ou les cas sans token
-    if (urlParams.has('error')) {
-        console.error("Erreur d'authentification reçue:", urlParams.get('error'));
-        window.history.replaceState({}, document.title, window.location.pathname);
+// Vérifie si un token est présent dans l'URL (après une redirection de login)
+function handleLoginRedirect() {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const error = params.get('error');
+
+    if (error) {
+        alert("Erreur d'authentification: " + error);
+        // Nettoyer l'URL
+        window.history.replaceState({}, document.title, FRONTEND_URL);
+        return;
     }
 
-    return false;
-}
-
-function logout() {
-    clearToken();
-    // Redirige vers la page de connexion (chemin relatif)
-    window.location.replace("/login.html");
-}
-
-function checkAuthenticationAndDisplayUI() {
-    const token = getToken();
-    const isRedirectedFromAuth = sessionStorage.getItem('auth_redirect_done') === 'true';
-    
-    // Simplification du chemin pour la vérification
-    const path = window.location.pathname;
-    const isLoginPage = path.includes('/login.html');
-    const isIndexPage = path === '/' || path.includes('/index.html');
-    
-    
-    // Référence aux éléments UI
-    const logoutButton = document.getElementById('logout-button');
-    const mainContent = document.getElementById('main-content-wrapper');
-    const sidebar = document.getElementById('sidebar');
-    const loginLink = document.getElementById('login-link'); 
-    const errorBox = document.getElementById('error-box'); // Assurez-vous d'avoir cet élément
-
-    
-    // Initialisation UI (cachée par défaut pour éviter le "flash")
-    if (mainContent) mainContent.style.display = 'none'; 
-    if (sidebar) sidebar.style.display = 'none';
-    if (loginLink) loginLink.style.display = 'none';
-    if (logoutButton) logoutButton.style.display = 'none';
-    if (loginLink) loginLink.href = `${API_BASE_URL}/auth/google`;
-
-    
     if (token) {
-        // --- UTILISATEUR CONNECTÉ ---
-        
-        if (isLoginPage) {
-            console.log("Étape 2a: Token présent. Redirection de login.html vers index.html.");
-            window.location.replace("/index.html"); 
-            return true; 
+        console.log("Token reçu de l'URL.");
+        if (setToken(token)) {
+            isAuthenticated = true;
         }
-
-        if (isIndexPage) {
-            console.log("Étape 2b: Utilisateur authentifié sur index.html. Affichage de l'interface.");
-            
-            // Nettoyer le drapeau de redirection pour confirmer que le login est stable
-            if (isRedirectedFromAuth) {
-                sessionStorage.removeItem('auth_redirect_done');
-                console.log("Drapeau de redirection nettoyé. Authentification stabilisée.");
-            }
-            
-            // Affichage de l'UI d'application
-            if (logoutButton) logoutButton.style.display = 'block';
-            if (mainContent) mainContent.style.display = 'block';
-            if (sidebar) sidebar.style.display = 'block'; 
-
-            return true;
-        }
-
-    } else {
-        // --- UTILISATEUR DÉCONNECTÉ ---
-        
-        // 🚨 CAS CRITIQUE : Token absent mais on vient d'être redirigé de l'authentification (boucle potentielle)
-        if (isIndexPage && isRedirectedFromAuth) {
-             console.error("ERREUR DE SYNCHRONISATION MAJEURE: Le jeton a été perdu ou n'a pas été lu après la redirection. La boucle a été détectée et stoppée.");
-             setError("La session est instable. Veuillez vous reconnecter.");
-             clearToken(); 
-             sessionStorage.removeItem('auth_redirect_done'); 
-             // Redirection vers login.html pour éviter la boucle infinie
-             window.location.replace("/login.html?error=synclost");
-             return false;
-        }
-
-        // CAS NORMAL : Token absent et on est sur la page principale (index.html), redirection vers login.html
-        if (isIndexPage) {
-            console.log("Étape 3: Token absent sur index.html. Redirection vers login.html.");
-            window.location.replace("/login.html");
-            return false; 
-        }
-        
-        // CAS FINAL : Token absent et on est sur la page de connexion (login.html)
-        if (isLoginPage) {
-            if (loginLink) loginLink.style.display = 'block';
-            console.log("Étape 4: Page de connexion (login.html) affichée.");
-            return false;
-        }
+        // Utiliser sessionStorage pour empêcher une boucle de redirection si l'utilisateur rafraîchit
+        sessionStorage.setItem('auth_redirect_done', 'true');
+        // Nettoyer l'URL sans rafraîchir la page
+        window.history.replaceState({}, document.title, FRONTEND_URL);
     }
-    
-    return false;
 }
 
+// Fonction pour afficher/masquer les éléments d'interface en fonction de l'état d'auth
+function checkAuthStatusAndDisplayContent() {
+    const loginLink = document.getElementById('login-link');
+    const logoutButton = document.getElementById('logout-button');
+    const mainContentWrapper = document.getElementById('main-content-wrapper');
+
+    if (isAuthenticated) {
+        console.log("Statut: Authentifié. Affichage du contenu.");
+        if (loginLink) loginLink.style.display = 'none';
+        if (logoutButton) logoutButton.style.display = 'block';
+        if (mainContentWrapper) mainContentWrapper.style.display = 'block'; // Affiche l'interface principale
+    } else {
+        console.log("Statut: Non Authentifié. Contenu masqué.");
+        if (loginLink) loginLink.style.display = 'block';
+        if (logoutButton) logoutButton.style.display = 'none';
+        if (mainContentWrapper) mainContentWrapper.style.display = 'none'; // Masque l'interface principale
+    }
+}
 
 // =========================================================
-// 🆕 TITLE STYLE LIST (reste inchangé)
+// 🧠 FONCTIONS DE L'INTERFACE ET DE GÉNÉRATION (depuis script.js)
 // =========================================================
 
-const STYLE_TITRE_OPTIONS = [
-    // 🚨 NOTE: The value (the actual prompt) remains in English for the AI model's benefit.
-    { label: "Dripping bloody text", value: "dripping horror lettering, torn edges, glossy red liquid texture, glowing sinister vibe" },
-    { label: "Cyberpunk neon", value: "bright neon tube letters, electric glow, slight chromatic aberration, futuristic vaporwave look" },
-    { label: "Frosted / Ice typography", value: "frosted glass letters, icy texture, translucent frozen edges, cold blue inner glow" },
-    { label: "Hand-carved wooden lettering", value: "hand-carved wooden lettering, deep grooves, warm grain texture, rustic fantasy aesthetic" },
-    { label: "Engraved metallic text", value: "polished engraved steel letters, sharp reflections, industrial sci-fi shine" },
-    { label: "Cartoon / Bubble style", value: "rounded bubbly cartoon letters, colorful shading, outlined comic look" },
-    { label: "Bloody slasher effect", value: "sharp jagged letters, blood splatter texture, rough grain, violent horror tone" },
-    { label: "Crystal / Gemstone lettering", value: "faceted gemstone letters, prism reflections, diamond-like clarity, luminous highlights" },
-    { label: "Ancient stone runes", value: "weathered carved stone letters, cracks, moss details, archaeological fantasy mood" },
-    { label: "Flaming text", value: "burning fire lettering, glowing embers, smoke trails, intense heat distortion" },
-    { label: "Liquid / Water text", value: "transparent water-textured letters, droplets, soft reflections, fluid organic movement" },
-    { label: "Royal golden title", value: "polished gold lettering, embossed texture, warm specular highlights, luxury vibe" },
-    { label: "Urban graffiti", value: "spray-painted lettering, rough outlines, dripping paint, street-art" },
-    { label: "Futuristic hologram", value: "holographic translucent letters, digital flicker, refraction effects, sci-fi projection" },
-    { label: "Medieval Gothic", value: "blackletter-inspired carved metal, dark engraved texture, dramatic gothic atmosphere" },
-    { label: "Clay style (stop motion)", value: "hand-molded clay letters, fingerprint texture, soft studio lighting, claymation charm" },
-    { label: "Paper cut / collage", value: "layered paper-cut letters, soft shadows, handcrafted collage feel" },
-    { label: "Cosmic / Nebula", value: "letters filled with nebula textures, stars, glowing cosmic colors, ethereal space vibe" },
-    { label: "Brass Steampunk", value: "aged brass letters, rivets, gears, Victorian industrial detailing" },
-    { label: "Digital glitch text", value: "distorted corrupted letters, RGB glitch separation, pixel noise, digital malfunction look" }
-];
+// ... (Les fonctions suivantes sont conservées de script.js) ...
 
-// =========================================================
-// AUTOMATIC INJECTION INTO SELECT (reste inchangé)
-// =========================================================
+function populateTitleStyles() {
+    const select = document.getElementById('aff_style_titre');
+    if (!select) return;
 
-document.addEventListener("DOMContentLoaded", () => {
-    const styleSelect = document.getElementById("aff_style_titre");
-    if (styleSelect) {
-        STYLE_TITRE_OPTIONS.forEach(opt => {
-            const o = document.createElement("option");
-            o.value = opt.value;
-            o.textContent = opt.label;
-            styleSelect.appendChild(o);
+    // Ajouter l'option par défaut
+    const defaultOption = document.createElement('option');
+    defaultOption.value = "";
+    defaultOption.textContent = "Choose…";
+    select.appendChild(defaultOption);
+
+    STYLE_TITRE_OPTIONS.forEach(style => {
+        const option = document.createElement('option');
+        option.value = style.value;
+        option.textContent = style.label;
+        select.appendChild(option);
+    });
+}
+
+// Récupère les données de la liste des options pour un <select> donné
+function populateSelectOptions(selectId, endpoint, defaultOptionText = "Loading…") {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    select.innerHTML = `<option value="">${defaultOptionText}</option>`;
+
+    fetch(`${API_BASE_URL}/api/${endpoint}`, {
+        headers: {
+            'Authorization': `Bearer ${getToken()}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        // Vider et ajouter l'option 'Choose…'
+        select.innerHTML = `<option value="">Choose…</option>`; 
+        data.forEach(item => {
+            const option = document.createElement('option');
+            // Assumer que les items sont des chaînes de caractères (noms de fichiers ou IDs)
+            option.value = item;
+            option.textContent = item.replace('.safetensors', '').replace(/_/g, ' '); // Nettoyage
+            select.appendChild(option);
         });
-    }
-});
-
-
-// =========================================================
-// HTTP POLLING CONFIGURATION (NEW SYSTEM WITHOUT WS) (reste inchangé)
-// =========================================================
-const POLLING_INTERVAL_MS = 900;
-let pollingProgressInterval = null;
-let fakeProgress = 0;
-
-// =========================================================
-// GLOBAL VARIABLES (reste inchangé)
-// =========================================================
-let currentPromptId = null;
-let lastGenerationStartTime = null;
-
-// =========================================================
-// DISPLAY TOOLS (LOGS, ERRORS, VISUAL PROGRESS) 
-// =========================================================
-
-function log(...args) {
-    console.log(...args);
-    const box = document.getElementById("log-box");
-    if (!box) return;
-    const line = document.createElement("div");
-    line.className = "log-line";
-    const ts = new Date().toLocaleTimeString("en-US", { hour12: false });
-    line.innerHTML = `<strong>[${ts}]</strong> ${args.join(" ")}`;
-    box.appendChild(line);
-    box.scrollTop = box.scrollHeight;
+        
+        // Si c'est la liste des checkpoints, essayer de sélectionner le premier si possible
+        if (selectId === 'checkpoint-select' && data.length > 0) {
+            select.value = data[0]; 
+        }
+    })
+    .catch(error => {
+        console.error(`Error loading ${endpoint}:`, error);
+        select.innerHTML = `<option value="">Error loading data.</option>`;
+    });
 }
 
-function setError(msg) {
-    const errBox = document.getElementById("error-box");
-    if (!errBox) return;
-    if (msg) {
-        errBox.style.display = "block";
-        errBox.textContent = msg;
-    } else {
-        errBox.style.display = "none";
-        errBox.textContent = "";
+let currentWorkflow = null; // Stocke l'objet workflow actif
+
+function selectWorkflow(workflowPath) {
+    // 1. Mise à jour de l'input caché
+    const workflowSelectInput = document.getElementById('workflow-select');
+    if (workflowSelectInput) {
+        workflowSelectInput.value = workflowPath;
     }
-}
 
-function showProgressOverlay(show, label = "Awaiting…") {
-    const overlay = document.getElementById("progress-overlay");
-    const labelSpan = document.getElementById("progress-label");
-    const percentSpan = document.getElementById("progress-percent");
-    const innerBar = document.getElementById("progress-inner");
-
-    if (!overlay || !labelSpan || !percentSpan || !innerBar) return;
-
-    if (show) {
-        overlay.classList.add("visible");
-        labelSpan.textContent = label;
-        percentSpan.textContent = "0%";
-        innerBar.style.width = "0%";
-        fakeProgress = 0;
-    } else {
-        overlay.classList.remove("visible");
-    }
-}
-
-// =========================================================
-// GPU STATUS (SIMPLIFIED) (reste inchangé)
-// =========================================================
-
-async function refreshGPU() {
-    const card = document.getElementById("gpu-card");
-    const nameEl = document.getElementById("gpu-name");
-    const utilEl = document.getElementById("gpu-util");
-    const memEl = document.getElementById("gpu-mem");
-    const tempEl = document.getElementById("gpu-temp");
-
-    if (!card || !nameEl || !utilEl || !memEl || !tempEl) return;
-
-    try {
-        const resp = await fetch(`${API_BASE_URL}/gpu_status`);
-        if (!resp.ok) throw new Error("GPU status fetch failed");
-        const data = await resp.json();
-        nameEl.textContent = data.name || "NVIDIA GPU";
-        utilEl.textContent = (data.load ?? 0) + "%";
-        memEl.textContent = `${data.memory_used ?? 0} / ${data.memory_total ?? 0} GB`;
-        tempEl.textContent = (data.temperature ?? 0) + "°C";
-
-        card.classList.remove("gpu-status-error");
-    } catch (e) {
-        card.classList.add("gpu-status-error");
-        nameEl.textContent = "GPU unavailable";
-        utilEl.textContent = "–%";
-        memEl.textContent = "– / – GB";
-        tempEl.textContent = "– °C";
-        console.warn("GPU status error:", e);
-    }
-}
-
-// =========================================================
-// WORKFLOWS & CHECKPOINTS MANAGEMENT (reste inchangé)
-// =========================================================
-
-async function loadWorkflows() {
-    const container = document.getElementById("workflow-groups-container");
-    const hiddenInput = document.getElementById("workflow-select");
-
-    if (!container) return;
-
-    try {
-        const resp = await fetch(`${API_BASE_URL}/workflows`);
-        if (!resp.ok) throw new Error("Error loading workflows");
-        const data = await resp.json();
-
-        const workflows = data.workflows || [];
-        log("Workflows received:", JSON.stringify(workflows));
-
-        container.innerHTML = "";
-
-        const groupsConfig = [
-            {
-                label: "ComfyUI",
-                filter: (name) => name.endsWith(".json")
-            }
+    // 2. Récupération des données du workflow pour afficher/masquer les inputs
+    fetch(`${API_BASE_URL}/api/workflows/${workflowPath}`, {
+        headers: {
+            'Authorization': `Bearer ${getToken()}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+    })
+    .then(workflowData => {
+        currentWorkflow = workflowData;
+        console.log("Workflow chargé:", workflowData.name);
+        
+        // Logique pour afficher/masquer les groupes d'inputs
+        const elementsToToggle = [
+            'group-steps', 'group-cfg', 'group-width', 'group-height', 'group-sampler', 'group-seed',
+            'video-params-section', 'input-image-section', 'sdxl-panel', 'checkpoint-wrapper'
         ];
 
-        let firstSelected = false;
-
-        for (const group of groupsConfig) {
-            const groupWfs = workflows.filter(group.filter);
-            if (!groupWfs.length) continue;
-
-            const wrap = document.createElement("div");
-            wrap.className = "workflow-group-wrapper";
-
-            const title = document.createElement("h4");
-            title.className = "workflow-group-label";
-            title.textContent = group.label;
-            wrap.appendChild(title);
-
-            const grid = document.createElement("div");
-            grid.className = "workflow-grid";
-
-            groupWfs.forEach(wf => {
-                const base = wf.replace(/\.json$/,"");
-                const v = document.createElement("div");
-                v.className = "workflow-vignette";
-                v.dataset.workflowName = wf;
-
-                v.innerHTML = `
-                    <div class="workflow-thumb-wrapper">
-                        <img class="workflow-thumb" src="./vignettes/${base}.png" onerror="this.src='./vignettes/default.png'">
-                    </div>
-                    <div class="vignette-label-only">${base}</div>
-                `;
-
-                v.addEventListener("click", () => selectWorkflow(wf));
-                grid.appendChild(v);
-            });
-
-            wrap.appendChild(grid);
-            container.appendChild(wrap);
-
-            if (!firstSelected && groupWfs.length > 0) {
-                selectWorkflow(groupWfs[0]);
-                firstSelected = true;
+        elementsToToggle.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                // Par défaut, tout est masqué
+                el.style.display = 'none';
             }
-        }
-
-        if (!firstSelected && workflows.length > 0) {
-            selectWorkflow(workflows[0]);
-        }
-
-    } catch (e) {
-        console.error("Error loadWorkflows:", e);
-        if (container) {
-            container.innerHTML = `<span style="font-size:12px;color:#f97373;">Error loading workflows.</span>`;
-        }
-    }
-
-    try {
-        const resp = await fetch(`${API_BASE_URL}/checkpoints`);
-        const data = await resp.json();
-        const select = document.getElementById("checkpoint-select");
-        if (!select) return;
-
-        select.innerHTML = "";
-        const optEmpty = document.createElement("option");
-        optEmpty.value = "";
-        optEmpty.textContent = "None (workflow default)";
-        select.appendChild(optEmpty);
-
-        (data.checkpoints || []).forEach(cp => {
-            const opt = document.createElement("option");
-            opt.value = cp;
-            opt.textContent = cp.replace(/\.(safetensors|ckpt)$/, "");
-            select.appendChild(opt);
         });
 
-    } catch (e) {
-        console.error("Error loadCheckpoints:", e);
-    }
-}
-
-function selectWorkflow(workflowName) {
-    const vignettes = document.querySelectorAll(".workflow-vignette");
-    vignettes.forEach(v => {
-        if (v.dataset.workflowName === workflowName) {
-            v.classList.add("active-workflow");
-        } else {
-            v.classList.remove("active-workflow");
+        // Afficher les éléments en fonction des tags du workflow
+        if (workflowData.tags.includes('image')) {
+            document.getElementById('group-steps').style.display = 'block';
+            document.getElementById('group-cfg').style.display = 'block';
+            document.getElementById('group-width').style.display = 'block';
+            document.getElementById('group-height').style.display = 'block';
+            document.getElementById('group-sampler').style.display = 'block';
+            document.getElementById('group-seed').style.display = 'block';
         }
+        if (workflowData.tags.includes('video')) {
+            document.getElementById('video-params-section').style.display = 'block';
+        }
+        if (workflowData.tags.includes('img2img')) {
+            document.getElementById('input-image-section').style.display = 'block';
+        }
+        if (workflowData.tags.includes('sdxl')) {
+            document.getElementById('sdxl-panel').style.display = 'block';
+        }
+        if (workflowData.tags.includes('checkpoint')) {
+            document.getElementById('checkpoint-wrapper').style.display = 'block';
+        }
+
+    })
+    .catch(error => {
+        console.error("Erreur lors du chargement du workflow:", error);
     });
-
-    const hiddenInput = document.getElementById("workflow-select");
-    if (hiddenInput) {
-        hiddenInput.value = workflowName;
-    }
-
-    // --- LOGIC SPECIFIC TO POSTER MODE ---
-    const afficheMenu = document.getElementById("affiche-menu-wrapper");
-    const videoParamsSection = document.getElementById("video-params-section");
-    const groupSteps = document.getElementById("group-steps");
-    const groupCfg = document.getElementById("group-cfg");
-    const groupSampler = document.getElementById("group-sampler");
-    const seedSection = document.getElementById("seed-section");
-    const sdxlPanel = document.getElementById("sdxl-panel");
-
-    if (workflowName.includes("affiche")) { // Poster Mode
-        if (afficheMenu) afficheMenu.style.display = "block";
-
-        // Hide standard image parameters
-        if (groupSteps) groupSteps.style.display = "none";
-        if (groupCfg) groupCfg.style.display = "none";
-        if (groupSampler) groupSampler.style.display = "none";
-        if (seedSection) seedSection.style.display = "none";
-        if (sdxlPanel) sdxlPanel.style.display = "none";
-
-    } else {
-        if (afficheMenu) afficheMenu.style.display = "none";
-
-        // Show standard image parameters
-        if (groupSteps) groupSteps.style.display = "block";
-        if (groupCfg) groupCfg.style.display = "block";
-        if (groupSampler) groupSampler.style.display = "block";
-        if (seedSection) seedSection.style.display = "block";
-        if (sdxlPanel) sdxlPanel.style.display = "block";
-    }
-
-    // Logic specific to video workflows
-    if (workflowName.includes("video")) {
-        if (videoParamsSection) videoParamsSection.style.display = "block";
-    } else {
-        if (videoParamsSection) videoParamsSection.style.display = "none";
-    }
 }
 
-// =========================================================
-// FIELD UTILITIES (SETVALUE + MERGE SELECT/CUSTOM) (reste inchangé)
-// =========================================================
+function loadWorkflows() {
+    const container = document.getElementById('workflow-groups-container');
+    if (!container) return;
+    container.innerHTML = 'Chargement...';
 
-function setValue(id, val) {
-    const el = document.getElementById(id);
-    if (el) el.value = val;
-}
+    fetch(`${API_BASE_URL}/api/workflows`, {
+        headers: {
+            'Authorization': `Bearer ${getToken()}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        container.innerHTML = '';
+        const workflowData = data.workflows || [];
+        const groups = {};
 
-function getValue(id) {
-    return document.getElementById(id)?.value ?? "";
-}
+        // 1. Groupement par catégorie
+        workflowData.forEach(item => {
+            const category = item.category || 'Other';
+            if (!groups[category]) {
+                groups[category] = [];
+            }
+            groups[category].push(item);
+        });
 
-function getMergedValue(selectId, customId) {
-    const selectVal = getValue(selectId);
-    const customVal = getValue(customId);
-    return selectVal || customVal;
-}
+        // 2. Affichage (défilement horizontal)
+        Object.keys(groups).forEach(category => {
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'workflow-group';
+            
+            const groupTitle = document.createElement('h3');
+            groupTitle.textContent = category;
+            groupDiv.appendChild(groupTitle);
+            
+            const carousel = document.createElement('div');
+            carousel.className = 'workflow-carousel';
 
+            groups[category].forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'workflow-card';
+                card.dataset.path = item.path;
+                
+                const img = document.createElement('img');
+                img.src = item.vignette_url;
+                img.alt = item.name;
 
-// =========================================================
-// PROMPT BUILDING (reste inchangé)
-// =========================================================
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'workflow-name';
+                nameDiv.textContent = item.name;
 
-function buildPrompt() {
-    const wfName = getValue("workflow-select");
+                card.appendChild(img);
+                card.appendChild(nameDiv);
 
-    if (wfName.includes("affiche")) {
-        // --- POSTER PROMPT LOGIC ---
-        const titre = getValue("aff_titre");
-        const tagline = getValue("aff_tagline");
-        const logo = getValue("aff_logo");
-        const theme = getMergedValue("aff_theme_sugg", "aff_theme_custom");
-        const ambiance = getMergedValue("aff_ambiance_sugg", "aff_ambiance_custom");
-        const perso = getMergedValue("aff_perso_sugg", "aff_perso_desc");
-        const env = getMergedValue("aff_env_sugg", "aff_env_desc");
-        const action = getMergedValue("aff_action_sugg", "aff_action_desc");
-        const styleTitre = getValue("aff_style_titre");
-        const details = getValue("aff_details");
-        const palette = getMergedValue("aff_palette", "aff_palette_custom");
+                // Gestion du clic pour sélectionner
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.workflow-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    selectWorkflow(item.path);
+                });
+
+                // Gestion du survol pour le popover (à implémenter)
+
+                carousel.appendChild(card);
+            });
+
+            groupDiv.appendChild(carousel);
+            container.appendChild(groupDiv);
+        });
         
-        const hasTitle = !!titre.trim();
-        const hasTagline = !!tagline.trim();
-        const hasLogo = !!logo.trim();
-
-        let textBlock = `
-            Text overlay on image:
-            ${hasTitle ? `MAIN TITLE: "${titre}" (centered, prominent, bold, crisp, highly readable)` : ""} 
-            ${hasLogo ? `LOGO: "${logo}" (top area, smaller, crisp, readable)` : ""} 
-            ${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""} 
-            Rules for text: 
-            - Only the items above are permitted. 
-            - No additional text, no hallucinated wording. 
-            - No extra letters, no random symbols. 
-            - No decorative scribbles resembling handwriting. 
-            - TEXT STYLE / MATERIAL (APPLIES ONLY TO LETTERING): ${styleTitre}. 
-            - IMPORTANT: The text style applies ONLY to the lettering. Do NOT apply this style to the characters, environment, rendering, lighting, textures, materials, or the overall image. The global visual style of the poster must remain independent. 
-        `.trim();
-
-        const prompt = `
-            Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects. 
-            ${textBlock} 
-            Visual elements: 
-            - Theme/mood: ${theme} 
-            - Ambiance: ${ambiance} 
-            - Main character: ${perso} 
-            - Environment: ${env} 
-            - Action: ${action} 
-            Extra details: ${details || "cinematic particles, depth fog, volumetric light"} 
-            Color palette: ${palette || "high contrast cinematic palette"} 
-            Image style: Premium poster design, professional layout, ultra high resolution, visually striking. 
-        `.trim();
-
-        const promptArea = document.getElementById("prompt");
-        if (promptArea) {
-            promptArea.value = prompt;
+        // 3. Sélectionner le premier workflow par défaut, ou un workflow image par défaut
+        const defaultWorkflowCard = document.querySelector('.workflow-card[data-path="default_image.json"]') || document.querySelector('.workflow-card');
+        if (defaultWorkflowCard) {
+            defaultWorkflowCard.click();
         }
-
-    } else {
-        // --- STANDARD PROMPT LOGIC ---
-        const promptArea = document.getElementById("prompt");
-        const customPrompt = getValue("custom-prompt-input"); 
-        if (promptArea && customPrompt) {
-            promptArea.value = customPrompt;
-        }
-    }
+    })
+    .catch(error => {
+        console.error("Erreur lors du chargement des workflows:", error);
+        container.innerHTML = `<span style="color:red;">Erreur: Impossible de charger les workflows.</span>`;
+    });
 }
 
-// =========================================================
-// RANDOMIZER (A DEFINIR PAR L'UTILISATEUR OU COMMENTER)
-// =========================================================
+function refreshGPU() {
+    // Si l'utilisateur n'est pas authentifié, ne rien faire
+    if (!isAuthenticated) return;
+    
+    fetch(`${API_BASE_URL}/api/gpu-status`, {
+        headers: {
+            'Authorization': `Bearer ${getToken()}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
+    .then(data => {
+        document.getElementById('gpu-name').textContent = data.name || 'N/A';
+        document.getElementById('gpu-util').textContent = data.utilization_gpu ? `${data.utilization_gpu}%` : '0%';
+        document.getElementById('gpu-mem').textContent = data.memory_used && data.memory_total ? 
+            `${data.memory_used} / ${data.memory_total} GB` : '0 / 0 GB';
+        document.getElementById('gpu-temp').textContent = data.temperature_gpu ? `${data.temperature_gpu} °C` : '– °C';
 
-function randomizePosterPrompt() {
-    // ⚠️ NOTE: La fonction getRandomPosterValues n'est pas fournie ici.
-    // Vous devez la définir ou la commenter si vous ne l'utilisez pas.
-    // Exemple minimal:
-    // setValue("aff_titre", "TITRE ALEATOIRE");
-    buildPrompt();
+        const dot = document.querySelector('.gpu-dot');
+        if (dot) {
+            // Logique simple: rouge si > 70%, jaune si > 30%, vert sinon
+            const util = parseInt(data.utilization_gpu) || 0;
+            if (util > 70) {
+                dot.style.backgroundColor = 'red';
+            } else if (util > 30) {
+                dot.style.backgroundColor = 'orange';
+            } else {
+                dot.style.backgroundColor = 'green';
+            }
+        }
+    })
+    .catch(error => {
+        console.error("Erreur lors du rafraîchissement du statut GPU:", error);
+        // Afficher N/A en cas d'erreur
+        document.getElementById('gpu-name').textContent = 'N/A';
+        document.getElementById('gpu-util').textContent = '0%';
+        document.getElementById('gpu-mem').textContent = '0 / 0 GB';
+        document.getElementById('gpu-temp').textContent = '— °C';
+        const dot = document.querySelector('.gpu-dot');
+        if (dot) dot.style.backgroundColor = 'gray';
+    });
 }
 
-// =========================================================
-// GENERATION FLOW
-// =========================================================
-
-async function startGeneration(e) {
-    e.preventDefault();
-    setError("");
-
-    const generateBtn = document.getElementById("generate-button") || document.getElementById("affiche-generate-button");
-    const wfName = getValue("workflow-select");
-    const authToken = getToken(); // 🔑 RÉCUPÉRATION DU TOKEN
-
-    if (!authToken) {
-        setError("Authentification requise. Veuillez vous connecter pour lancer la génération.");
-        return;
-    }
-
-    if (generateBtn) {
-        generateBtn.disabled = true;
-        generateBtn.innerHTML = `Lancement...`;
-    }
-
-    buildPrompt(); // Finalise le champ "prompt"
+function generatePrompt() {
+    // Si l'utilisateur n'est pas authentifié, ne rien faire
+    if (!isAuthenticated) return;
     
-    // Créer un FormData
-    const formEl = document.getElementById("generation-form");
-    const formData = new FormData(formEl); 
-    
-    // Le header d'autorisation
-    const headers = {
-        'Authorization': `Bearer ${authToken}` // 🔑 ENVOI DU TOKEN
+    const elements = {
+        aff_titre: document.getElementById('aff_titre').value,
+        aff_sous_titre: document.getElementById('aff_sous_titre').value,
+        aff_tagline: document.getElementById('aff_tagline').value,
+        aff_theme: document.getElementById('aff_theme').value || document.getElementById('aff_theme_custom').value,
+        aff_ambiance: document.getElementById('aff_ambiance').value || document.getElementById('aff_ambiance_custom').value,
+        aff_perso: document.getElementById('aff_perso_sugg').value || document.getElementById('aff_perso_desc').value,
+        aff_env: document.getElementById('aff_env_sugg').value || document.getElementById('aff_env_desc').value,
+        aff_action: document.getElementById('aff_action_sugg').value || document.getElementById('aff_action_desc').value,
+        aff_details: document.getElementById('aff_details').value,
+        aff_palette: document.getElementById('aff_palette').value || document.getElementById('aff_palette_custom').value,
+        aff_style_titre: document.getElementById('aff_style_titre').value || document.getElementById('aff_style_titre_custom').value
     };
 
-    if (!wfName) {
-        setError("Veuillez sélectionner un workflow.");
-        if (generateBtn) {
-            generateBtn.disabled = false;
-            generateBtn.innerHTML = `Générer l'Image`;
-        }
+    // Construction du Prompt
+    const promptParts = [];
+
+    // 1. Description de la scène principale
+    let scene = '';
+    if (elements.aff_perso || elements.aff_env || elements.aff_action) {
+        scene += `A high-quality, photorealistic poster image of a scene where ${elements.aff_perso} is ${elements.aff_action} in ${elements.aff_env}.`;
+    } else {
+        scene += `A colorful and detailed event poster image, high resolution.`;
+    }
+    promptParts.push(scene);
+
+    // 2. Thème/Ambiance et Détails
+    if (elements.aff_theme) {
+        promptParts.push(`Theme: ${elements.aff_theme}.`);
+    }
+    if (elements.aff_ambiance) {
+        promptParts.push(`Mood/Style: ${elements.aff_ambiance}.`);
+    }
+    if (elements.aff_details) {
+        promptParts.push(`Details: ${elements.aff_details}.`);
+    }
+
+    // 3. Typographie (Titres)
+    let titleSection = 'Prominently featuring text elements:';
+
+    if (elements.aff_titre) {
+        titleSection += ` Main Title "${elements.aff_titre}".`;
+    }
+    if (elements.aff_sous_titre) {
+        titleSection += ` Subtitle "${elements.aff_sous_titre}".`;
+    }
+    if (elements.aff_tagline) {
+        titleSection += ` Tagline "${elements.aff_tagline}".`;
+    }
+    
+    // 4. Style du Titre
+    if (elements.aff_style_titre) {
+        titleSection += ` The title uses a font style described as: ${elements.aff_style_titre}.`;
+    }
+
+    if (titleSection !== 'Prominently featuring text elements:') {
+         promptParts.push(titleSection);
+    }
+
+    // 5. Palette de Couleurs
+    if (elements.aff_palette) {
+        promptParts.push(`Color Palette: ${elements.aff_palette}.`);
+    }
+
+    // 6. Style visuel final
+    promptParts.push(`High detail, cinematic lighting, dramatic composition, poster design, 4K resolution.`);
+
+    // 7. Negative Prompt (si nécessaire - ici on l'ajoute directement si on veut)
+    const negativePrompt = "blurry, worst quality, distorted, missing limbs, duplicate, ugly, signature, watermark, lowres, text artifacts, bad anatomy, deformed, monochrome";
+
+    document.getElementById('prompt').value = promptParts.filter(p => p.trim() !== '').join(' ') + ` --neg ${negativePrompt}`;
+    alert("Prompt généré avec succès ! (Vérifiez le panneau de résultats)");
+
+    // Afficher le bouton de génération d'image
+    document.getElementById('generate-button').style.display = 'block';
+}
+
+
+function submitGeneration(event) {
+    event.preventDefault(); // Empêche l'envoi de formulaire standard
+    
+    // Si l'utilisateur n'est pas authentifié, empêcher l'envoi
+    if (!isAuthenticated) {
+        document.getElementById('error-box').textContent = "Veuillez vous connecter pour lancer une génération.";
+        document.getElementById('error-box').style.display = 'block';
         return;
     }
     
-    log("Starting actual generation sequence (Max 3 attempts)...");
-    lastGenerationStartTime = Date.now();
-    showProgressOverlay(true, "Initialization…");
-    fakeProgress = 0;
+    // Masquer les erreurs précédentes
+    document.getElementById('error-box').style.display = 'none';
 
-    const statusPill = document.getElementById("job-status-pill");
-    if (statusPill) {
-        statusPill.textContent = "PENDING";
-        statusPill.classList.remove("pill-green");
-        statusPill.classList.add("pill");
-    }
-    
-    const maxAttempts = 3;
-    let attempt = 0;
-    let success = false;
-    let finalPromptId = null;
+    // 1. Récupération des données du formulaire
+    const form = event.target;
+    const formData = new FormData(form);
+    const data = {};
 
-    while (attempt < maxAttempts && !success) {
-        attempt++;
-        try {
-            log(`[Attempt ${attempt}/${maxAttempts}] Sending generation request.`);
-
-            // Use /generate with the workflow_name query parameter
-            const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, {
-                method: "POST",
-                body: formData,
-                headers: headers // Utiliser les en-têtes avec le token
-            });
-
-            if (!resp.ok) {
-                log(`Attempt ${attempt} → HTTP ${resp.status}`);
-                if (resp.status === 401) {
-                    throw new Error("Authentification échouée (401). Le jeton est invalide ou expiré.");
-                }
-                if (attempt < maxAttempts) {
-                    await new Promise(r => setTimeout(r, 1000)); // Attendre avant de réessayer
-                    continue;
-                }
-                throw new Error(`Erreur HTTP ${resp.status} lors de l'envoi de la requête.`);
-            }
-
-            const data = await resp.json();
-            if (data.prompt_id) {
-                finalPromptId = data.prompt_id;
-                success = true;
-            } else {
-                throw new Error("Réponse de génération invalide (pas d'ID de prompt).");
-            }
-
-        } catch (e) {
-            console.error(`Attempt ${attempt} failed:`, e);
-            if (attempt === maxAttempts) {
-                setError(`Échec de la génération après ${maxAttempts} tentatives: ${e.message}`);
-                showProgressOverlay(false);
-                if (generateBtn) {
-                    generateBtn.disabled = false;
-                    generateBtn.innerHTML = `Générer l'Image`;
-                }
-                return;
-            }
-        }
-    }
-
-    if (finalPromptId) {
-        currentPromptId = finalPromptId;
-        log(`Prompt sent. ID: ${finalPromptId}. Starting progress polling.`);
-        pollProgress(finalPromptId);
-    }
-}
-
-
-// =========================================================
-// FAKE PROGRESS + AUTO /result DETECTION (POLLING) 
-// =========================================================
-
-async function pollProgress(promptId) {
-    if (!promptId) return;
-
-    fakeProgress = 0;
-    showProgressOverlay(true, "Generation in progress…");
-
-    if (pollingProgressInterval) {
-        clearInterval(pollingProgressInterval);
-    }
-
-    const percentSpan = document.getElementById("progress-percent");
-    const innerBar = document.getElementById("progress-inner");
-    const statusPill = document.getElementById("job-status-pill");
-
-    if (statusPill) {
-        statusPill.textContent = "RUNNING";
-        statusPill.classList.remove("pill-green");
-        statusPill.classList.add("pill");
-    }
-
-    pollingProgressInterval = setInterval(async () => {
-        const authToken = getToken(); // 🔑 RÉCUPÉRATION DU TOKEN
-
-        // FAKE Animation up to 92 %
-        fakeProgress = Math.min(fakeProgress + 7, 92);
-        if (percentSpan) percentSpan.textContent = fakeProgress + "%";
-        if (innerBar) innerBar.style.width = fakeProgress + "%";
-
-        // Direct test if result is available
-        try {
-            // Use /progress for status
-            const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`, {
-                headers: { 
-                    'Authorization': `Bearer ${authToken}` // 🔑 ENVOI DU TOKEN
-                } 
-            });
-
-            if (resCheck.ok) {
-                const data = await resCheck.json();
-                if (data.status?.completed) {
-                    // Result is ready! Stop polling.
-                    clearInterval(pollingProgressInterval);
-                    pollingProgressInterval = null;
-                    fetchResult(promptId);
-                }
-            } else if (resCheck.status === 401) {
-                 // Gérer l'échec d'authentification pendant le polling
-                clearInterval(pollingProgressInterval);
-                pollingProgressInterval = null;
-                setError("La session a expiré. Veuillez vous reconnecter.");
-                logout(); // Rediriger
-            }
-
-        } catch (e) {
-            console.warn("Polling error:", e);
-        }
-
-    }, POLLING_INTERVAL_MS);
-}
-
-// =========================================================
-// RESULT FETCH 
-// =========================================================
-
-async function fetchResult(promptId) {
-    showProgressOverlay(true, "Finalizing and downloading...");
-    const generateBtn = document.getElementById("generate-button") || document.getElementById("affiche-generate-button");
-    const statusPill = document.getElementById("job-status-pill");
-    const authToken = getToken(); // 🔑 RÉCUPÉRATION DU TOKEN
-
-
-    try {
-        const resp = await fetch(`${API_BASE_URL}/result/${promptId}`, {
-            headers: { 
-                'Authorization': `Bearer ${authToken}` // 🔑 ENVOI DU TOKEN
-            } 
-        });
-
-        if (resp.status === 404) {
-             // Si le résultat n'est pas prêt, on donne une chance de plus
-            setTimeout(() => { fetchResult(promptId); }, 3000);
+    // Données de base
+    formData.forEach((value, key) => {
+        // Ignorer le champ de seed si le random est coché
+        if (key === 'seed_value' && document.getElementById('seed-random-toggle').checked) {
+            data['seed'] = -1; // -1 est souvent utilisé pour indiquer un seed aléatoire
             return;
         }
-
-        if (!resp.ok) {
-            if (resp.status === 401) {
-                setError("La session a expiré lors de la récupération du résultat. Veuillez vous reconnecter.");
-                logout();
-                return;
-            }
-            throw new Error(`Erreur HTTP ${resp.status} lors de la récupération du résultat.`);
-        }
-
-        const data = await resp.json();
-
-        // Afficher l'image
-        displayImage(data.image_base64, data.filename, data);
-        log(`Result received in ${((Date.now() - lastGenerationStartTime) / 1000).toFixed(1)}s.`);
-        
-        // Mettre à jour l'UI finale
-        if (statusPill) {
-            statusPill.textContent = "READY";
-            statusPill.classList.remove("pill");
-            statusPill.classList.add("pill-green");
-        }
-        
-    } catch (e) {
-        console.error("Result fetch error:", e);
-        setError(`Échec de la récupération du résultat: ${e.message}`);
-    } finally {
-        showProgressOverlay(false);
-        if (generateBtn) {
-            generateBtn.disabled = false;
-            generateBtn.innerHTML = `Générer l'Image`;
-        }
-    }
-}
-
-// =========================================================
-// DISPLAY IMAGE 
-// =========================================================
-
-function displayImage(base64Data, filename, metadata) {
-    const img = document.createElement("img");
-    img.src = `data:image/png;base64,${base64Data}`;
-    img.alt = filename;
-    img.id = "result-image";
-
-    // Gère le chargement
-    img.onload = () => {
-        img.classList.add("mj-ready");
-    };
-
-    img.addEventListener("click", () => {
-        const modal = document.getElementById("image-modal");
-        const modalImg = document.getElementById("modal-image");
-        const dlLink = document.getElementById("modal-download-link");
-        if (modal && modalImg && dlLink) {
-            modalImg.src = img.src;
-            dlLink.href = img.src;
-            dlLink.download = filename;
-            // Update the download link text (translated)
-            dlLink.textContent = `Télécharger (${filename})`;
-            modal.style.display = "flex";
+        if (key === 'prompt') {
+            data[key] = value;
+        } else if (!isNaN(parseFloat(value))) {
+            data[key] = parseFloat(value);
+        } else {
+            data[key] = value;
         }
     });
 
-    const resultImageWrapper = document.getElementById("result-image-wrapper");
-    if (resultImageWrapper) {
-        // S'assurer que l'ancienne image est retirée et la nouvelle est insérée
-        const oldImg = document.getElementById("result-image");
-        if (oldImg) oldImg.remove();
-        img.id = "result-image";
-        resultImageWrapper.appendChild(img);
-        img.style.display = 'block'; // Rendre l'image visible
+    // Gestion du seed (si la valeur est absente ou si c'est le champ de toggle)
+    if (document.getElementById('seed-random-toggle') && document.getElementById('seed-random-toggle').checked) {
+        data['seed'] = -1;
+    } else {
+        // Utiliser la valeur textuelle si le random n'est pas coché
+        data['seed'] = parseInt(document.getElementById('seed-input').value) || 42; 
+    }
+    delete data.seed_random; // Supprimer le champ du toggle
+
+
+    // Si le workflow est un workflow 'affiche', s'assurer que le prompt est généré/disponible
+    if (document.getElementById('workflow-select').value.includes('affiche') && !data.prompt) {
+        document.getElementById('error-box').textContent = "Veuillez générer le Prompt d'abord !";
+        document.getElementById('error-box').style.display = 'block';
+        return;
     }
 
-    // Rendre les métadonnées visibles
-    const metadataArea = document.getElementById("metadata-area");
-    if (metadataArea) metadataArea.style.display = 'flex';
+    // 2. Gestion du Refiner SDXL (si visible)
+    if (document.getElementById('sdxl-panel').style.display === 'block') {
+        data['sdxl_mode'] = document.getElementById('sdxl_mode').value;
+        data['sdxl_start'] = parseFloat(document.getElementById('sdxl_start-slider').value) / 100;
+        data['sdxl_end'] = parseFloat(document.getElementById('sdxl_end-slider').value) / 100;
+        data['sdxl_quality'] = document.getElementById('sdxl_quality').value;
+    }
 
-    // Update metadata (translated from the French file)
-    const metaSeed = document.getElementById("meta-seed");
-    const metaSteps = document.getElementById("meta-steps");
-    const metaCfg = document.getElementById("meta-cfg");
-    const metaSampler = document.getElementById("meta-sampler");
+    // 3. Préparer l'interface utilisateur pour le lancement
+    document.getElementById('job-status-pill').textContent = 'STARTING...';
+    document.getElementById('job-status-pill').className = 'pill-yellow';
+    document.getElementById('progress-overlay').style.display = 'flex';
+    document.getElementById('result-placeholder').style.display = 'none';
+    const generateButton = document.getElementById('generate-button');
+    generateButton.disabled = true;
+    generateButton.querySelector('.dot').style.display = 'block';
+    
+    const startTime = Date.now();
+    let jobId = null;
+    let eventSource = null;
 
-    if (metaSeed) metaSeed.textContent = metadata.seed ?? "–";
-    if (metaSteps) metaSteps.textContent = metadata.steps ?? "–";
-    if (metaCfg) metaCfg.textContent = metadata.cfg_scale ?? "–";
-    if (metaSampler) metaSampler.textContent = metadata.sampler ?? "–";
+    // Fonction de nettoyage
+    const cleanup = () => {
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+        generateButton.disabled = false;
+        generateButton.querySelector('.dot').style.display = 'none';
+    };
+
+    // 4. Lancement du job de génération via l'API
+    fetch(`${API_BASE_URL}/api/generate`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.message || 'La requête de génération a échoué.');
+            });
+        }
+        return response.json();
+    })
+    .then(jobData => {
+        jobId = jobData.job_id;
+        console.log("Job lancé:", jobId);
+
+        // 5. Connexion aux événements SSE (Server-Sent Events)
+        const sseUrl = `${API_BASE_URL}/api/stream-progress?job_id=${jobId}`;
+        eventSource = new EventSource(sseUrl);
+
+        eventSource.onmessage = (event) => {
+            const progress = JSON.parse(event.data);
+            
+            document.getElementById('progress-label').textContent = progress.status || 'Processing...';
+            document.getElementById('progress-percent').textContent = progress.percent !== undefined ? `${progress.percent}%` : '...';
+            document.getElementById('progress-inner').style.width = progress.percent !== undefined ? `${progress.percent}%` : '0%';
+            
+            if (progress.status === 'DONE' && progress.result_url) {
+                // Succès: Affichage de l'image
+                cleanup();
+                document.getElementById('job-status-pill').textContent = 'DONE';
+                document.getElementById('job-status-pill').className = 'pill-green';
+                document.getElementById('progress-overlay').style.display = 'none';
+
+                const endTime = Date.now();
+                const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+                document.getElementById('time-taken').textContent = `${timeTaken}s`;
+
+                const resultArea = document.getElementById('result-area');
+                resultArea.style.backgroundImage = `url('${progress.result_url}')`;
+                resultArea.style.backgroundSize = 'contain';
+                resultArea.style.backgroundRepeat = 'no-repeat';
+                resultArea.style.backgroundPosition = 'center';
+
+                // Mettre à jour les métadonnées
+                document.getElementById('meta-seed').textContent = progress.metadata.seed || 'N/A';
+                document.getElementById('meta-steps').textContent = progress.metadata.steps || 'N/A';
+                document.getElementById('meta-cfg').textContent = progress.metadata.cfg_scale || 'N/A';
+                document.getElementById('meta-sampler').textContent = progress.metadata.sampler || 'N/A';
+                
+            } else if (progress.status === 'FAILED') {
+                // Échec
+                cleanup();
+                document.getElementById('job-status-pill').textContent = 'FAILED';
+                document.getElementById('job-status-pill').className = 'pill-red';
+                document.getElementById('progress-overlay').style.display = 'none';
+                document.getElementById('error-box').textContent = `Erreur de génération: ${progress.message || 'Détails non spécifiés.'}`;
+                document.getElementById('error-box').style.display = 'block';
+            }
+        };
+
+        eventSource.onerror = (err) => {
+            console.error("Erreur SSE:", err);
+            // Vérifiez si l'erreur est due à une fermeture normale ou à une erreur de réseau
+            if (eventSource.readyState === EventSource.CLOSED) {
+                // C'est potentiellement une fermeture normale après "DONE"
+                return;
+            }
+            cleanup();
+            document.getElementById('job-status-pill').textContent = 'ERROR';
+            document.getElementById('job-status-pill').className = 'pill-red';
+            document.getElementById('progress-overlay').style.display = 'none';
+            document.getElementById('error-box').textContent = "Erreur de connexion (SSE). Vérifiez la console.";
+            document.getElementById('error-box').style.display = 'block';
+        };
+
+    })
+    .catch(error => {
+        // Erreur lors de la requête POST initiale
+        cleanup();
+        document.getElementById('job-status-pill').textContent = 'ERROR';
+        document.getElementById('job-status-pill').className = 'pill-red';
+        document.getElementById('progress-overlay').style.display = 'none';
+        document.getElementById('error-box').textContent = error.message || "Une erreur inconnue est survenue lors du lancement du job.";
+        document.getElementById('error-box').style.display = 'block';
+    });
 }
 
 // =========================================================
-// MAIN INITIALIZATION
+// GESTION DU DOM ET DES ÉVÉNEMENTS
 // =========================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 🛡️ 1. GESTION DE L'AUTHENTIFICATION ET REDIRECTION
+    handleLoginRedirect();
+    checkAuthStatusAndDisplayContent();
 
-    // 1. Gérer le token reçu dans l'URL (index.html?token=...)
-    if (handleTokenTransferFromURL()) {
-        return; 
-    }
+    // 2. Si l'utilisateur est authentifié, initialiser l'application
+    if (isAuthenticated) {
+        
+        // 2.1 Initialisation des listes déroulantes spécifiques
+        populateTitleStyles();
+        populateSelectOptions('checkpoint-select', 'checkpoints', 'Loading Checkpoints…');
 
-    // 2. Vérifier l'authentification et afficher/rediriger 
-    // On stocke le résultat pour savoir si une redirection a été lancée.
-    const isAuthenticated = checkAuthenticationAndDisplayUI();
+        // 2.2 Gestion de la déconnexion
+        const logoutButton = document.getElementById('logout-button');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', () => {
+                clearToken();
+                isAuthenticated = false;
+                checkAuthStatusAndDisplayContent(); // Masque le contenu et affiche le bouton de connexion
+            });
+        }
+        
+        // 2.3 Initialisation de l'interface et des événements
 
+        // Bouton pour générer le prompt de l'affiche
+        const afficheGenerateBtn = document.getElementById('affiche-generate-btn');
+        if (afficheGenerateBtn) {
+            afficheGenerateBtn.addEventListener('click', generatePrompt);
+        }
+        
+        // Bouton pour la génération aléatoire (Affiche)
+        const afficheRandomBtn = document.getElementById('affiche-random-btn');
+        if (afficheRandomBtn) {
+            afficheRandomBtn.addEventListener('click', () => {
+                // Logique pour sélectionner aléatoirement des options
+                const selectIds = ['aff_theme', 'aff_ambiance', 'aff_perso_sugg', 'aff_env_sugg', 'aff_action_sugg', 'aff_palette', 'aff_style_titre'];
+                selectIds.forEach(id => {
+                    const select = document.getElementById(id);
+                    if (select && select.options.length > 1) {
+                        // Choisir une option aléatoire (sauf la première 'Choose…')
+                        const randomIndex = Math.floor(Math.random() * (select.options.length - 1)) + 1;
+                        select.value = select.options[randomIndex].value;
+                    }
+                });
+                
+                // Vider les champs custom/texte pour éviter les conflits
+                document.getElementById('aff_titre').value = "";
+                document.getElementById('aff_sous_titre').value = "";
+                document.getElementById('aff_tagline').value = "";
+                document.getElementById('aff_theme_custom').value = "";
+                document.getElementById('aff_ambiance_custom').value = "";
+                document.getElementById('aff_perso_desc').value = "";
+                document.getElementById('aff_env_desc').value = "";
+                document.getElementById('aff_action_desc').value = "";
+                document.getElementById('aff_details').value = "";
+                document.getElementById('aff_palette_custom').value = "";
+                document.getElementById('aff_style_titre_custom').value = "";
 
-    // --- Le reste du code (loadWorkflows, refreshGPU, event listeners, etc.) ---
-    
-    const logoutButton = document.getElementById('logout-button');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', logout);
-    }
-    
-    // Événements pour la construction du Prompt
-    const promptInputs = document.querySelectorAll('#affiche-menu-wrapper input, #affiche-menu-wrapper textarea, #affiche-menu-wrapper select');
-    promptInputs.forEach(input => {
-        input.addEventListener('change', buildPrompt);
-        input.addEventListener('keyup', buildPrompt);
-    });
+                // Générer immédiatement le prompt après avoir mis à jour les champs
+                generatePrompt();
+                alert("Paramètres aléatoires appliqués et Prompt généré !");
+            });
+        }
 
-    // Bouton Randomize
-    const randomizeButton = document.getElementById("randomize-button");
-    if (randomizeButton) {
-        randomizeButton.addEventListener("click", randomizePosterPrompt);
-    }
-    
-    // Boutons de Génération
-    const generateButton = document.getElementById("generate-button");
-    const afficheGenerateButton = document.getElementById("affiche-generate-button");
+        // Événement de soumission du formulaire de génération
+        const generationForm = document.getElementById('generation-form');
+        if (generationForm) {
+            generationForm.addEventListener('submit', submitGeneration);
+        }
 
-    if (generateButton) {
-        generateButton.addEventListener("click", startGeneration);
-    }
-    if (afficheGenerateButton) {
-        afficheGenerateButton.addEventListener("click", startGeneration);
-    }
+        // Gestion de l'interrupteur des modes (Image vs Affiche)
+        const modeCards = document.querySelectorAll('.mode-card');
+        const afficheMenu = document.getElementById("affiche-menu");
+        const generateButton = document.getElementById('generate-button');
+        const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper");
 
-    // Initialisation de la modale d'image
-    const modal = document.getElementById("image-modal");
-    if (modal) {
-        modal.querySelector(".modal-close-btn").addEventListener('click', () => {
-            modal.style.display = "none";
+        modeCards.forEach(card => {
+            card.addEventListener('click', function() {
+                modeCards.forEach(c => c.classList.remove('active-mode'));
+                this.classList.add('active-mode');
+
+                const mode = this.dataset.mode;
+                
+                // Mettre à jour la visibilité des boutons
+                if (mode === "affiche") { 
+                    if (afficheMenu) afficheMenu.style.display = "block";
+                    selectWorkflow("affiche.json"); 
+
+                    if (generateButton) generateButton.style.display = 'none'; // Le bouton de soumission classique est masqué
+                    if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block'; // Le bouton 'Generate Prompt' est visible
+
+                } else { // Mode Image
+                    if (afficheMenu) afficheMenu.style.display = "none";
+                    selectWorkflow("default_image.json"); // Sélectionner un workflow image par défaut
+
+                    if (generateButton) generateButton.style.display = 'block'; // Le bouton de soumission classique est visible
+                    if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none'; // Le bouton 'Generate Prompt' est masqué
+                }
+            });
         });
-        window.addEventListener('click', (event) => {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        });
-    }
+        
+        // INITIALISATION FINAL (SIMULER UN CLIC POUR INITIALISER L'AFFICHAGE)
+        const defaultModeCard = document.querySelector(".mode-card.active-mode");
+        if (defaultModeCard) {
+            // Déclenche l'événement click pour appliquer la logique de visibilité et charger le workflow par défaut
+            defaultModeCard.dispatchEvent(new Event('click'));
+        }
 
-    // Sélection de Mode (Image / Affiche)
-    const modeCards = document.querySelectorAll(".mode-card");
-    const generateButtonWrapper = document.getElementById("generate-button-wrapper");
-    const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper");
-
-    modeCards.forEach(card => {
-        card.addEventListener('click', function() {
-            modeCards.forEach(c => c.classList.remove('active-mode'));
-            this.classList.add('active-mode');
-
-            const mode = this.dataset.mode;
-            const afficheMenu = document.getElementById("affiche-menu-wrapper");
-
-            if (mode === "poster") { 
-                if (afficheMenu) afficheMenu.style.display = "block";
-                selectWorkflow("affiche.json"); 
-
-                if (generateButtonWrapper) generateButtonWrapper.style.display = 'none'; 
-                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
-
-            } else { 
-                if (afficheMenu) afficheMenu.style.display = "none";
-
-                if (generateButtonWrapper) generateButtonWrapper.style.display = 'block'; 
-                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
-            }
-        });
-    });
-    
-    // FINAL INITIALIZATION (charger les données uniquement si l'utilisateur est potentiellement connecté)
-    const defaultModeCard = document.querySelector(".mode-card.active-mode");
-    if (defaultModeCard) {
-        defaultModeCard.dispatchEvent(new Event('click'));
-    }
-
-    // Chargement des données (uniquement si le token est présent)
-    if (isAuthenticated) { 
-        setInterval(refreshGPU, 10000);
+        // Chargement initial des données
+        setInterval(refreshGPU, 10000); // Rafraîchir toutes les 10s
         refreshGPU();
-        loadWorkflows();
-    }
+        loadWorkflows(); // Charger les workflows (avec la dépendance d'auth)
+        
+        // ... Ajouter ici d'autres listeners si nécessaire (e.g., Quick Format, Modal, etc.)
+    } 
+    // Si non authentifié, seul le code de checkAuthStatusAndDisplayContent() s'est exécuté.
 });
+
+// ... (Autres fonctions non listées comme les modals, Quick Format, Copy Params, etc. si elles existent dans l'un des scripts originaux et sont nécessaires) ...
