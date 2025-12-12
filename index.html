@@ -58,7 +58,7 @@
                     <span class="icon">⚙️</span>
                     <div>
                         Paramètres de génération
-                        <div class="panel-sub">Sélectionne un workflow, puis ajuste le prompt & paramètres.</div>
+                        <div class="panel-sub">Configure les options ci-dessous pour créer ton Prompt.</div>
                     </div>
                 </div>
                 <span class="pill">Mode : Workflow only</span>
@@ -98,7 +98,13 @@
     <label for="aff_titre">Titre de l’affiche (optionnel)</label>
 <input id="aff_titre" type="text" placeholder="Ex : LA GRANDE AVENTURE" class="ui-input custom-field">
 
-<label for="aff_sous_titre">Sous-titre (optionnel)</label>
+    <label for="aff_style_titre" style="margin-top: 15px;">Style du titre</label>
+    <div class="input-group-row">
+        <select id="aff_style_titre" class="ui-select">
+            </select>
+        <input id="aff_style_titre_custom" type="text" placeholder="Ou écrire votre propre style…" class="ui-input">
+    </div>
+    <label for="aff_sous_titre">Sous-titre (optionnel)</label>
 <input id="aff_sous_titre" type="text" placeholder="Ex : Nuit magique, édition spéciale…" class="ui-input">
 
 <label for="aff_tagline">Tagline (texte en bas de l’affiche – optionnel)</label>
@@ -215,13 +221,6 @@
             </optgroup>
         </select>
         <input id="aff_palette_custom" type="text" placeholder="Ou définir votre propre palette…" class="ui-input">
-    </div>
-
-    <label for="aff_style_titre" style="margin-top: 15px;">Style du titre</label>
-    <div class="input-group-row">
-        <select id="aff_style_titre" class="ui-select">
-            </select>
-        <input id="aff_style_titre_custom" type="text" placeholder="Ou écrire votre propre style…" class="ui-input">
     </div>
     
     </div>
