@@ -101,7 +101,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// =========================================================
+// 🧩 QUICK FORMAT BUTTONS
+// =========================================================
+document.querySelectorAll(".fmt-icon").forEach(icon => {
+  icon.addEventListener("click", () => {
+    const w = icon.dataset.w;
+    const h = icon.dataset.h;
 
+    // Inputs width / height (même s’ils sont cachés)
+    const widthInput = document.getElementById("width-input");
+    const heightInput = document.getElementById("height-input");
+
+    if (widthInput && heightInput) {
+      widthInput.value = w;
+      heightInput.value = h;
+    }
+
+    // Visuel actif
+    document.querySelectorAll(".fmt-icon").forEach(i =>
+      i.classList.remove("active")
+    );
+    icon.classList.add("active");
+
+    console.log(`📐 Format sélectionné : ${w}x${h}`);
+  });
+});
 // =========================================================
 // CONFIGURATION DU POLLING HTTP
 // =========================================================
