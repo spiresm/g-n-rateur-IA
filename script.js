@@ -102,30 +102,49 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // =========================================================
-// 🧩 QUICK FORMAT BUTTONS
+// 🆕 INJECTION AUTOMATIQUE + QUICK FORMAT
 // =========================================================
-document.querySelectorAll(".fmt-icon").forEach(icon => {
-  icon.addEventListener("click", () => {
-    const w = icon.dataset.w;
-    const h = icon.dataset.h;
+document.addEventListener("DOMContentLoaded", () => {
 
-    // Inputs width / height (même s’ils sont cachés)
-    const widthInput = document.getElementById("width-input");
-    const heightInput = document.getElementById("height-input");
+  // -----------------------------
+  // Injection styles de titre
+  // -----------------------------
+  const styleSelect = document.getElementById("aff_style_titre");
+  if (styleSelect) {
+    STYLE_TITRE_OPTIONS.forEach(opt => {
+      const o = document.createElement("option");
+      o.value = opt.value;
+      o.textContent = opt.label;
+      styleSelect.appendChild(o);
+    });
+  }
 
-    if (widthInput && heightInput) {
-      widthInput.value = w;
-      heightInput.value = h;
-    }
+  // -----------------------------
+  // 🧩 QUICK FORMAT BUTTONS (CORRIGÉ)
+  // -----------------------------
+  document.querySelectorAll(".fmt-icon").forEach(icon => {
+    icon.addEventListener("click", () => {
+      const w = icon.dataset.w;
+      const h = icon.dataset.h;
 
-    // Visuel actif
-    document.querySelectorAll(".fmt-icon").forEach(i =>
-      i.classList.remove("active")
-    );
-    icon.classList.add("active");
+      const widthInput = document.getElementById("width-input");
+      const heightInput = document.getElementById("height-input");
 
-    console.log(`📐 Format sélectionné : ${w}x${h}`);
+      if (widthInput && heightInput) {
+        widthInput.value = w;
+        heightInput.value = h;
+      }
+
+      // état visuel UNIQUE
+      document.querySelectorAll(".fmt-icon").forEach(i =>
+        i.classList.remove("active")
+      );
+      icon.classList.add("active");
+
+      console.log(`📐 Quick Format appliqué : ${w}x${h}`);
+    });
   });
+
 });
 // =========================================================
 // CONFIGURATION DU POLLING HTTP
