@@ -1,53 +1,54 @@
-unction isTokenExpired(token) {
+// =========================================================
+// 🔐 AUTH UTILITIES (GLOBAL)
+// =========================================================
+
+function isTokenExpired(token) {
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
     const now = Math.floor(Date.now() / 1000);
     return payload.exp < now;
   } catch {
-    return true; // token invalide = considéré expiré
+    return true;
   }
 }
-// =========================================================
-// AUTH HEADERS (GLOBAL, OBLIGATOIRE)
-// =========================================================
+
 function authHeaders() {
   const token = localStorage.getItem("google_id_token");
-
-  if (!token) {
-    throw new Error("Utilisateur non authentifié (token manquant)");
+  if (!token || isTokenExpired(token)) {
+    throw new Error("Utilisateur non authentifié ou token expiré");
   }
-
   return {
     Authorization: `Bearer ${token}`
   };
 }
 
+// =========================================================
+// 🔑 Récupération du token depuis l’URL
+// =========================================================
 (function storeGoogleTokenFromURL() {
   const params = new URLSearchParams(window.location.search);
   const token = params.get("token");
 
   if (token) {
     localStorage.setItem("google_id_token", token);
-
     const url = new URL(window.location.href);
     url.searchParams.delete("token");
     window.history.replaceState({}, document.title, url.toString());
-
-    console.log("✅ Token Google stocké");
   }
 })();
 
-// 🔒 OBLIGATOIRE : forcer le login
+// =========================================================
+// 🔒 ENFORCE AUTH (LOGIN OBLIGATOIRE)
+// =========================================================
 (function enforceAuth() {
   const isLoginPage = window.location.pathname.endsWith("login.html");
   const token = localStorage.getItem("google_id_token");
 
   if (!token || isTokenExpired(token)) {
     localStorage.removeItem("google_id_token");
-
     if (!isLoginPage) {
-      console.warn("🔒 Token absent ou expiré → redirection login");
       window.location.replace("login.html");
+    }
   }
 })();
 
