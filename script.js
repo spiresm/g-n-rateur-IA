@@ -1,3 +1,18 @@
+// =========================================================
+// AUTH HEADERS (GLOBAL, OBLIGATOIRE)
+// =========================================================
+function authHeaders() {
+  const token = localStorage.getItem("google_id_token");
+
+  if (!token) {
+    throw new Error("Utilisateur non authentifié (token manquant)");
+  }
+
+  return {
+    Authorization: `Bearer ${token}`
+  };
+}
+
 (function storeGoogleTokenFromURL() {
   const params = new URLSearchParams(window.location.search);
   const token = params.get("token");
