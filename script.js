@@ -718,6 +718,8 @@ async function handleCompletion(promptId) {
 // =========================================================
 
 function displayImageAndMetadata(data) {
+    console.log("🧪 displayImageAndMetadata data =", data);
+
     const base64 = data.image_base64;
     const filename = data.filename || "image.png";
 
