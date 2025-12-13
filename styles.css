@@ -1016,3 +1016,43 @@ header {
     grid-template-columns: 1fr 360px;
   }
 }
+/* =========================================================
+   RESPONSIVE — SECTION BASSE (PREVIEW + GALERIE)
+========================================================= */
+
+@media (max-width: 900px) {
+
+  /* ⬇️ SEULEMENT la zone basse */
+  .layout {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  /* Generation Settings */
+  .layout > .panel:first-child {
+    order: 1;
+  }
+
+  /* Result & Preview + galerie */
+  .result-preview,
+  .result-panel {
+    order: 2;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Image preview */
+  #result-area {
+    max-height: 45vh !important;
+  }
+
+  /* Galerie */
+  #gallery-grid {
+    padding-bottom: 8px !important;
+  }
+
+  .gallery-thumb {
+    width: 90px !important;
+  }
+}
