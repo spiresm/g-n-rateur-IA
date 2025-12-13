@@ -892,3 +892,33 @@ input[type=range]::-webkit-slider-thumb {
     gap: 12px;
   }
 }
+/* =========================
+   IMAGE MODAL / LIGHTBOX
+========================= */
+
+.image-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.image-modal img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.image-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  font-size: 32px;
+  color: white;
+  cursor: pointer;
+  user-select: none;
+}
