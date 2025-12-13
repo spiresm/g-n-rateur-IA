@@ -1175,34 +1175,33 @@ if (logoutBtn) {
     const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper"); // Le conteneur du bouton Affiche
 
 
-    modeCards.forEach(card => {
-        card.addEventListener("click", () => {
-            const mode = card.dataset.mode;
+modeCards.forEach(card => {
+    card.addEventListener("click", () => {
+        const mode = card.dataset.mode;
 
-            // visuel actif
-            modeCards.forEach(c => c.classList.remove("active-mode"));
-            card.classList.add("active-mode");
+        // visuel actif
+        modeCards.forEach(c => c.classList.remove("active-mode"));
+        card.classList.add("active-mode");
 
-            // Le mode AFFICHE affiche le menu Affiche
-            if (mode === "affiche") {
-                afficheMenu.style.display = "block";
-                selectWorkflow("affiche.json"); 
+        if (mode === "affiche") {
+            afficheMenu.style.display = "block";
+            selectWorkflow("affiche.json"); 
 
-                // 🔥 CORRECTION : Le bouton SUBMIT et le wrapper AFFICHE sont visibles
-                if (generateButton) generateButton.style.display = 'block'; 
-                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
+            if (generateButton) generateButton.style.display = 'block'; 
+            if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
 
-            } else { // Mode Image
-                // Si ce n'est pas le mode AFFICHE, on le masque
-                afficheMenu.style.display = "none";
-                // L'appel selectWorkflow("default_image.json"); peut être ajouté ici
+        } else { // ✅ MODE IMAGE
+            afficheMenu.style.display = "none";
 
-                // Le bouton SUBMIT est visible, le wrapper AFFICHE est masqué
-                if (generateButton) generateButton.style.display = 'block'; 
-                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
-            }
-        });
+            // 🔥 LIGNE CLÉ (le fix)
+            selectWorkflow(document.querySelector(".workflow-vignette.selected")?.dataset.workflowName
+                          || document.querySelector(".workflow-vignette")?.dataset.workflowName);
+
+            if (generateButton) generateButton.style.display = 'block'; 
+            if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
+        }
     });
+});
     // =========================================================
     // INITIALISATION FINAL (SIMULER UN CLIC POUR INITIALISER L'AFFICHAGE)
     // =========================================================
