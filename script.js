@@ -1250,7 +1250,7 @@ if (logoutBtn) {
 });
 
 // =========================================================
-// 📸 GALERIE STATIQUE (images depuis /carrousel)
+// 📸 GALERIE STATIQUE (thumbs légères + images HD)
 // =========================================================
 
 async function loadCarrouselGallery() {
@@ -1265,17 +1265,25 @@ async function loadCarrouselGallery() {
         gallery.innerHTML = "";
 
         images.forEach(filename => {
-            const imgPath = `/carrousel/${encodeURIComponent(filename)}`;
+            // 🔹 chemins
+            const fullPath = `/carrousel/${encodeURIComponent(filename)}`;
 
+            // on force les vignettes en .jpg (ou .webp)
+            const thumbFilename = filename.replace(/\.(png|jpg|jpeg|webp)$/i, ".jpg");
+            const thumbPath = `/carrousel/thumbs/${encodeURIComponent(thumbFilename)}`;
+
+            // 🔹 vignette
             const thumb = document.createElement("img");
-            thumb.src = imgPath;
+            thumb.src = thumbPath;
             thumb.className = "gallery-thumb";
             thumb.alt = filename;
+            thumb.loading = "lazy"; // ⚡ perf
 
+            // 🔹 clic → image HD
             thumb.addEventListener("click", () => {
                 const mainImg = document.querySelector("#result-area img.result-image");
                 if (mainImg) {
-                    mainImg.src = imgPath;
+                    mainImg.src = fullPath;
                 }
             });
 
@@ -1288,6 +1296,7 @@ async function loadCarrouselGallery() {
         console.warn("❌ Galerie carrousel non chargée :", e.message);
     }
 }
+
 // =========================================================
 // 👤 GOOGLE USER UI (AVATAR + CONNECTED AS…)
 // =========================================================
