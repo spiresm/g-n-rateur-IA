@@ -91,18 +91,24 @@ async function loadCarrouselGallery() {
     };
 
     img.addEventListener("click", () => {
-      const mainImg = document.querySelector("#result-area img.result-image");
-      if (mainImg) {
-        mainImg.src = fullPath;
-      }
-    });
+  const resultArea = document.getElementById("result-area");
+  if (!resultArea) return;
 
-    gallery.appendChild(img);
-  });
+  let mainImg = resultArea.querySelector("img.result-image");
 
-  console.log("✅ gallery populated");
-}
+  // 👉 si aucune image n’existe encore, on la crée
+  if (!mainImg) {
+    mainImg = document.createElement("img");
+    mainImg.className = "result-image";
+    mainImg.style.maxWidth = "100%";
+    mainImg.style.display = "block";
+    mainImg.style.margin = "0 auto";
+    resultArea.appendChild(mainImg);
+  }
 
+  // 👉 on affiche l’image HD
+  mainImg.src = fullPath;
+});
 /* =========================================================
    AUTH GOOGLE UI
 ========================================================= */
