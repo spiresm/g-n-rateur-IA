@@ -1307,22 +1307,3 @@ loadWorkflows();
 loadCarrouselGallery();
 
 });
-/* ================================
-   ZONE IMAGE PRÉVIEW (RÉDUITE)
-================================ */
-
-#result-area {
-  max-height: 40vh;       /* ⬅️ ~ moitié de ce que tu avais */
-  padding: 10px;
-  overflow: hidden;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#result-area img.result-image {
-  max-height: 100%;
-  max-width: 100%;
-  object-fit: contain;
-}
