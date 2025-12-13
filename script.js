@@ -91,6 +91,8 @@ const STYLE_TITRE_OPTIONS = [
 
 document.addEventListener("DOMContentLoaded", () => {
     loadCarrouselGallery();
+});
+
     // =========================================================
     // Injection des styles de titre (UNE SEULE FOIS)
     // =========================================================
