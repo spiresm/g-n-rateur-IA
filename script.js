@@ -58,6 +58,96 @@ function authHeaders() {
 
 const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
 
+
+
+// =========================================================
+// 📸 GALERIE CARROUSEL (thumbs légères + images HD)
+// - Lit /carrousel.json (liste de fichiers HD)
+// - Affiche les vignettes *_thumb.jpg (9/16)
+// - Au clic: affiche l'image HD dans #result-area
+// =========================================================
+
+async function loadCarrouselGallery() {
+    console.log("🟢 loadCarrouselGallery START");
+
+    let images;
+    try {
+        const resp = await fetch("/carrousel.json");
+        if (!resp.ok) throw new Error("carrousel.json introuvable");
+        images = await resp.json();
+        if (!Array.isArray(images)) throw new Error("carrousel.json invalide (attendu: array)");
+    } catch (e) {
+        console.warn("❌ Galerie carrousel non chargée :", e.message || e);
+        return;
+    }
+
+    const gallery = document.getElementById("gallery-grid");
+    if (!gallery) {
+        console.warn("❌ #gallery-grid NOT FOUND (galerie non affichée)");
+        return;
+    }
+
+    gallery.innerHTML = "";
+
+    images.forEach((filename) => {
+        // chemin HD (peut être .png, .jpg, etc.)
+        const fullPath = `/carrousel/${encodeURIComponent(filename)}`;
+
+        // vignette: on retire l'extension et on ajoute _thumb.jpg
+        const base = String(filename).replace(/\.(png|jpg|jpeg|webp)$/i, "");
+        const thumbFile = `${base}_thumb.jpg`;
+        const thumbPath = `/carrousel/${encodeURIComponent(thumbFile)}`;
+
+        const thumb = document.createElement("img");
+        thumb.src = thumbPath;
+        thumb.className = "gallery-thumb";
+        thumb.loading = "lazy";
+        thumb.alt = filename;
+
+        thumb.onerror = () => {
+            console.warn("❌ Thumb not found:", thumbPath);
+        };
+
+        thumb.addEventListener("click", () => {
+            const resultArea = document.getElementById("result-area");
+            if (!resultArea) return;
+
+            const placeholder = document.getElementById("result-placeholder");
+            if (placeholder) placeholder.style.display = "none";
+
+            // Si une image de résultat existe déjà (générée), on la réutilise.
+            // Sinon, on la crée.
+            let mainImg = resultArea.querySelector("img.result-image");
+            if (!mainImg) {
+                mainImg = document.createElement("img");
+                mainImg.className = "result-image mj-img clickable";
+                mainImg.style.maxWidth = "100%";
+                mainImg.style.height = "auto";
+                mainImg.style.display = "block";
+                mainImg.style.margin = "0 auto";
+                resultArea.appendChild(mainImg);
+            } else {
+                // On enlève le blur éventuel des générations
+                mainImg.classList.remove("mj-blur");
+                mainImg.classList.add("mj-ready");
+            }
+
+            mainImg.src = fullPath;
+
+            // Optionnel : met à jour le lien de download dans le modal si déjà ouvert
+            const dlLink = document.getElementById("modal-download-link");
+            if (dlLink) {
+                dlLink.href = fullPath;
+                dlLink.download = filename;
+            }
+        });
+
+        gallery.appendChild(thumb);
+    });
+
+    console.log("✅ gallery populated");
+}
+
 // =========================================================
 // 🆕 LISTE DES STYLES DE TITRE
 // =========================================================
@@ -90,29 +180,15 @@ const STYLE_TITRE_OPTIONS = [
 // =========================================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    loadCarrouselGallery();
-    // =========================================================
-    // Injection des styles de titre (UNE SEULE FOIS)
-    // =========================================================
     const styleSelect = document.getElementById("aff_style_titre");
-    if (styleSelect && !styleSelect.dataset.injectedStyles) {
+    if (styleSelect) {
         STYLE_TITRE_OPTIONS.forEach(opt => {
             const o = document.createElement("option");
             o.value = opt.value;
             o.textContent = opt.label;
             styleSelect.appendChild(o);
         });
-        styleSelect.dataset.injectedStyles = "1";
     }
-
-    // =========================================================
-    // Initialisations GLOBALES (TOUJOURS)
-    // =========================================================
-    setInterval(refreshGPU, 10000);
-    refreshGPU();
-
-    loadWorkflows();
-    loadCarrouselGallery();
 });
 
 // =========================================================
@@ -124,14 +200,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // Injection styles de titre
   // -----------------------------
   const styleSelect = document.getElementById("aff_style_titre");
-  if (styleSelect && !styleSelect.dataset.injectedStyles) {
+  if (styleSelect) {
     STYLE_TITRE_OPTIONS.forEach(opt => {
       const o = document.createElement("option");
       o.value = opt.value;
       o.textContent = opt.label;
       styleSelect.appendChild(o);
     });
-    styleSelect.dataset.injectedStyles = "1";
   }
 
   // -----------------------------
@@ -254,7 +329,6 @@ async function refreshGPU() {
         const resp = await fetch(`${API_BASE_URL}/gpu_status`);
         if (!resp.ok) throw new Error("GPU status fetch failed");
         const data = await resp.json();
-        card.style.display = "flex";
         nameEl.textContent = data.name || "NVIDIA GPU";
         utilEl.textContent = (data.load ?? 0) + "%";
         memEl.textContent = `${data.memory_used ?? 0} / ${data.memory_total ?? 0} Go`;
@@ -263,8 +337,6 @@ async function refreshGPU() {
         card.classList.remove("gpu-status-error");
     } catch (e) {
         card.classList.add("gpu-status-error");
-        // Masquer la carte si API down (UI plus propre)
-        card.style.display = "none";
         nameEl.textContent = "GPU indisponible";
         utilEl.textContent = "–%";
         memEl.textContent = "– / – Go";
@@ -731,8 +803,6 @@ async function handleCompletion(promptId) {
 // =========================================================
 
 function displayImageAndMetadata(data) {
-    console.log("🧪 displayImageAndMetadata data =", data);
-
     const base64 = data.image_base64;
     const filename = data.filename || "image.png";
 
@@ -772,10 +842,6 @@ function displayImageAndMetadata(data) {
     });
 
     resultArea.appendChild(img);
-
-    // =========================================================
-    // METADATAS
-    // =========================================================
 
     const metaSeed = document.getElementById("meta-seed");
     const metaSteps = document.getElementById("meta-steps");
@@ -1219,13 +1285,7 @@ if (logoutBtn) {
             } else { // Mode Image
                 // Si ce n'est pas le mode AFFICHE, on le masque
                 afficheMenu.style.display = "none";
-
-                // ✅ IMPORTANT : restaurer le workflow image sélectionné (sinon le menu reste "caché" depuis affiche.json)
-                const selected = document.querySelector(".workflow-vignette.selected")?.dataset.workflowName
-                              || document.querySelector(".workflow-vignette")?.dataset.workflowName;
-                if (selected) {
-                    selectWorkflow(selected);
-                }
+                // L'appel selectWorkflow("default_image.json"); peut être ajouté ici
 
                 // Le bouton SUBMIT est visible, le wrapper AFFICHE est masqué
                 if (generateButton) generateButton.style.display = 'block'; 
@@ -1248,83 +1308,6 @@ if (logoutBtn) {
     refreshGPU();
     loadWorkflows();
 
-});
 
-// =========================================================
-// 📸 GALERIE STATIQUE (thumbs légères + images HD)
-// =========================================================
-
-async function loadCarrouselGallery() {
-    console.log("🟢 loadCarrouselGallery START");
-
-    let images;
-    try {
-        const resp = await fetch("/carrousel.json");
-        images = await resp.json();
-        console.log("🟢 carrousel.json loaded:", images);
-    } catch (e) {
-        console.error("❌ cannot load carrousel.json", e);
-        return;
-    }
-
-    const gallery = document.getElementById("gallery-grid");
-    console.log("🟢 gallery element =", gallery);
-
-    if (!gallery) {
-        console.error("❌ #gallery-grid NOT FOUND in DOM");
-        return;
-    }
-
-    gallery.innerHTML = "";
-
-    images.forEach(filename => {
-        const thumbPath = `/carrousel/${encodeURIComponent(
-            filename.replace(/\.png$/i, "_thumb.jpg")
-        )}`;
-
-        console.log("➕ adding thumb:", thumbPath);
-
-        const img = document.createElement("img");
-        img.src = thumbPath;
-        img.className = "gallery-thumb";
-        img.loading = "lazy";
-
-        img.onerror = () => {
-            console.error("❌ image not found:", thumbPath);
-        };
-
-        gallery.appendChild(img);
-    });
-
-    console.log("✅ gallery populated");
-}
-}
-
-// =========================================================
-// 👤 GOOGLE USER UI (AVATAR + CONNECTED AS…)
-// =========================================================
-function decodeJwt(token) {
-  try {
-    return JSON.parse(atob(token.split(".")[1]));
-  } catch {
-    return null;
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const token = localStorage.getItem("google_id_token");
-  if (!token) return;
-
-  const payload = decodeJwt(token);
-  if (!payload) return;
-
-  const avatar = document.getElementById("user-avatar");
-  const name = document.getElementById("user-name");
-  const info = document.getElementById("user-info");
-  const status = document.getElementById("user-status");
-
-  if (avatar && payload.picture) avatar.src = payload.picture;
-  if (name) name.textContent = payload.name || payload.email || "";
-  if (status) status.textContent = `Connected as ${payload.given_name || payload.name || "user"}`;
-  if (info) info.style.display = "flex";
+    loadCarrouselGallery();
 });
