@@ -90,63 +90,63 @@ async function loadCarrouselGallery() {
       console.warn("❌ Thumb not found:", thumbPath);
     };
 
-    img.addEventListener("click", () => {
-  const resultArea = document.getElementById("result-area");
-  if (!resultArea) return;
+    async function loadCarrouselGallery() {
+  console.log("🟢 loadCarrouselGallery START");
 
-  let mainImg = resultArea.querySelector("img.result-image");
-
-  // 👉 si aucune image n’existe encore, on la crée
-  if (!mainImg) {
-    mainImg = document.createElement("img");
-    mainImg.className = "result-image";
-    mainImg.style.maxWidth = "100%";
-    mainImg.style.display = "block";
-    mainImg.style.margin = "0 auto";
-    resultArea.appendChild(mainImg);
+  let images;
+  try {
+    const resp = await fetch("/carrousel.json");
+    images = await resp.json();
+  } catch (e) {
+    console.error("❌ Cannot load carrousel.json", e);
+    return;
   }
 
-  // 👉 on affiche l’image HD
-  mainImg.src = fullPath;
-});
-/* =========================================================
-   AUTH GOOGLE UI
-========================================================= */
+  const gallery = document.getElementById("gallery-grid");
+  if (!gallery) {
+    console.error("❌ #gallery-grid NOT FOUND");
+    return;
+  }
 
-function initGoogleUserUI() {
-  const token = localStorage.getItem("google_id_token");
-  if (!token) return;
+  gallery.innerHTML = "";
 
-  const payload = decodeJwt(token);
-  if (!payload) return;
+  images.forEach(filename => {
+    const fullPath = `/carrousel/${encodeURIComponent(filename)}`;
+    const thumbPath = `/carrousel/${encodeURIComponent(
+      filename.replace(/\.png$/i, "_thumb.jpg")
+    )}`;
 
-  const avatar = document.getElementById("user-avatar");
-  const name = document.getElementById("user-name");
-  const info = document.getElementById("user-info");
-  const status = document.getElementById("user-status");
+    const img = document.createElement("img");
+    img.src = thumbPath;
+    img.className = "gallery-thumb";
+    img.loading = "lazy";
+    img.alt = filename;
 
-  if (avatar && payload.picture) avatar.src = payload.picture;
-  if (name) name.textContent = payload.name || payload.email || "";
-  if (status) status.textContent = `Connected as ${payload.given_name || "user"}`;
-  if (info) info.style.display = "flex";
+    img.onerror = () => {
+      console.warn("❌ Thumb not found:", thumbPath);
+    };
+
+    // ✅ LE CLICK DOIT ÊTRE ICI
+    img.addEventListener("click", () => {
+      const resultArea = document.getElementById("result-area");
+      if (!resultArea) return;
+
+      let mainImg = resultArea.querySelector("img.result-image");
+
+      if (!mainImg) {
+        mainImg = document.createElement("img");
+        mainImg.className = "result-image";
+        mainImg.style.maxWidth = "100%";
+        mainImg.style.display = "block";
+        mainImg.style.margin = "0 auto";
+        resultArea.appendChild(mainImg);
+      }
+
+      mainImg.src = fullPath;
+    });
+
+    gallery.appendChild(img);
+  });
+
+  console.log("✅ gallery populated");
 }
-
-/* =========================================================
-   DOM READY — POINT D’ENTRÉE UNIQUE
-========================================================= */
-
-document.addEventListener("DOMContentLoaded", () => {
-
-  console.log("🟢 App init");
-
-  // Auth UI
-  initGoogleUserUI();
-
-  // GPU
-  refreshGPU();
-  setInterval(refreshGPU, 10000);
-
-  // App data
-  loadWorkflows();
-  loadCarrouselGallery();
-});
