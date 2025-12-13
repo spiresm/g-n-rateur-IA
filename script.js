@@ -132,7 +132,15 @@ async function loadCarrouselGallery() {
                 mainImg.classList.add("mj-ready");
             }
 
-            mainImg.src = fullPath;
+            img.addEventListener("click", () => {
+  const modal = document.getElementById("image-modal");
+  const modalImg = document.getElementById("image-modal-img");
+
+  if (!modal || !modalImg) return;
+
+  modalImg.src = fullPath;
+  modal.style.display = "flex";
+});
 
             // Optionnel : met à jour le lien de download dans le modal si déjà ouvert
             const dlLink = document.getElementById("modal-download-link");
