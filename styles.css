@@ -834,3 +834,21 @@ header {
   max-width: 100%;
   object-fit: contain;
 }
+/* ================================
+   COLONNE DROITE (PREVIEW + GALERIE)
+================================ */
+
+/* parent direct de la zone résultat */
+#result-area {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* si la preview est dans une colonne dédiée */
+.preview-panel,
+.right-panel,
+#right-panel,
+#result-panel {
+  max-width: 420px;     /* ⬅️ C’EST ICI QUE TOUT SE JOUE */
+  width: 100%;
+}
