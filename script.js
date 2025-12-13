@@ -1237,3 +1237,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (status) status.textContent = `Connected as ${payload.given_name || "user"}`;
   if (info) info.style.display = "flex";
 });
+// =========================================================
+// 🧠 Sauvegarde du menu image au chargement
+// =========================================================
+
+let INITIAL_LEFT_MENU_HTML = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+  const leftPanelForm = document.querySelector(".panel form");
+  if (leftPanelForm) {
+    INITIAL_LEFT_MENU_HTML = leftPanelForm.innerHTML;
+    console.log("✅ Menu image initial sauvegardé");
+  }
+});
