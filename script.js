@@ -1305,3 +1305,5 @@ setInterval(refreshGPU, 10000);
 // Données
 loadWorkflows();
 loadCarrouselGallery();
+
+});
