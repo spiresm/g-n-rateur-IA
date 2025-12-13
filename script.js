@@ -1254,47 +1254,49 @@ if (logoutBtn) {
 // =========================================================
 
 async function loadCarrouselGallery() {
+    console.log("🟢 loadCarrouselGallery START");
+
+    let images;
     try {
         const resp = await fetch("/carrousel.json");
-        if (!resp.ok) throw new Error("carrousel.json introuvable");
-
-        const images = await resp.json();
-        const gallery = document.getElementById("gallery-grid");
-        if (!gallery) return;
-
-        gallery.innerHTML = "";
-
-        images.forEach(filename => {
-            // 🔹 chemins
-            const fullPath = `/carrousel/${encodeURIComponent(filename)}`;
-
-            // on force les vignettes en .jpg (ou .webp)
-            const thumbFilename = filename.replace(/\.(png|jpg|jpeg|webp)$/i, ".jpg");
-            const thumbPath = `/carrousel/thumbs/${encodeURIComponent(thumbFilename)}`;
-
-            // 🔹 vignette
-            const thumb = document.createElement("img");
-            thumb.src = thumbPath;
-            thumb.className = "gallery-thumb";
-            thumb.alt = filename;
-            thumb.loading = "lazy"; // ⚡ perf
-
-            // 🔹 clic → image HD
-            thumb.addEventListener("click", () => {
-                const mainImg = document.querySelector("#result-area img.result-image");
-                if (mainImg) {
-                    mainImg.src = fullPath;
-                }
-            });
-
-            gallery.appendChild(thumb);
-        });
-
-        console.log(`📸 Galerie chargée (${images.length} images)`);
-
+        images = await resp.json();
+        console.log("🟢 carrousel.json loaded:", images);
     } catch (e) {
-        console.warn("❌ Galerie carrousel non chargée :", e.message);
+        console.error("❌ cannot load carrousel.json", e);
+        return;
     }
+
+    const gallery = document.getElementById("gallery-grid");
+    console.log("🟢 gallery element =", gallery);
+
+    if (!gallery) {
+        console.error("❌ #gallery-grid NOT FOUND in DOM");
+        return;
+    }
+
+    gallery.innerHTML = "";
+
+    images.forEach(filename => {
+        const thumbPath = `/carrousel/${encodeURIComponent(
+            filename.replace(/\.png$/i, "_thumb.jpg")
+        )}`;
+
+        console.log("➕ adding thumb:", thumbPath);
+
+        const img = document.createElement("img");
+        img.src = thumbPath;
+        img.className = "gallery-thumb";
+        img.loading = "lazy";
+
+        img.onerror = () => {
+            console.error("❌ image not found:", thumbPath);
+        };
+
+        gallery.appendChild(img);
+    });
+
+    console.log("✅ gallery populated");
+}
 }
 
 // =========================================================
