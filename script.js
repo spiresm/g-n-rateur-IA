@@ -91,13 +91,14 @@ const STYLE_TITRE_OPTIONS = [
 
 document.addEventListener("DOMContentLoaded", () => {
     const styleSelect = document.getElementById("aff_style_titre");
-    if (styleSelect) {
+    if (styleSelect && !styleSelect.dataset.injectedStyles) {
         STYLE_TITRE_OPTIONS.forEach(opt => {
             const o = document.createElement("option");
             o.value = opt.value;
             o.textContent = opt.label;
             styleSelect.appendChild(o);
         });
+        styleSelect.dataset.injectedStyles = "1";
     }
 });
 
@@ -110,13 +111,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Injection styles de titre
   // -----------------------------
   const styleSelect = document.getElementById("aff_style_titre");
-  if (styleSelect) {
+  if (styleSelect && !styleSelect.dataset.injectedStyles) {
     STYLE_TITRE_OPTIONS.forEach(opt => {
       const o = document.createElement("option");
       o.value = opt.value;
       o.textContent = opt.label;
       styleSelect.appendChild(o);
     });
+    styleSelect.dataset.injectedStyles = "1";
   }
 
   // -----------------------------
@@ -239,6 +241,7 @@ async function refreshGPU() {
         const resp = await fetch(`${API_BASE_URL}/gpu_status`);
         if (!resp.ok) throw new Error("GPU status fetch failed");
         const data = await resp.json();
+        card.style.display = "flex";
         nameEl.textContent = data.name || "NVIDIA GPU";
         utilEl.textContent = (data.load ?? 0) + "%";
         memEl.textContent = `${data.memory_used ?? 0} / ${data.memory_total ?? 0} Go`;
@@ -247,6 +250,8 @@ async function refreshGPU() {
         card.classList.remove("gpu-status-error");
     } catch (e) {
         card.classList.add("gpu-status-error");
+        // Masquer la carte si API down (UI plus propre)
+        card.style.display = "none";
         nameEl.textContent = "GPU indisponible";
         utilEl.textContent = "–%";
         memEl.textContent = "– / – Go";
@@ -404,22 +409,28 @@ function selectWorkflow(workflowName) {
         });
 
         // Masquer les options inutiles pour l'affiche
-        if (groupSteps) groupSteps.style.display = "";
-if (groupCfg) groupCfg.style.display = "";
-if (groupSampler) groupSampler.style.display = "";
-if (seedSection) seedSection.style.display = "";
-if (sdxlPanel) sdxlPanel.style.display = "";
+        if (groupSteps) groupSteps.style.display = "none";
+        if (groupCfg) groupCfg.style.display = "none";
+        if (groupSampler) groupSampler.style.display = "none";
+        if (seedSection) seedSection.style.display = "none";
+        if (sdxlPanel) sdxlPanel.style.display = "none";
 
     } else {
-    if (afficheMenu) afficheMenu.style.display = "none";
+        if (afficheMenu) afficheMenu.style.display = "none";
+        
+        // Afficher les options avancées en mode normal (si elles existent)
+        if (groupSteps) groupSteps.style.display = "block";
+        if (groupCfg) groupCfg.style.display = "block";
+        if (groupSampler) groupSampler.style.display = "block";
+        if (seedSection) seedSection.style.display = "block";
+        if (sdxlPanel) sdxlPanel.style.display = "block";
+    }
 
-    // 🔥 FORCER la restauration complète du mode image
-    if (groupSteps) groupSteps.style.display = "";
-    if (groupCfg) groupCfg.style.display = "";
-    if (groupSampler) groupSampler.style.display = "";
-    if (seedSection) seedSection.style.display = "";
-    if (sdxlPanel) sdxlPanel.style.display = "";
-}
+    if (workflowName.includes("video")) {
+        if (videoParamsSection) videoParamsSection.style.display = "block";
+    } else {
+        if (videoParamsSection) videoParamsSection.style.display = "none";
+    }
 }
 
 // =========================================================
@@ -1169,44 +1180,40 @@ if (logoutBtn) {
     const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper"); // Le conteneur du bouton Affiche
 
 
-modeCards.forEach(card => {
-    card.addEventListener("click", () => {
-        const mode = card.dataset.mode;
+    modeCards.forEach(card => {
+        card.addEventListener("click", () => {
+            const mode = card.dataset.mode;
 
-        // visuel actif
-        modeCards.forEach(c => c.classList.remove("active-mode"));
-        card.classList.add("active-mode");
+            // visuel actif
+            modeCards.forEach(c => c.classList.remove("active-mode"));
+            card.classList.add("active-mode");
 
-        if (mode === "affiche") {
-            afficheMenu.style.display = "block";
-            selectWorkflow("affiche.json"); 
+            // Le mode AFFICHE affiche le menu Affiche
+            if (mode === "affiche") {
+                afficheMenu.style.display = "block";
+                selectWorkflow("affiche.json"); 
 
-            if (generateButton) generateButton.style.display = 'block'; 
-            if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
+                // 🔥 CORRECTION : Le bouton SUBMIT et le wrapper AFFICHE sont visibles
+                if (generateButton) generateButton.style.display = 'block'; 
+                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
 
-        } else { // ✅ MODE IMAGE
-    afficheMenu.style.display = "none";
+            } else { // Mode Image
+                // Si ce n'est pas le mode AFFICHE, on le masque
+                afficheMenu.style.display = "none";
 
-    // 🔥 RESTAURATION COMPLÈTE DU MENU IMAGE (COMME AU REFRESH)
-    const leftPanelForm = document.querySelector(".panel form");
-    if (leftPanelForm && INITIAL_LEFT_MENU_HTML) {
-        leftPanelForm.innerHTML = INITIAL_LEFT_MENU_HTML;
-    }
+                // ✅ IMPORTANT : restaurer le workflow image sélectionné (sinon le menu reste "caché" depuis affiche.json)
+                const selected = document.querySelector(".workflow-vignette.selected")?.dataset.workflowName
+                              || document.querySelector(".workflow-vignette")?.dataset.workflowName;
+                if (selected) {
+                    selectWorkflow(selected);
+                }
 
-    // 🔁 Re-sélection du workflow image actif ou du premier
-    const wf =
-        document.querySelector(".workflow-vignette.selected")?.dataset.workflowName ||
-        document.querySelector(".workflow-vignette")?.dataset.workflowName;
-
-    if (wf) {
-        selectWorkflow(wf);
-    }
-
-    if (generateButton) generateButton.style.display = "block";
-    if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = "none";
-}
+                // Le bouton SUBMIT est visible, le wrapper AFFICHE est masqué
+                if (generateButton) generateButton.style.display = 'block'; 
+                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
+            }
+        });
     });
-});
     // =========================================================
     // INITIALISATION FINAL (SIMULER UN CLIC POUR INITIALISER L'AFFICHAGE)
     // =========================================================
@@ -1223,6 +1230,11 @@ modeCards.forEach(card => {
     loadWorkflows();
 
 });
+
+
+// =========================================================
+// 👤 GOOGLE USER UI (AVATAR + CONNECTED AS…)
+// =========================================================
 function decodeJwt(token) {
   try {
     return JSON.parse(atob(token.split(".")[1]));
@@ -1244,20 +1256,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const status = document.getElementById("user-status");
 
   if (avatar && payload.picture) avatar.src = payload.picture;
-  if (name) name.textContent = payload.name || payload.email;
-  if (status) status.textContent = `Connected as ${payload.given_name || "user"}`;
+  if (name) name.textContent = payload.name || payload.email || "";
+  if (status) status.textContent = `Connected as ${payload.given_name || payload.name || "user"}`;
   if (info) info.style.display = "flex";
-});
-// =========================================================
-// 🧠 Sauvegarde du menu image au chargement
-// =========================================================
-
-let INITIAL_LEFT_MENU_HTML = null;
-
-document.addEventListener("DOMContentLoaded", () => {
-  const leftPanelForm = document.querySelector(".panel form");
-  if (leftPanelForm) {
-    INITIAL_LEFT_MENU_HTML = leftPanelForm.innerHTML;
-    console.log("✅ Menu image initial sauvegardé");
-  }
 });
