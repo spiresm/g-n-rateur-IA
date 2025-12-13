@@ -664,105 +664,122 @@ input[type=range]::-webkit-slider-thumb {
     min-width: 100% !important;
 }
 
+
 /* =========================================================
-   LAYOUT 2 COLONNES PREMIUM
+   LAYOUT — CANONIQUE (DESKTOP / TABLET / MOBILE)
+   Objectif:
+   - Desktop: 2 colonnes (gauche fluide / droite compacte)
+   - Tablet: droite un peu plus étroite
+   - Mobile: 1 colonne (Playful Poster Generator AU-DESSUS de Result & Preview)
 ========================================================= */
 
 .layout {
-    display: grid;
-    grid-template-columns: 1.1fr 1fr;
-    gap: 24px;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
+}
+
+/* Tablet */
+@media (max-width: 1200px) {
+  .layout {
+    grid-template-columns: 1fr 360px;
+  }
+}
+
+/* Mobile: 1 colonne + ordre */
+@media (max-width: 900px) {
+  .layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Par défaut: tous les panels (dont Playful Poster Generator) passent avant */
+  .layout .panel {
+    order: 1;
+    padding: 14px;
+  }
+
+  /* Result & Preview toujours après */
+  .layout .result-preview,
+  .layout .result-panel {
+    order: 2;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+  }
+}
+
+/* =========================================================
+   RESULT & PREVIEW — COLONNE DROITE COMPACTE
+========================================================= */
+
+.result-preview,
+.result-panel,
+#result-preview,
+#result-panel,
+.preview-panel,
+.right-panel {
+  max-width: 420px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 1200px) {
+  .result-preview,
+  .result-panel,
+  #result-preview,
+  #result-panel,
+  .preview-panel,
+  .right-panel {
+    max-width: 360px;
+  }
 }
 
 @media (max-width: 900px) {
-    .layout {
-        grid-template-columns: 1fr;
-    }
+  .result-preview,
+  .result-panel,
+  #result-preview,
+  #result-panel,
+  .preview-panel,
+  .right-panel {
+    max-width: 100%;
+  }
 }
 
 /* =========================================================
-   BOUTON GÉNÉRER IMAGE
+   ZONE IMAGE PRÉVIEW — PLUS PETITE, SANS ÉTIREMENT
 ========================================================= */
 
-#image-menu button.btn-main {
-    display: block !important;
+#result-area {
+  width: 100%;
+  padding: 10px;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Desktop: plus compacte */
+  max-height: 38vh;
 }
 
-.active-mode {
-    border-color: var(--accent) !important;
-    transform: translateY(-4px);
-    box-shadow: 0 0 20px rgba(212,175,55,0.25);
+@media (max-width: 900px) {
+  #result-area {
+    max-height: 45vh;
+    padding: 8px;
+  }
 }
 
+#result-area img.result-image {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
 
 /* =========================================================
-   >>> NOUVEAUX STYLES DEMANDÉS <<<
-========================================================= */
-
-/* LOG BOX LIMITATION (3 lignes max) */
-.log-box {
-    /* Ajout des styles pour limiter la hauteur */
-    line-height: 1.5em; /* Ligne de base pour le calcul de hauteur */
-    max-height: 4.5em; /* 3 lignes * 1.5em = 4.5em */
-    overflow: hidden;
-    position: relative; 
-    white-space: pre-wrap;
-    word-break: break-all;
-    
-    /* Styles visuels de base (si non définis ailleurs) */
-    background-color: var(--panel-alt);
-    border: 1px solid var(--border);
-    padding: 10px;
-    margin-top: 15px;
-    border-radius: var(--radius-md);
-    font-size: 13px;
-    color: var(--muted);
-}
-
-/* Ajout d'un effet de fondu pour indiquer qu'il y a plus de contenu */
-.log-box::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 1.5em; /* La hauteur d'une ligne */
-    background: linear-gradient(to top, var(--panel) 10%, transparent 100%);
-    pointer-events: none;
-}
-
-/* BOUTON RANDOM AFFICHE (Utilise btn-secondary mais avec une couleur spécifique) */
-.btn-secondary.btn-random-aff {
-    /* Couleur violette/magique pour l'effet aléatoire */
-    background-color: #6a40a0; 
-    border-color: #7d51b3;
-    color: #fff;
-    font-weight: 600; 
-    width: 100%; 
-    margin-bottom: 0 !important;
-}
-
-.btn-secondary.btn-random-aff:hover {
-    background-color: #7d51b3;
-    border-color: #6a40a0;
-}
-/* =========================================================
-   STATUT JOB PILLS (pour pollProgress)
-========================================================= */
-
-.pill-danger {
-    background-color: var(--danger); /* Utilise la variable --danger: #ff4f4f */
-    color: var(--bg);
-}
-header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: radial-gradient(circle at top, #1a1a1a 0%, #0b0b0b 70%);
-    backdrop-filter: blur(6px);
-}
-/* =========================================================
-   GALERIE D’IMAGES
+   GALERIE — CARROUSEL HORIZONTAL (SWIPE FRIENDLY)
 ========================================================= */
 
 #gallery {
@@ -789,7 +806,6 @@ header {
   padding: 10px 4px;
 }
 
-/* cache scrollbar (clean) */
 #gallery-grid::-webkit-scrollbar {
   height: 6px;
 }
@@ -798,16 +814,13 @@ header {
   border-radius: 3px;
 }
 
-/* vignettes 9/16 */
 .gallery-thumb {
   flex: 0 0 auto;
-  width: 120px;
+  width: 110px;
   aspect-ratio: 9 / 16;
-
   object-fit: cover;
   border-radius: 8px;
   cursor: pointer;
-
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -815,272 +828,20 @@ header {
   transform: scale(1.05);
   box-shadow: 0 6px 18px rgba(0,0,0,0.35);
 }
-/* ================================
-   ZONE IMAGE PRÉVIEW (RÉDUITE)
-================================ */
 
-#result-area {
-  max-height: 40vh;       /* ⬅️ ~ moitié de ce que tu avais */
-  padding: 10px;
-  overflow: hidden;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#result-area img.result-image {
-  max-height: 100%;
-  max-width: 100%;
-  object-fit: contain;
-}
-/* ================================
-   COLONNE DROITE (PREVIEW + GALERIE)
-================================ */
-
-/* parent direct de la zone résultat */
-#result-area {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* si la preview est dans une colonne dédiée */
-.preview-panel,
-.right-panel,
-#right-panel,
-#result-panel {
-  max-width: 420px;     /* ⬅️ C’EST ICI QUE TOUT SE JOUE */
-  width: 100%;
-}
-
-
-
-/* =========================================================
-   FINAL OVERRIDES — LAYOUT & PREVIEW (AUTHORITATIVE)
-   This section intentionally overrides earlier rules.
-========================================================= */
-
-/* Main layout: left flexible, right compact */
-.layout {
-  display: grid !important;
-  grid-template-columns: 1fr 420px !important;
-  gap: 24px !important;
-}
-
-@media (max-width: 1000px) {
-  .layout {
-    grid-template-columns: 1fr !important;
+@media (max-width: 900px) {
+  .gallery-thumb {
+    width: 90px;
+    border-radius: 6px;
   }
 }
 
-/* Right column / Result & Preview card */
-.result-preview,
-#result-preview,
-.result-panel,
-.preview-panel,
-.right-panel {
-  max-width: 420px !important;
-  width: 100% !important;
-  margin: 0 auto !important;
-}
-
-/* Result image area — compact */
-#result-area {
-  max-height: 38vh !important;
-  width: 100% !important;
-  padding: 10px !important;
-  overflow: hidden !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-#result-area img.result-image {
-  max-height: 100% !important;
-  max-width: 100% !important;
-  object-fit: contain !important;
-  border-radius: 12px !important;
-}
-
-/* Carousel gallery */
-#gallery {
-  margin-top: 16px !important;
-  padding-top: 12px !important;
-  border-top: 1px solid var(--border) !important;
-}
-
-#gallery-grid {
-  display: flex !important;
-  gap: 12px !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
-  scroll-behavior: smooth !important;
-  padding: 8px 4px !important;
-}
-
-#gallery-grid::-webkit-scrollbar {
-  height: 6px !important;
-}
-#gallery-grid::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.25) !important;
-  border-radius: 3px !important;
-}
-
-.gallery-thumb {
-  flex: 0 0 auto !important;
-  width: 110px !important;
-  aspect-ratio: 9 / 16 !important;
-  object-fit: cover !important;
-  border-radius: 8px !important;
-  cursor: pointer !important;
-  transition: transform .15s ease, box-shadow .15s ease !important;
-}
-.gallery-thumb:hover {
-  transform: scale(1.05) !important;
-  box-shadow: 0 6px 18px rgba(0,0,0,.35) !important;
-}
 /* =========================================================
-   RESPONSIVE — MOBILE & TABLET
+   BOUTON GENERATE — FULL WIDTH SUR MOBILE
 ========================================================= */
 
 @media (max-width: 900px) {
-
-  /* ===== LAYOUT ===== */
-  .layout {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
-  }
-
-  /* ===== PANELS ===== */
-  .panel {
-    padding: 14px !important;
-  }
-
-  /* ===== RESULT / PREVIEW ===== */
-  .result-preview,
-  #result-preview,
-  .result-panel,
-  .preview-panel,
-  .right-panel {
-    max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 !important;
-  }
-
-  #result-area {
-    max-height: 45vh !important;
-    padding: 8px !important;
-  }
-
-  #result-area img.result-image {
-    border-radius: 10px !important;
-  }
-
-  /* ===== BOUTON GÉNÉRATION ===== */
   #generate-button {
-    width: 100% !important;
-  }
-
-  /* ===== GALERIE ===== */
-  #gallery {
-    margin-top: 12px !important;
-    padding-top: 10px !important;
-  }
-
-  #gallery-grid {
-    gap: 10px !important;
-    padding-bottom: 6px !important;
-  }
-
-  .gallery-thumb {
-    width: 96px !important;
-    border-radius: 6px !important;
-  }
-
-  /* ===== HEADER ===== */
-  header {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  header .title-group h1 {
-    font-size: 18px;
-  }
-
-  #user-info {
-    margin-left: 0 !important;
-  }
-}
-@media (max-width: 1200px) {
-  .layout {
-    grid-template-columns: 1fr 360px;
-  }
-}
-/* =========================================================
-   RESPONSIVE — SECTION BASSE (PREVIEW + GALERIE)
-========================================================= */
-
-@media (max-width: 900px) {
-
-  /* ⬇️ SEULEMENT la zone basse */
-  .layout {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 16px !important;
-  }
-
-  /* Generation Settings */
-  .layout > .panel:first-child {
-    order: 1;
-  }
-
-  /* Result & Preview + galerie */
-  .result-preview,
-  .result-panel {
-    order: 2;
-    max-width: 100% !important;
-    width: 100% !important;
-  }
-
-  /* Image preview */
-  #result-area {
-    max-height: 45vh !important;
-  }
-
-  /* Galerie */
-  #gallery-grid {
-    padding-bottom: 8px !important;
-  }
-
-  .gallery-thumb {
-    width: 90px !important;
-  }
-}
-/* =========================================================
-   RESPONSIVE — ORDRE MOBILE DES PANELS (ZONE BASSE)
-========================================================= */
-
-@media (max-width: 900px) {
-
-  /* conteneur bas en colonne */
-  .layout {
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
-  /* 🔼 Playful Poster Generator EN PREMIER */
-  .layout > .panel:first-child {
-    order: 1 !important;
-  }
-
-  /* 🔽 Result & Preview APRÈS */
-  .result-preview,
-  .result-panel {
-    order: 2 !important;
-  }
-
-  /* 🔽 Galerie EN DERNIER */
-  #gallery {
-    order: 3 !important;
+    width: 100%;
   }
 }
