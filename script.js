@@ -411,21 +411,15 @@ function selectWorkflow(workflowName) {
         if (sdxlPanel) sdxlPanel.style.display = "none";
 
     } else {
-        if (afficheMenu) afficheMenu.style.display = "none";
-        
-        // Afficher les options avancées en mode normal (si elles existent)
-        if (groupSteps) groupSteps.style.display = "block";
-        if (groupCfg) groupCfg.style.display = "block";
-        if (groupSampler) groupSampler.style.display = "block";
-        if (seedSection) seedSection.style.display = "block";
-        if (sdxlPanel) sdxlPanel.style.display = "block";
-    }
+    if (afficheMenu) afficheMenu.style.display = "none";
 
-    if (workflowName.includes("video")) {
-        if (videoParamsSection) videoParamsSection.style.display = "block";
-    } else {
-        if (videoParamsSection) videoParamsSection.style.display = "none";
-    }
+    // 🔥 FORCER la restauration complète du mode image
+    if (groupSteps) groupSteps.style.display = "";
+    if (groupCfg) groupCfg.style.display = "";
+    if (groupSampler) groupSampler.style.display = "";
+    if (seedSection) seedSection.style.display = "";
+    if (sdxlPanel) sdxlPanel.style.display = "";
+}
 }
 
 // =========================================================
