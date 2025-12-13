@@ -761,3 +761,10 @@ input[type=range]::-webkit-slider-thumb {
     background-color: var(--danger); /* Utilise la variable --danger: #ff4f4f */
     color: var(--bg);
 }
+header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: radial-gradient(circle at top, #1a1a1a 0%, #0b0b0b 70%);
+    backdrop-filter: blur(6px);
+}
