@@ -939,3 +939,80 @@ header {
   transform: scale(1.05) !important;
   box-shadow: 0 6px 18px rgba(0,0,0,.35) !important;
 }
+/* =========================================================
+   RESPONSIVE — MOBILE & TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+  /* ===== LAYOUT ===== */
+  .layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* ===== PANELS ===== */
+  .panel {
+    padding: 14px !important;
+  }
+
+  /* ===== RESULT / PREVIEW ===== */
+  .result-preview,
+  #result-preview,
+  .result-panel,
+  .preview-panel,
+  .right-panel {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  #result-area {
+    max-height: 45vh !important;
+    padding: 8px !important;
+  }
+
+  #result-area img.result-image {
+    border-radius: 10px !important;
+  }
+
+  /* ===== BOUTON GÉNÉRATION ===== */
+  #generate-button {
+    width: 100% !important;
+  }
+
+  /* ===== GALERIE ===== */
+  #gallery {
+    margin-top: 12px !important;
+    padding-top: 10px !important;
+  }
+
+  #gallery-grid {
+    gap: 10px !important;
+    padding-bottom: 6px !important;
+  }
+
+  .gallery-thumb {
+    width: 96px !important;
+    border-radius: 6px !important;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  header .title-group h1 {
+    font-size: 18px;
+  }
+
+  #user-info {
+    margin-left: 0 !important;
+  }
+}
+@media (max-width: 1200px) {
+  .layout {
+    grid-template-columns: 1fr 360px;
+  }
+}
