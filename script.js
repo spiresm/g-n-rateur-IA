@@ -1277,5 +1277,40 @@ setInterval(refreshGPU, 10000);
 // Données
 loadWorkflows();
 loadCarrouselGallery();
+// =========================================================
+// IMAGE MODAL (GALERIE) — FERMETURE
+// =========================================================
+
+const galleryModal = document.getElementById("image-modal");
+const galleryModalImg = document.getElementById("image-modal-img");
+const galleryModalClose = document.querySelector(".image-modal-close");
+
+if (galleryModal) {
+
+  // ❌ clic sur la croix
+  if (galleryModalClose) {
+    galleryModalClose.addEventListener("click", (e) => {
+      e.stopPropagation();
+      galleryModal.style.display = "none";
+      if (galleryModalImg) galleryModalImg.src = "";
+    });
+  }
+
+  // ❌ clic hors image
+  galleryModal.addEventListener("click", (e) => {
+    if (e.target === galleryModal) {
+      galleryModal.style.display = "none";
+      if (galleryModalImg) galleryModalImg.src = "";
+    }
+  });
+
+  // ❌ touche ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && galleryModal.style.display === "flex") {
+      galleryModal.style.display = "none";
+      if (galleryModalImg) galleryModalImg.src = "";
+    }
+  });
+}
 
 });
