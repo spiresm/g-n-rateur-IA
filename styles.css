@@ -1056,3 +1056,31 @@ header {
     width: 90px !important;
   }
 }
+/* =========================================================
+   RESPONSIVE — ORDRE MOBILE DES PANELS (ZONE BASSE)
+========================================================= */
+
+@media (max-width: 900px) {
+
+  /* conteneur bas en colonne */
+  .layout {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* 🔼 Playful Poster Generator EN PREMIER */
+  .layout > .panel:first-child {
+    order: 1 !important;
+  }
+
+  /* 🔽 Result & Preview APRÈS */
+  .result-preview,
+  .result-panel {
+    order: 2 !important;
+  }
+
+  /* 🔽 Galerie EN DERNIER */
+  #gallery {
+    order: 3 !important;
+  }
+}
