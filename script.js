@@ -1237,7 +1237,45 @@ if (logoutBtn) {
 
 });
 
+// =========================================================
+// 📸 GALERIE STATIQUE (images depuis /carrousel)
+// =========================================================
 
+async function loadCarrouselGallery() {
+    try {
+        const resp = await fetch("/carrousel.json");
+        if (!resp.ok) throw new Error("carrousel.json introuvable");
+
+        const images = await resp.json();
+        const gallery = document.getElementById("gallery-grid");
+        if (!gallery) return;
+
+        gallery.innerHTML = "";
+
+        images.forEach(filename => {
+            const imgPath = `/carrousel/${encodeURIComponent(filename)}`;
+
+            const thumb = document.createElement("img");
+            thumb.src = imgPath;
+            thumb.className = "gallery-thumb";
+            thumb.alt = filename;
+
+            thumb.addEventListener("click", () => {
+                const mainImg = document.querySelector("#result-area img.result-image");
+                if (mainImg) {
+                    mainImg.src = imgPath;
+                }
+            });
+
+            gallery.appendChild(thumb);
+        });
+
+        console.log(`📸 Galerie chargée (${images.length} images)`);
+
+    } catch (e) {
+        console.warn("❌ Galerie carrousel non chargée :", e.message);
+    }
+}
 // =========================================================
 // 👤 GOOGLE USER UI (AVATAR + CONNECTED AS…)
 // =========================================================
