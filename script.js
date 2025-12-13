@@ -404,11 +404,11 @@ function selectWorkflow(workflowName) {
         });
 
         // Masquer les options inutiles pour l'affiche
-        if (groupSteps) groupSteps.style.display = "none";
-        if (groupCfg) groupCfg.style.display = "none";
-        if (groupSampler) groupSampler.style.display = "none";
-        if (seedSection) seedSection.style.display = "none";
-        if (sdxlPanel) sdxlPanel.style.display = "none";
+        if (groupSteps) groupSteps.style.display = "";
+if (groupCfg) groupCfg.style.display = "";
+if (groupSampler) groupSampler.style.display = "";
+if (seedSection) seedSection.style.display = "";
+if (sdxlPanel) sdxlPanel.style.display = "";
 
     } else {
     if (afficheMenu) afficheMenu.style.display = "none";
