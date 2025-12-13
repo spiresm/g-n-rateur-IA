@@ -90,6 +90,9 @@ const STYLE_TITRE_OPTIONS = [
 // =========================================================
 
 document.addEventListener("DOMContentLoaded", () => {
+    // =========================================================
+    // Injection des styles de titre (UNE SEULE FOIS)
+    // =========================================================
     const styleSelect = document.getElementById("aff_style_titre");
     if (styleSelect && !styleSelect.dataset.injectedStyles) {
         STYLE_TITRE_OPTIONS.forEach(opt => {
@@ -100,6 +103,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         styleSelect.dataset.injectedStyles = "1";
     }
+
+    // =========================================================
+    // Initialisations GLOBALES (TOUJOURS)
+    // =========================================================
+    setInterval(refreshGPU, 10000);
+    refreshGPU();
+
+    loadWorkflows();
+    loadCarrouselGallery();
 });
 
 // =========================================================
