@@ -1257,57 +1257,51 @@ if (logoutBtn) {
     }
 
     // =========================================================
-    // ACTIVATION DES MENUS & BOUTONS (AFFICHE / IMAGE) - CORRECTION DE VISIBILITÉ
-    // =========================================================
-    const modeCards = document.querySelectorAll(".mode-card");
-    const afficheMenu = document.getElementById("affiche-menu");
-    const generateButton = document.getElementById("generate-button"); // Le bouton standard (SUBMIT)
-    const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper"); // Le conteneur du bouton Affiche
+// ACTIVATION DES MENUS & BOUTONS (AFFICHE / IMAGE)
+// =========================================================
 
+const modeCards = document.querySelectorAll(".mode-card");
+const afficheMenu = document.getElementById("affiche-menu");
+const generateButton = document.getElementById("generate-button");
+const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper");
 
-    modeCards.forEach(card => {
-        card.addEventListener("click", () => {
-            const mode = card.dataset.mode;
+modeCards.forEach(card => {
+    card.addEventListener("click", () => {
+        const mode = card.dataset.mode;
 
-            // visuel actif
-            modeCards.forEach(c => c.classList.remove("active-mode"));
-            card.classList.add("active-mode");
+        // Visuel actif
+        modeCards.forEach(c => c.classList.remove("active-mode"));
+        card.classList.add("active-mode");
 
-            // Le mode AFFICHE affiche le menu Affiche
-            if (mode === "affiche") {
-                afficheMenu.style.display = "block";
-                selectWorkflow("affiche.json"); 
+        if (mode === "affiche") {
+            afficheMenu.style.display = "block";
+            selectWorkflow("affiche.json");
 
-                // 🔥 CORRECTION : Le bouton SUBMIT et le wrapper AFFICHE sont visibles
-                if (generateButton) generateButton.style.display = 'block'; 
-                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
+            if (generateButton) generateButton.style.display = "block";
+            if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = "block";
+        } else {
+            afficheMenu.style.display = "none";
 
-            } else { // Mode Image
-                // Si ce n'est pas le mode AFFICHE, on le masque
-                afficheMenu.style.display = "none";
-                // L'appel selectWorkflow("default_image.json"); peut être ajouté ici
-
-                // Le bouton SUBMIT est visible, le wrapper AFFICHE est masqué
-                if (generateButton) generateButton.style.display = 'block'; 
-                if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
-            }
-        });
+            if (generateButton) generateButton.style.display = "block";
+            if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = "none";
+        }
     });
-    // =========================================================
-    // INITIALISATION FINAL (SIMULER UN CLIC POUR INITIALISER L'AFFICHAGE)
-    // =========================================================
-    
-    // Simuler un clic sur la carte active par défaut pour initialiser l'affichage
-    const defaultModeCard = document.querySelector(".mode-card.active-mode");
-    if (defaultModeCard) {
-        // Déclenche l'événement click pour appliquer la logique de visibilité
-        defaultModeCard.dispatchEvent(new Event('click'));
-    }
-
-    setInterval(refreshGPU, 10000);
-    refreshGPU();
-    loadWorkflows();
-
-
-    loadCarrouselGallery();
 });
+
+// =========================================================
+// INITIALISATION FINALE
+// =========================================================
+
+// Simuler un clic sur la carte active par défaut
+const defaultModeCard = document.querySelector(".mode-card.active-mode");
+if (defaultModeCard) {
+    defaultModeCard.dispatchEvent(new Event("click"));
+}
+
+// GPU
+refreshGPU();
+setInterval(refreshGPU, 10000);
+
+// Données
+loadWorkflows();
+loadCarrouselGallery();
