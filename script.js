@@ -780,36 +780,6 @@ function displayImageAndMetadata(data) {
         const timeTakenEl = document.getElementById("time-taken");
         if (timeTakenEl) timeTakenEl.textContent = `${sec}s`;
     }
-
-    // =========================================================
-    // 📸 AJOUT À LA GALERIE (images depuis /carrousel)
-    // =========================================================
-
-    const gallery = document.getElementById("gallery-grid");
-
-    if (gallery && filename) {
-        const imgPath = `/carrousel/${filename}`;
-
-        const exists = Array.from(gallery.children).some(
-            el => el.dataset.filename === filename
-        );
-
-        if (!exists) {
-            const thumb = document.createElement("img");
-            thumb.src = imgPath;
-            thumb.className = "gallery-thumb";
-            thumb.dataset.filename = filename;
-
-            thumb.addEventListener("click", () => {
-                const mainImg = document.querySelector("#result-area img.result-image");
-                if (mainImg) {
-                    mainImg.src = imgPath;
-                }
-            });
-
-            gallery.prepend(thumb);
-        }
-    }
 }
 
 
