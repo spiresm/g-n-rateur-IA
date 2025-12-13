@@ -852,3 +852,90 @@ header {
   max-width: 420px;     /* ⬅️ C’EST ICI QUE TOUT SE JOUE */
   width: 100%;
 }
+
+
+
+/* =========================================================
+   FINAL OVERRIDES — LAYOUT & PREVIEW (AUTHORITATIVE)
+   This section intentionally overrides earlier rules.
+========================================================= */
+
+/* Main layout: left flexible, right compact */
+.layout {
+  display: grid !important;
+  grid-template-columns: 1fr 420px !important;
+  gap: 24px !important;
+}
+
+@media (max-width: 1000px) {
+  .layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Right column / Result & Preview card */
+.result-preview,
+#result-preview,
+.result-panel,
+.preview-panel,
+.right-panel {
+  max-width: 420px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+
+/* Result image area — compact */
+#result-area {
+  max-height: 38vh !important;
+  width: 100% !important;
+  padding: 10px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+#result-area img.result-image {
+  max-height: 100% !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+  border-radius: 12px !important;
+}
+
+/* Carousel gallery */
+#gallery {
+  margin-top: 16px !important;
+  padding-top: 12px !important;
+  border-top: 1px solid var(--border) !important;
+}
+
+#gallery-grid {
+  display: flex !important;
+  gap: 12px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scroll-behavior: smooth !important;
+  padding: 8px 4px !important;
+}
+
+#gallery-grid::-webkit-scrollbar {
+  height: 6px !important;
+}
+#gallery-grid::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.25) !important;
+  border-radius: 3px !important;
+}
+
+.gallery-thumb {
+  flex: 0 0 auto !important;
+  width: 110px !important;
+  aspect-ratio: 9 / 16 !important;
+  object-fit: cover !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: transform .15s ease, box-shadow .15s ease !important;
+}
+.gallery-thumb:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35) !important;
+}
