@@ -845,3 +845,50 @@ input[type=range]::-webkit-slider-thumb {
     width: 100%;
   }
 }
+/* =========================================================
+   HEADER — RESPONSIVE FIX
+========================================================= */
+
+@media (max-width: 900px) {
+
+  header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  /* Groupe titre */
+  .title-group {
+    width: 100%;
+  }
+
+  .title-group h1 {
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  /* Chip sous le titre */
+  .title-chip {
+    margin-top: 4px;
+  }
+
+  /* Zone user (Google) */
+  #user-info {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
+  #user-name,
+  #user-status {
+    font-size: 12px;
+  }
+
+  /* Stats à droite → passent en dessous */
+  .header-stats {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+}
