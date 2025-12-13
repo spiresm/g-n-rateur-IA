@@ -1185,15 +1185,26 @@ modeCards.forEach(card => {
             if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'block';
 
         } else { // ✅ MODE IMAGE
-            afficheMenu.style.display = "none";
+    afficheMenu.style.display = "none";
 
-            // 🔥 LIGNE CLÉ (le fix)
-            selectWorkflow(document.querySelector(".workflow-vignette.selected")?.dataset.workflowName
-                          || document.querySelector(".workflow-vignette")?.dataset.workflowName);
+    // 🔥 RESTAURATION COMPLÈTE DU MENU IMAGE (COMME AU REFRESH)
+    const leftPanelForm = document.querySelector(".panel form");
+    if (leftPanelForm && INITIAL_LEFT_MENU_HTML) {
+        leftPanelForm.innerHTML = INITIAL_LEFT_MENU_HTML;
+    }
 
-            if (generateButton) generateButton.style.display = 'block'; 
-            if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = 'none';
-        }
+    // 🔁 Re-sélection du workflow image actif ou du premier
+    const wf =
+        document.querySelector(".workflow-vignette.selected")?.dataset.workflowName ||
+        document.querySelector(".workflow-vignette")?.dataset.workflowName;
+
+    if (wf) {
+        selectWorkflow(wf);
+    }
+
+    if (generateButton) generateButton.style.display = "block";
+    if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = "none";
+}
     });
 });
     // =========================================================
