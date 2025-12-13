@@ -786,27 +786,41 @@ header {
 }
 
 #gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: 10px;
+  display: flex;
+  gap: 12px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+
+  padding: 10px 4px;
 }
 
+/* cache scrollbar (clean) */
+#gallery-grid::-webkit-scrollbar {
+  height: 6px;
+}
+#gallery-grid::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.25);
+  border-radius: 3px;
+}
+
+/* vignettes 9/16 */
 .gallery-thumb {
-  width: 100%;
-  aspect-ratio: 9 / 16;   /* ✅ FORMAT PORTRAIT */
+  flex: 0 0 auto;
+  width: 120px;
+  aspect-ratio: 9 / 16;
+
   object-fit: cover;
   border-radius: 8px;
   cursor: pointer;
-  border: 1px solid var(--border);
-  opacity: 0.85;
-  transition: all 0.15s ease;
-  background: #111;
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .gallery-thumb:hover {
-  opacity: 1;
-  transform: scale(1.03);
-  border-color: var(--accent);
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
 }
 /* ================================
    ZONE IMAGE PRÉVIEW (RÉDUITE)
