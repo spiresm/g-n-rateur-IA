@@ -1219,3 +1219,28 @@ if (logoutBtn) {
     loadWorkflows();
 
 });
+function decodeJwt(token) {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch {
+    return null;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const token = localStorage.getItem("google_id_token");
+  if (!token) return;
+
+  const payload = decodeJwt(token);
+  if (!payload) return;
+
+  const avatar = document.getElementById("user-avatar");
+  const name = document.getElementById("user-name");
+  const info = document.getElementById("user-info");
+  const status = document.getElementById("user-status");
+
+  if (avatar && payload.picture) avatar.src = payload.picture;
+  if (name) name.textContent = payload.name || payload.email;
+  if (status) status.textContent = `Connected as ${payload.given_name || "user"}`;
+  if (info) info.style.display = "flex";
+});
