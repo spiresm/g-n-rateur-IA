@@ -793,18 +793,18 @@ header {
 
 .gallery-thumb {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 9 / 16;   /* ✅ FORMAT PORTRAIT */
   object-fit: cover;
   border-radius: 8px;
   cursor: pointer;
   border: 1px solid var(--border);
   opacity: 0.85;
   transition: all 0.15s ease;
+  background: #111;
 }
 
 .gallery-thumb:hover {
   opacity: 1;
   transform: scale(1.03);
   border-color: var(--accent);
-  box-shadow: 0 0 12px rgba(212,175,55,0.25);
 }
