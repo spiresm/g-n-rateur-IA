@@ -68,92 +68,56 @@ const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
 // =========================================================
 
 async function loadCarrouselGallery() {
-    console.log("🟢 loadCarrouselGallery START");
+  console.log("🟢 loadCarrouselGallery START");
 
-    let images;
-    try {
-        const resp = await fetch("/carrousel.json");
-        if (!resp.ok) throw new Error("carrousel.json introuvable");
-        images = await resp.json();
-        if (!Array.isArray(images)) throw new Error("carrousel.json invalide (attendu: array)");
-    } catch (e) {
-        console.warn("❌ Galerie carrousel non chargée :", e.message || e);
-        return;
-    }
+  let images;
+  try {
+    const resp = await fetch("/carrousel.json");
+    images = await resp.json();
+  } catch (e) {
+    console.error("❌ Cannot load carrousel.json", e);
+    return;
+  }
 
-    const gallery = document.getElementById("gallery-grid");
-    if (!gallery) {
-        console.warn("❌ #gallery-grid NOT FOUND (galerie non affichée)");
-        return;
-    }
+  const gallery = document.getElementById("gallery-grid");
+  if (!gallery) {
+    console.error("❌ #gallery-grid NOT FOUND");
+    return;
+  }
 
-    gallery.innerHTML = "";
+  gallery.innerHTML = "";
 
-    images.forEach((filename) => {
-        // chemin HD (peut être .png, .jpg, etc.)
-        const fullPath = `/carrousel/${encodeURIComponent(filename)}`;
+  images.forEach(filename => {
+    const fullPath = `/carrousel/${encodeURIComponent(filename)}`;
+    const thumbPath = `/carrousel/${encodeURIComponent(
+      filename.replace(/\.png$/i, "_thumb.jpg")
+    )}`;
 
-        // vignette: on retire l'extension et on ajoute _thumb.jpg
-        const base = String(filename).replace(/\.(png|jpg|jpeg|webp)$/i, "");
-        const thumbFile = `${base}_thumb.jpg`;
-        const thumbPath = `/carrousel/${encodeURIComponent(thumbFile)}`;
+    const thumb = document.createElement("img");
+    thumb.src = thumbPath;
+    thumb.className = "gallery-thumb";
+    thumb.loading = "lazy";
+    thumb.alt = filename;
 
-        const thumb = document.createElement("img");
-        thumb.src = thumbPath;
-        thumb.className = "gallery-thumb";
-        thumb.loading = "lazy";
-        thumb.alt = filename;
+    thumb.onerror = () => {
+      console.warn("❌ Thumb not found:", thumbPath);
+    };
 
-        thumb.onerror = () => {
-            console.warn("❌ Thumb not found:", thumbPath);
-        };
+    // ✅ CLIC → OUVERTURE MODAL (PAS PREVIEW)
+    thumb.addEventListener("click", () => {
+      const modal = document.getElementById("image-modal");
+      const modalImg = document.getElementById("image-modal-img");
 
-        thumb.addEventListener("click", () => {
-            const resultArea = document.getElementById("result-area");
-            if (!resultArea) return;
+      if (!modal || !modalImg) return;
 
-            const placeholder = document.getElementById("result-placeholder");
-            if (placeholder) placeholder.style.display = "none";
-
-            // Si une image de résultat existe déjà (générée), on la réutilise.
-            // Sinon, on la crée.
-            let mainImg = resultArea.querySelector("img.result-image");
-            if (!mainImg) {
-                mainImg = document.createElement("img");
-                mainImg.className = "result-image mj-img clickable";
-                mainImg.style.maxWidth = "100%";
-                mainImg.style.height = "auto";
-                mainImg.style.display = "block";
-                mainImg.style.margin = "0 auto";
-                resultArea.appendChild(mainImg);
-            } else {
-                // On enlève le blur éventuel des générations
-                mainImg.classList.remove("mj-blur");
-                mainImg.classList.add("mj-ready");
-            }
-
-            img.addEventListener("click", () => {
-  const modal = document.getElementById("image-modal");
-  const modalImg = document.getElementById("image-modal-img");
-
-  if (!modal || !modalImg) return;
-
-  modalImg.src = fullPath;
-  modal.style.display = "flex";
-});
-
-            // Optionnel : met à jour le lien de download dans le modal si déjà ouvert
-            const dlLink = document.getElementById("modal-download-link");
-            if (dlLink) {
-                dlLink.href = fullPath;
-                dlLink.download = filename;
-            }
-        });
-
-        gallery.appendChild(thumb);
+      modalImg.src = fullPath;
+      modal.style.display = "flex";
     });
 
-    console.log("✅ gallery populated");
+    gallery.appendChild(thumb);
+  });
+
+  console.log("✅ gallery populated");
 }
 
 // =========================================================
