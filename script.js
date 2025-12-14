@@ -1139,41 +1139,7 @@ if (logoutBtn) {
     window.location.replace("login.html");
   });
 }
-  document.addEventListener("DOMContentLoaded", () => {
-  // =========================================================
-  // 🔓 LOGOUT
-  // =========================================================
-  const logoutBtn = document.getElementById("logout-btn");
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      console.log("🔓 Déconnexion utilisateur");
-      localStorage.removeItem("google_id_token");
-      window.location.replace("login.html");
-    });
-  }
-
-  // =========================================================
-  // 👤 UTILISATEUR CONNECTÉ (GOOGLE)
-  // =========================================================
-  const userInfo = document.getElementById("user-info");
-const userName = document.getElementById("user-name");
-const userAvatar = document.getElementById("user-avatar");
-
-const user = decodeGoogleToken();
-
-if (user && userInfo && userName && userAvatar) {
-  userName.textContent = user.given_name || user.name || "Utilisateur";
-  userAvatar.src = user.picture || "";
-  userAvatar.alt = user.name || "Avatar Google";
-
-  // 🔥 AFFICHAGE FINAL
-  userInfo.style.display = "flex";
-
-  console.log("✅ Header user affiché :", user.email);
-}
-});
-
+  
     // =========================================================
     // AUTO-CLEAR POUR CHAQUE SELECT → CHAMP CUSTOM
     // =========================================================
