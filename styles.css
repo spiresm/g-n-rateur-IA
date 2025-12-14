@@ -995,3 +995,14 @@ input[type=range]::-webkit-slider-thumb {
   font-weight: 700;
   color: var(--text);
 }
+/* Logo Runbens – visibilité garantie */
+.app-logo {
+  height: 36px;
+  width: auto;
+  display: block;
+
+  /* 🔥 FIX VISUEL */
+  background: #0f172a;          /* ou var(--panel) si tu as la variable */
+  padding: 6px;
+  border-radius: 8px;
+}
