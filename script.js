@@ -1176,7 +1176,24 @@ if (logoutBtn) {
             }
         });
     }
+// =========================================================
+// 👤 UTILISATEUR CONNECTÉ (GOOGLE) — FIX FINAL
+// =========================================================
+const userInfo = document.getElementById("user-info");
+const userName = document.getElementById("user-name");
+const userAvatar = document.getElementById("user-avatar");
 
+const user = decodeGoogleToken();
+
+console.log("👤 decoded user:", user);
+
+if (user && userInfo && userName && userAvatar) {
+  userName.textContent = user.given_name || user.name || "Utilisateur";
+  userAvatar.src = user.picture || "";
+  userAvatar.alt = user.name || "Avatar Google";
+  userInfo.style.display = "flex";
+  console.log("✅ Header user affiché");
+}
     const copyBtn = document.getElementById("copy-params-btn");
     if (copyBtn) {
         copyBtn.addEventListener("click", () => {
