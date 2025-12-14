@@ -55,99 +55,124 @@ function authHeaders() {
 // =========================================================
 // CONFIGURATION (FRONTEND)
 // =========================================================
+
 const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
 
-// =========================================================
-// 📸 GALERIE (FIX: bons IDs + fonctionnement)
-// =========================================================
-// HTML = <div id="gallery-grid"></div>  (pas gallery-content)
-// + pas de gallery-wrapper dans ton HTML, donc on n'y touche plus. :contentReference[oaicite:1]{index=1}
-function loadCarrouselGallery(data) {
-  const gallery = document.getElementById("gallery-grid");
-  if (!gallery) return;
 
-  // data peut être:
-  // - { images: [{thumb,url}, ...] } (mode backend)
-  // - [{thumb,url}, ...] (mode direct)
-  const images = Array.isArray(data) ? data : (data?.images || []);
-  if (!images.length) {
-    gallery.innerHTML = "";
+
+// =========================================================
+// 📸 GALERIE CARROUSEL (thumbs légères + images HD)
+// - Lit /carrousel.json (liste de fichiers HD)
+// - Affiche les vignettes *_thumb.jpg (9/16)
+// - Au clic: affiche l'image HD dans #result-area
+// =========================================================
+
+async function loadCarrouselGallery() {
+  console.log("🟢 loadCarrouselGallery START");
+
+  let images;
+  try {
+    const resp = await fetch("/carrousel.json");
+    images = await resp.json();
+  } catch (e) {
+    console.error("❌ Cannot load carrousel.json", e);
+    return;
+  }
+
+  const gallery = document.getElementById("gallery-grid");
+  if (!gallery) {
+    console.error("❌ #gallery-grid NOT FOUND");
     return;
   }
 
   gallery.innerHTML = "";
 
-  images.forEach((img, index) => {
-    const thumb = document.createElement("img");
-    thumb.src = img.thumb || img.url;
-    thumb.alt = `Generated image ${index + 1}`;
-    thumb.classList.add("gallery-thumb");
+  images.forEach(filename => {
+    const fullPath = `/carrousel/${encodeURIComponent(filename)}`;
+    const thumbPath = `/carrousel/${encodeURIComponent(
+      filename.replace(/\.png$/i, "_thumb.jpg")
+    )}`;
 
-    const fullPath = img.url || img.thumb;
-    thumb.addEventListener("click", () => openImageModal(fullPath));
+    const thumb = document.createElement("img");
+    thumb.src = thumbPath;
+    thumb.className = "gallery-thumb";
+    thumb.loading = "lazy";
+    thumb.alt = filename;
+
+    thumb.onerror = () => {
+      console.warn("❌ Thumb not found:", thumbPath);
+    };
+
+    // ✅ CLIC → OUVERTURE MODAL (PAS PREVIEW)
+    thumb.addEventListener("click", () => {
+      const modal = document.getElementById("image-modal");
+      const modalImg = document.getElementById("image-modal-img");
+
+      if (!modal || !modalImg) return;
+
+      modalImg.src = fullPath;
+      modal.style.display = "flex";
+    });
 
     gallery.appendChild(thumb);
   });
 
-  console.log("✅ gallery populated:", images.length);
+  console.log("✅ gallery populated");
 }
 
 // =========================================================
-// 🆕 OUVERTURE MODAL (UNE SEULE VERSION, PAS DE DOUBLON)
+// 🆕 LISTE DES STYLES DE TITRE
 // =========================================================
-function openImageModal(src) {
-  const modal = document.getElementById("image-modal");
-  const img = document.getElementById("image-modal-img");
-  const dl = document.getElementById("image-modal-download");
 
-  if (!modal || !img || !dl) return;
-
-  img.src = src;
-  dl.href = src;
-
-  const filename = src.startsWith("data:")
-    ? "generated-image.png"
-    : (src.split("/").pop()?.split("?")[0] || "image.png");
-
-  dl.setAttribute("download", filename);
-
-  // ✅ on utilise la classe CSS .active (cohérent avec le CSS qu’on a posé)
-  modal.classList.add("active");
-}
-
-// =========================================================
-// 🆕 OPTIONS STYLE TITRE
-// =========================================================
 const STYLE_TITRE_OPTIONS = [
-  { label: "e sanglant dégoulinant", value: "dripping horror lettering, torn edges, glossy red liquid ure, glowing sinister vibe" },
-  { label: "Néon cyberpunk", value: "bright neon tube letters, electric glow, slight chromatic aberration, futuristic vaporwave look" },
-  { label: "Typographie givrée / glace", value: "frosted glass letters, icy ure, translucent frozen edges, cold blue inner glow" },
-  { label: "Lettrage en bois sculpté", value: "hand-carved wooden lettering, deep grooves, warm grain ure, rustic fantasy aesthetic" },
-  { label: "e métallique gravé", value: "polished engraved steel letters, sharp reflections, industrial sci-fi shine" },
-  { label: "Style cartoon / bulle", value: "rounded bubbly cartoon letters, colorful shading, outlined comic look" },
-  { label: "Effet slasher sanglant", value: "sharp jagged letters, blood splatter ure, rough grain, violent horror tone" },
-  { label: "Lettrage en cristal / gemme", value: "faceted gemstone letters, prism reflections, diamond-like clarity, luminous highlights" },
-  { label: "Runes de pierre anciennes", value: "weathered carved stone letters, cracks, moss details, archaeological fantasy mood" },
-  { label: "e en flammes", value: "burning fire lettering, glowing embers, smoke trails, intense heat distortion" },
-  { label: "e liquide / eau", value: "transparent water-ured letters, droplets, soft reflections, fluid organic movement" },
-  { label: "Titre doré royal", value: "polished gold lettering, embossed ure, warm specular highlights, luxury vibe" },
-  { label: "Graffiti urbain", value: "spray-painted lettering, rough outlines, dripping paint, street-art" },
-  { label: "Hologramme futuriste", value: "holographic translucent letters, digital flicker, refraction effects, sci-fi projection" },
-  { label: "Gothique médiéval", value: "blackletter-inspired carved metal, dark engraved ure, dramatic gothic atmosphere" },
-  { label: "Style pâte à modeler (stop motion)", value: "hand-molded clay letters, fingerprint ure, soft studio lighting, claymation charm" },
-  { label: "Découpe papier / collage", value: "layered paper-cut letters, soft shadows, handcrafted collage feel" },
-  { label: "Cosmique / nébuleuse", value: "letters filled with nebula ures, stars, glowing cosmic colors, ethereal space vibe" },
-  { label: "Steampunk en laiton", value: "aged brass letters, rivets, gears, Victorian industrial detailing" },
-  { label: "e glitch numérique", value: "distorted corrupted letters, RGB glitch separation, pixel noise, digital malfunction look" }
+    { label: "e sanglant dégoulinant", value: "dripping horror lettering, torn edges, glossy red liquid ure, glowing sinister vibe" },
+    { label: "Néon cyberpunk", value: "bright neon tube letters, electric glow, slight chromatic aberration, futuristic vaporwave look" },
+    { label: "Typographie givrée / glace", value: "frosted glass letters, icy ure, translucent frozen edges, cold blue inner glow" },
+    { label: "Lettrage en bois sculpté", value: "hand-carved wooden lettering, deep grooves, warm grain ure, rustic fantasy aesthetic" },
+    { label: "e métallique gravé", value: "polished engraved steel letters, sharp reflections, industrial sci-fi shine" },
+    { label: "Style cartoon / bulle", value: "rounded bubbly cartoon letters, colorful shading, outlined comic look" },
+    { label: "Effet slasher sanglant", value: "sharp jagged letters, blood splatter ure, rough grain, violent horror tone" },
+    { label: "Lettrage en cristal / gemme", value: "faceted gemstone letters, prism reflections, diamond-like clarity, luminous highlights" },
+    { label: "Runes de pierre anciennes", value: "weathered carved stone letters, cracks, moss details, archaeological fantasy mood" },
+    { label: "e en flammes", value: "burning fire lettering, glowing embers, smoke trails, intense heat distortion" },
+    { label: "e liquide / eau", value: "transparent water-ured letters, droplets, soft reflections, fluid organic movement" },
+    { label: "Titre doré royal", value: "polished gold lettering, embossed ure, warm specular highlights, luxury vibe" },
+    { label: "Graffiti urbain", value: "spray-painted lettering, rough outlines, dripping paint, street-art" },
+    { label: "Hologramme futuriste", value: "holographic translucent letters, digital flicker, refraction effects, sci-fi projection" },
+    { label: "Gothique médiéval", value: "blackletter-inspired carved metal, dark engraved ure, dramatic gothic atmosphere" },
+    { label: "Style pâte à modeler (stop motion)", value: "hand-molded clay letters, fingerprint ure, soft studio lighting, claymation charm" },
+    { label: "Découpe papier / collage", value: "layered paper-cut letters, soft shadows, handcrafted collage feel" },
+    { label: "Cosmique / nébuleuse", value: "letters filled with nebula ures, stars, glowing cosmic colors, ethereal space vibe" },
+    { label: "Steampunk en laiton", value: "aged brass letters, rivets, gears, Victorian industrial detailing" },
+    { label: "e glitch numérique", value: "distorted corrupted letters, RGB glitch separation, pixel noise, digital malfunction look" }
 ];
 
 // =========================================================
-// 🧩 QUICK FORMAT + INJECTION STYLES (dédupliqué)
+// 🆕 INJECTION AUTOMATIQUE DANS LE SELECT
+// =========================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    const styleSelect = document.getElementById("aff_style_titre");
+    if (styleSelect) {
+        STYLE_TITRE_OPTIONS.forEach(opt => {
+            const o = document.createElement("option");
+            o.value = opt.value;
+            o.textContent = opt.label;
+            styleSelect.appendChild(o);
+        });
+    }
+});
+
+// =========================================================
+// 🆕 INJECTION AUTOMATIQUE + QUICK FORMAT
 // =========================================================
 document.addEventListener("DOMContentLoaded", () => {
-  // Injection styles (une seule fois)
+
+  // -----------------------------
+  // Injection styles de titre
+  // -----------------------------
   const styleSelect = document.getElementById("aff_style_titre");
-  if (styleSelect && styleSelect.options.length === 0) {
+  if (styleSelect) {
     STYLE_TITRE_OPTIONS.forEach(opt => {
       const o = document.createElement("option");
       o.value = opt.value;
@@ -156,7 +181,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Quick format
+  // -----------------------------
+  // 🧩 QUICK FORMAT BUTTONS (CORRIGÉ)
+  // -----------------------------
   document.querySelectorAll(".fmt-icon").forEach(icon => {
     icon.addEventListener("click", () => {
       const w = icon.dataset.w;
@@ -170,14 +197,17 @@ document.addEventListener("DOMContentLoaded", () => {
         heightInput.value = h;
       }
 
-      document.querySelectorAll(".fmt-icon").forEach(i => i.classList.remove("active"));
+      // état visuel UNIQUE
+      document.querySelectorAll(".fmt-icon").forEach(i =>
+        i.classList.remove("active")
+      );
       icon.classList.add("active");
 
       console.log(`📐 Quick Format appliqué : ${w}x${h}`);
     });
   });
-});
 
+});
 // =========================================================
 // CONFIGURATION DU POLLING HTTP
 // =========================================================
@@ -196,289 +226,343 @@ let lastGenerationStartTime = null;
 // =========================================================
 // OUTILS D’AFFICHAGE (LOGS, ERREURS, PROGRESSION VISUELLE)
 // =========================================================
+
 function log(...args) {
-  console.log(...args);
-  const box = document.getElementById("log-box");
-  if (!box) return;
-  const line = document.createElement("div");
-  line.className = "log-line";
-  const ts = new Date().toLocaleTimeString("fr-FR", { hour12: false });
-  line.innerHTML = `<strong>[${ts}]</strong> ${args.join(" ")}`;
-  box.appendChild(line);
-  box.scrollTop = box.scrollHeight;
+    console.log(...args);
+    const box = document.getElementById("log-box");
+    if (!box) return;
+    const line = document.createElement("div");
+    line.className = "log-line";
+    const ts = new Date().toLocaleTimeString("fr-FR", { hour12: false });
+    line.innerHTML = `<strong>[${ts}]</strong> ${args.join(" ")}`;
+    box.appendChild(line);
+    box.scrollTop = box.scrollHeight;
 }
 
 function setError(msg) {
-  const errBox = document.getElementById("error-box");
-  const statusPill = document.getElementById("job-status-pill");
+    const errBox = document.getElementById("error-box");
+    const statusPill = document.getElementById("job-status-pill");
+    
+    if (!errBox) return;
 
-  if (!errBox) return;
+    if (msg) {
+        errBox.style.display = "block";
+        errBox.textContent = msg;
+        if (statusPill) {
+             statusPill.textContent = "FAILED";
+             statusPill.classList.remove("pill", "pill-green", "pill-warning");
+             statusPill.classList.add("pill-danger"); 
+        }
 
-  if (msg) {
-    errBox.style.display = "block";
-    errBox.textContent = msg;
-    if (statusPill) {
-      statusPill.textContent = "FAILED";
-      statusPill.classList.remove("pill", "pill-green", "pill-warning");
-      statusPill.classList.add("pill-danger");
+    } else {
+        errBox.style.display = "none";
+        errBox.textContent = "";
+        if (statusPill && statusPill.textContent === "FAILED") {
+            statusPill.textContent = "READY";
+            statusPill.classList.remove("pill-danger", "pill-warning");
+            statusPill.classList.add("pill-green");
+        }
     }
-  } else {
-    errBox.style.display = "none";
-    errBox.textContent = "";
-    if (statusPill && statusPill.textContent === "FAILED") {
-      statusPill.textContent = "READY";
-      statusPill.classList.remove("pill-danger", "pill-warning");
-      statusPill.classList.add("pill-green");
-    }
-  }
 }
 
 function showProgressOverlay(show, label = "En attente…") {
-  const overlay = document.getElementById("progress-overlay");
-  const labelSpan = document.getElementById("progress-label");
-  const percentSpan = document.getElementById("progress-percent");
-  const innerBar = document.getElementById("progress-inner");
+    const overlay = document.getElementById("progress-overlay");
+    const labelSpan = document.getElementById("progress-label");
+    const percentSpan = document.getElementById("progress-percent");
+    const innerBar = document.getElementById("progress-inner");
 
-  if (!overlay || !labelSpan || !percentSpan || !innerBar) return;
+    if (!overlay || !labelSpan || !percentSpan || !innerBar) return;
 
-  if (show) {
-    overlay.classList.add("active");
-    labelSpan.textContent = label;
-    percentSpan.textContent = "0%";
-    innerBar.style.width = "0%";
-    fakeProgress = 0;
-  } else {
-    overlay.classList.remove("active");
-  }
+    if (show) {
+        overlay.classList.add("visible");
+        labelSpan.textContent = label;
+        percentSpan.textContent = "0%";
+        innerBar.style.width = "0%";
+        fakeProgress = 0;
+    } else {
+        overlay.classList.remove("visible");
+    }
 }
 
 // =========================================================
 // GPU STATUS (SIMPLIFIÉ)
 // =========================================================
+
 async function refreshGPU() {
-  const card = document.getElementById("gpu-card");
-  const nameEl = document.getElementById("gpu-name");
-  const utilEl = document.getElementById("gpu-util");
-  const memEl = document.getElementById("gpu-mem");
-  const tempEl = document.getElementById("gpu-temp");
+    const card = document.getElementById("gpu-card");
+    const nameEl = document.getElementById("gpu-name");
+    const utilEl = document.getElementById("gpu-util");
+    const memEl = document.getElementById("gpu-mem");
+    const tempEl = document.getElementById("gpu-temp");
 
-  if (!card || !nameEl || !utilEl || !memEl || !tempEl) return;
+    if (!card || !nameEl || !utilEl || !memEl || !tempEl) return;
 
-  try {
-    const resp = await fetch(`${API_BASE_URL}/gpu_status`);
-    if (!resp.ok) throw new Error("GPU status fetch failed");
-    const data = await resp.json();
-    nameEl.textContent = data.name || "NVIDIA GPU";
-    utilEl.textContent = (data.load ?? 0) + "%";
-    memEl.textContent = `${data.memory_used ?? 0} / ${data.memory_total ?? 0} Go`;
-    tempEl.textContent = (data.temperature ?? 0) + "°C";
-    card.classList.remove("gpu-status-error");
-  } catch (e) {
-    card.classList.add("gpu-status-error");
-    nameEl.textContent = "GPU indisponible";
-    utilEl.textContent = "–%";
-    memEl.textContent = "– / – Go";
-    tempEl.textContent = "– °C";
-    console.warn("Erreur GPU status:", e);
-  }
+    try {
+        const resp = await fetch(`${API_BASE_URL}/gpu_status`);
+        if (!resp.ok) throw new Error("GPU status fetch failed");
+        const data = await resp.json();
+        nameEl.textContent = data.name || "NVIDIA GPU";
+        utilEl.textContent = (data.load ?? 0) + "%";
+        memEl.textContent = `${data.memory_used ?? 0} / ${data.memory_total ?? 0} Go`;
+        tempEl.textContent = (data.temperature ?? 0) + "°C";
+
+        card.classList.remove("gpu-status-error");
+    } catch (e) {
+        card.classList.add("gpu-status-error");
+        nameEl.textContent = "GPU indisponible";
+        utilEl.textContent = "–%";
+        memEl.textContent = "– / – Go";
+        tempEl.textContent = "– °C";
+        console.warn("Erreur GPU status:", e);
+    }
 }
 
 // =========================================================
 // GESTION WORKFLOWS & CHECKPOINTS
 // =========================================================
+
 async function loadWorkflows() {
-  const container = document.getElementById("workflow-groups-container");
-  if (!container) return;
+    const container = document.getElementById("workflow-groups-container");
+    const hiddenInput = document.getElementById("workflow-select");
 
-  try {
-    const resp = await fetch(`${API_BASE_URL}/workflows`);
-    if (!resp.ok) throw new Error("Erreur chargement workflows");
-    const data = await resp.json();
+    if (!container) return;
 
-    const workflows = data.workflows || [];
-    log("Workflows reçus:", JSON.stringify(workflows));
+    try {
+        const resp = await fetch(`${API_BASE_URL}/workflows`);
+        if (!resp.ok) throw new Error("Erreur chargement workflows");
+        const data = await resp.json();
 
-    container.innerHTML = "";
+        const workflows = data.workflows || [];
+        log("Workflows reçus:", JSON.stringify(workflows));
 
-    const groupsConfig = [{ label: "ComfyUI", filter: (name) => name.endsWith(".json") }];
-    let firstSelected = false;
+        container.innerHTML = "";
 
-    for (const group of groupsConfig) {
-      const groupWfs = workflows.filter(group.filter);
-      if (!groupWfs.length) continue;
+        // On peut filtrer ici si besoin, pour l'instant on prend tout
+        const groupsConfig = [
+            {
+                label: "ComfyUI",
+                filter: (name) => name.endsWith(".json")
+            }
+        ];
 
-      const wrap = document.createElement("div");
-      wrap.className = "workflow-group-wrapper";
+        let firstSelected = false;
 
-      const title = document.createElement("h4");
-      title.className = "workflow-group-label";
-      title.textContent = group.label;
-      wrap.appendChild(title);
+        for (const group of groupsConfig) {
+            const groupWfs = workflows.filter(group.filter);
+            if (!groupWfs.length) continue;
 
-      const grid = document.createElement("div");
-      grid.className = "workflow-grid";
+            const wrap = document.createElement("div");
+            wrap.className = "workflow-group-wrapper";
 
-      groupWfs.forEach(wf => {
-        const base = wf.replace(/\.json$/, "");
-        const v = document.createElement("div");
-        v.className = "workflow-vignette";
-        v.dataset.workflowName = wf;
+            const title = document.createElement("h4");
+            title.className = "workflow-group-label";
+            title.textContent = group.label;
+            wrap.appendChild(title);
 
-        v.innerHTML = `
-          <div class="workflow-thumb-wrapper">
-            <img class="workflow-thumb" src="./vignettes/${base}.png" onerror="this.src='./vignettes/default.png'">
-          </div>
-          <div class="vignette-label-only">${base}</div>
-        `;
+            const grid = document.createElement("div");
+            grid.className = "workflow-grid";
 
-        v.addEventListener("click", () => selectWorkflow(wf));
-        grid.appendChild(v);
-      });
+            groupWfs.forEach(wf => {
+                const base = wf.replace(/\.json$/,"");
+                const v = document.createElement("div");
+                v.className = "workflow-vignette";
+                v.dataset.workflowName = wf;
 
-      wrap.appendChild(grid);
-      container.appendChild(wrap);
+                v.innerHTML = `
+                    <div class="workflow-thumb-wrapper">
+                        <img class="workflow-thumb" src="./vignettes/${base}.png" onerror="this.src='./vignettes/default.png'">
+                    </div>
+                    <div class="vignette-label-only">${base}</div>
+                `;
 
-      if (!firstSelected && groupWfs.length > 0) {
-        selectWorkflow(groupWfs[0]);
-        firstSelected = true;
-      }
+                v.addEventListener("click", () => selectWorkflow(wf));
+                grid.appendChild(v);
+            });
+
+            wrap.appendChild(grid);
+            container.appendChild(wrap);
+
+            if (!firstSelected && groupWfs.length > 0) {
+                selectWorkflow(groupWfs[0]);
+                firstSelected = true;
+            }
+        }
+
+        if (!firstSelected && workflows.length > 0) {
+            selectWorkflow(workflows[0]);
+        }
+
+    } catch (e) {
+        console.error("Erreur loadWorkflows:", e);
+        if (container) {
+            container.innerHTML = `<span style="font-size:12px;color:#f97373;">Erreur de chargement des workflows.</span>`;
+        }
     }
 
-    if (!firstSelected && workflows.length > 0) {
-      selectWorkflow(workflows[0]);
+    try {
+        const resp = await fetch(`${API_BASE_URL}/checkpoints`);
+        const data = await resp.json();
+        const select = document.getElementById("checkpoint-select");
+        if (!select) return;
+
+        select.innerHTML = "";
+        const optEmpty = document.createElement("option");
+        optEmpty.value = "";
+        optEmpty.textContent = "Aucun (par défaut du workflow)";
+        select.appendChild(optEmpty);
+
+        (data.checkpoints || []).forEach(ckpt => {
+            const opt = document.createElement("option");
+            opt.value = ckpt;
+            opt.textContent = ckpt;
+            select.appendChild(opt);
+        });
+
+    } catch (e) {
+        console.warn("Erreur chargement checkpoints:", e);
     }
-  } catch (e) {
-    console.error("Erreur loadWorkflows:", e);
-    container.innerHTML = `<span style="font-size:12px;color:#f97373;">Erreur de chargement des workflows.</span>`;
-  }
-
-  // checkpoints
-  try {
-    const resp = await fetch(`${API_BASE_URL}/checkpoints`);
-    const data = await resp.json();
-    const select = document.getElementById("checkpoint-select");
-    if (!select) return;
-
-    select.innerHTML = "";
-    const optEmpty = document.createElement("option");
-    optEmpty.value = "";
-    optEmpty.textContent = "Aucun (par défaut du workflow)";
-    select.appendChild(optEmpty);
-
-    (data.checkpoints || []).forEach(ckpt => {
-      const opt = document.createElement("option");
-      opt.value = ckpt;
-      opt.textContent = ckpt;
-      select.appendChild(opt);
-    });
-  } catch (e) {
-    console.warn("Erreur chargement checkpoints:", e);
-  }
 }
 
 function selectWorkflow(workflowName) {
-  const hiddenInput = document.getElementById("workflow-select");
-  if (hiddenInput) hiddenInput.value = workflowName;
+    const hiddenInput = document.getElementById("workflow-select");
+    if (hiddenInput) {
+        hiddenInput.value = workflowName;
+    }
 
-  document.querySelectorAll(".workflow-vignette").forEach(el => {
-    el.classList.toggle("selected", el.dataset.workflowName === workflowName);
-  });
+    const all = document.querySelectorAll(".workflow-vignette");
+    all.forEach(el => {
+        el.classList.toggle("selected", el.dataset.workflowName === workflowName);
+    });
 
-  log("Workflow sélectionné:", workflowName);
+    log("Workflow sélectionné:", workflowName);
 
-  const videoParamsSection = document.getElementById("video-params-section");
-  const groupSteps = document.getElementById("group-steps");
-  const groupCfg = document.getElementById("group-cfg");
-  const groupSampler = document.getElementById("group-sampler");
-  const seedSection = document.getElementById("group-seed");
-  const sdxlPanel = document.getElementById("sdxl-panel");
-  const afficheMenu = document.getElementById("affiche-menu");
+    const checkpointWrapper = document.getElementById("checkpoint-wrapper");
+    const videoParamsSection = document.getElementById("video-params-section");
+    const inputImageSection = document.getElementById("input-image-section");
+    const groupSteps = document.getElementById("group-steps");
+    const groupCfg = document.getElementById("group-cfg");
+    const groupSampler = document.getElementById("group-sampler");
+    const seedSection = document.getElementById("group-seed");
+    const sdxlPanel = document.getElementById("sdxl-panel");
 
-  if (workflowName === "affiche.json") {
-    if (afficheMenu) afficheMenu.style.display = "block";
+    const afficheMenu = document.getElementById("affiche-menu");
 
-    const wInput = document.getElementById("width-input");
-    const hInput = document.getElementById("height-input");
-    if (wInput) wInput.value = "1080";
-    if (hInput) hInput.value = "1920";
+    if (workflowName === "affiche.json") {
+        if (afficheMenu) afficheMenu.style.display = "block";
+        
+        // Mise à jour de la résolution pour l'affiche (format vertical 9:16)
+        const wInput = document.getElementById("width-input");
+        const hInput = document.getElementById("height-input");
+        if (wInput) wInput.value = "1080";
+        if (hInput) hInput.value = "1920";
 
-    if (groupSteps) groupSteps.style.display = "none";
-    if (groupCfg) groupCfg.style.display = "none";
-    if (groupSampler) groupSampler.style.display = "none";
-    if (seedSection) seedSection.style.display = "none";
-    if (sdxlPanel) sdxlPanel.style.display = "none";
-  } else {
-    if (afficheMenu) afficheMenu.style.display = "none";
-    if (groupSteps) groupSteps.style.display = "block";
-    if (groupCfg) groupCfg.style.display = "block";
-    if (groupSampler) groupSampler.style.display = "block";
-    if (seedSection) seedSection.style.display = "block";
-    if (sdxlPanel) sdxlPanel.style.display = "block";
-  }
+        const fmtIcons = document.querySelectorAll(".fmt-icon");
+        fmtIcons.forEach(icon => {
+            if (icon.dataset.w === "1080" && icon.dataset.h === "1920") {
+                icon.classList.add("selected-format");
+            } else {
+                icon.classList.remove("selected-format");
+            }
+        });
 
-  if (workflowName.includes("video")) {
-    if (videoParamsSection) videoParamsSection.style.display = "block";
-  } else {
-    if (videoParamsSection) videoParamsSection.style.display = "none";
-  }
+        // Masquer les options inutiles pour l'affiche
+        if (groupSteps) groupSteps.style.display = "none";
+        if (groupCfg) groupCfg.style.display = "none";
+        if (groupSampler) groupSampler.style.display = "none";
+        if (seedSection) seedSection.style.display = "none";
+        if (sdxlPanel) sdxlPanel.style.display = "none";
+
+    } else {
+        if (afficheMenu) afficheMenu.style.display = "none";
+        
+        // Afficher les options avancées en mode normal (si elles existent)
+        if (groupSteps) groupSteps.style.display = "block";
+        if (groupCfg) groupCfg.style.display = "block";
+        if (groupSampler) groupSampler.style.display = "block";
+        if (seedSection) seedSection.style.display = "block";
+        if (sdxlPanel) sdxlPanel.style.display = "block";
+    }
+
+    if (workflowName.includes("video")) {
+        if (videoParamsSection) videoParamsSection.style.display = "block";
+    } else {
+        if (videoParamsSection) videoParamsSection.style.display = "none";
+    }
 }
 
 // =========================================================
-// OUTILS POUR LES CHAMPS
-// =========================================================
+ // OUTILS POUR LES CHAMPS
+ // =========================================================
+
 function setValue(id, val) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.value = val;
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = val;
 }
 
 function mergeSelectAndCustom(selectId, customId) {
-  const s = document.getElementById(selectId)?.value.trim() || "";
-  const c = document.getElementById(customId)?.value.trim() || "";
-  if (c) return c;
-  if (s) return s;
-  return "";
+    const s = document.getElementById(selectId)?.value.trim() || "";
+    const c = document.getElementById(customId)?.value.trim() || "";
+
+    // Si le champ custom est rempli, il prend le pas
+    if (c) return c;
+    // Sinon, on retourne la valeur du select
+    if (s) return s;
+    return "";
 }
 
 // =========================================================
 // GÉNÉRATION DU PROMPT POUR LE MODE AFFICHE (FINAL)
 // =========================================================
+
 function generateAffichePrompt() {
-  const titre = document.getElementById("aff_titre")?.value.trim() || "";
-  const sousTitre = document.getElementById("aff_sous_titre")?.value.trim() || "";
-  const tagline = document.getElementById("aff_tagline")?.value.trim() || "";
-  const details = document.getElementById("aff_details")?.value.trim() || "";
-  const randomSeed = document.getElementById("aff_random_seed")?.value.trim() || "";
+    // Récupération des champs de e simples (Titre, Sous-Titre, Tagline)
+    const titre = document.getElementById("aff_titre")?.value.trim() || "";
+    const sousTitre = document.getElementById("aff_sous_titre")?.value.trim() || "";
+    const tagline = document.getElementById("aff_tagline")?.value.trim() || "";
+    const details = document.getElementById("aff_details")?.value.trim() || "";
+    const randomSeed = document.getElementById("aff_random_seed")?.value.trim() || ""; // Récupère la seed si elle existe
 
-  const theme = mergeSelectAndCustom("aff_theme", "aff_theme_custom");
-  const ambiance = mergeSelectAndCustom("aff_ambiance", "aff_ambiance_custom");
-  const perso = mergeSelectAndCustom("aff_perso_sugg", "aff_perso_desc");
-  const env = mergeSelectAndCustom("aff_env_sugg", "aff_env_desc");
-  const action = mergeSelectAndCustom("aff_action_sugg", "aff_action_desc");
-  const palette = mergeSelectAndCustom("aff_palette", "aff_palette_custom");
-
-  let styleTitre = mergeSelectAndCustom("aff_style_titre", "aff_style_titre_custom");
-  if (styleTitre === "" || styleTitre === "aleatoire") {
-    const styleSelect = document.getElementById("aff_style_titre");
-    const options = styleSelect ? Array.from(styleSelect.options) : [];
-    const relevantOptions = options.filter(opt => opt.value && opt.value !== "aleatoire");
-    if (relevantOptions.length > 0) {
-      const randomIndex = Math.floor(Math.random() * relevantOptions.length);
-      styleTitre = relevantOptions[randomIndex].value;
-      styleSelect.value = styleTitre;
-      log(`Style de titre aléatoire sélectionné : ${relevantOptions[randomIndex].textContent}`);
-    } else {
-      styleTitre = "cinematic, elegant contrast";
+    // Récupération des champs SELECT + CUSTOM via la fonction utilitaire
+    const theme = mergeSelectAndCustom("aff_theme", "aff_theme_custom");
+    const ambiance = mergeSelectAndCustom("aff_ambiance", "aff_ambiance_custom");
+    const perso = mergeSelectAndCustom("aff_perso_sugg", "aff_perso_desc");
+    const env = mergeSelectAndCustom("aff_env_sugg", "aff_env_desc");
+    const action = mergeSelectAndCustom("aff_action_sugg", "aff_action_desc");
+    const palette = mergeSelectAndCustom("aff_palette", "aff_palette_custom");
+    
+    // Logique pour le style du titre
+    let styleTitre = mergeSelectAndCustom("aff_style_titre", "aff_style_titre_custom");
+    
+    // Si le style de titre est vide ou 'aleatoire', on pioche un style dans STYLE_TITRE_OPTIONS
+    if (styleTitre === "" || styleTitre === "aleatoire") {
+        const styleSelect = document.getElementById("aff_style_titre");
+        const options = styleSelect ? Array.from(styleSelect.options) : [];
+        const relevantOptions = options.filter(opt => opt.value && opt.value !== 'aleatoire');
+        
+        if (relevantOptions.length > 0) {
+            const randomIndex = Math.floor(Math.random() * relevantOptions.length);
+            styleTitre = relevantOptions[randomIndex].value;
+            styleSelect.value = styleTitre; // Mise à jour visuelle (optionnel)
+            log(`Style de titre aléatoire sélectionné : ${relevantOptions[randomIndex].textContent}`);
+        } else {
+             styleTitre = "cinematic, elegant contrast"; // Valeur de repli
+        }
     }
-  }
 
-  const hasTitle = Boolean(titre);
-  const hasSubtitle = Boolean(sousTitre);
-  const hasTagline = Boolean(tagline);
 
-  let textBlock = "";
-  if (hasTitle || hasSubtitle || hasTagline) {
-    textBlock = `
+    const hasTitle = Boolean(titre);
+    const hasSubtitle = Boolean(sousTitre);
+    const hasTagline = Boolean(tagline);
+
+
+    // 3. Construction des prompts pour le modèle
+    
+    let textBlock = "";
+
+    // Le prompt de texte complexe est injecté directement dans le prompt principal
+    if (hasTitle || hasSubtitle || hasTagline) {
+     textBlock = `
 ALLOWED TEXT ONLY:
 
 ${hasTitle ? `TITLE: "${titre}" (top area, clean, sharp, readable, no distortion)` : ""}
@@ -490,13 +574,20 @@ ONLY ONE INSTANCE OF EACH TEXT ELEMENT.
 TEXT STYLE / MATERIAL (APPLIES ONLY TO LETTERING):
 ${styleTitre}
 `;
-  }
-
-  const visualElements = [theme, ambiance, perso, env, action, palette]
-    .filter(item => item.trim() !== "")
-    .join(", ");
-
-  let prompt = `
+    }
+    
+    // Filtrage des éléments visuels vides
+    const visualElements = [
+        theme,
+        ambiance,
+        perso,
+        env,
+        action,
+        palette
+    ].filter(item => item.trim() !== "").join(', ');
+    
+    // Construction du prompt principal
+    let prompt = `
 Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
 
 ${textBlock}
@@ -509,539 +600,682 @@ ${details || "cinematic particles, depth fog, volumetric light"}
 
 Image style:
 Premium poster design, professional layout, ultra high resolution, visually striking.
-  `.trim().replace(/\n\s*\n/g, "\n").replace(/\s{2,}/g, " ");
+    `.trim().replace(/\n\s*\n/g, '\n').replace(/\s{2,}/g, ' '); // Nettoyage des sauts de ligne inutiles
 
-  if (randomSeed) prompt += `, --seed: ${randomSeed}`;
 
-  const promptArea = document.getElementById("prompt");
-  if (promptArea) promptArea.value = prompt;
+    // Ajout de la seed
+    if (randomSeed) {
+        prompt += `, --seed: ${randomSeed}`;
+    }
 
-  log("🎨 Prompt affiche généré et prêt à être envoyé.");
-  return prompt;
+    const promptArea = document.getElementById("prompt");
+    if (promptArea) {
+        promptArea.value = prompt;
+    }
+
+    log("🎨 Prompt affiche généré et prêt à être envoyé.");
+    
+    return prompt; 
 }
 
+
 // =========================================================
-// PROGRESSION FAKE + DÉTECTION AUTO /result
+// PROGRESSION FAKE + DÉTECTION AUTO /result (MODIFIÉ)
 // =========================================================
+
 async function pollProgress(promptId) {
-  if (!promptId) return;
+    if (!promptId) return;
 
-  fakeProgress = 0;
-  pollingFailureCount = 0;
-  showProgressOverlay(true, "Génération en cours…");
+    fakeProgress = 0;
+    pollingFailureCount = 0; // Réinitialisation du compteur
+    showProgressOverlay(true, "Génération en cours…");
 
-  if (pollingProgressInterval) clearInterval(pollingProgressInterval);
-
-  const percentSpan = document.getElementById("progress-percent");
-  const innerBar = document.getElementById("progress-inner");
-  const statusPill = document.getElementById("job-status-pill");
-
-  if (statusPill) {
-    statusPill.textContent = "RUNNING";
-    statusPill.classList.remove("pill-green", "pill-danger", "pill-warning");
-    statusPill.classList.add("pill");
-  }
-
-  pollingProgressInterval = setInterval(async () => {
-    fakeProgress = Math.min(fakeProgress + 7, 92);
-
-    if (percentSpan) percentSpan.textContent = fakeProgress + "%";
-    if (innerBar) innerBar.style.width = fakeProgress + "%";
-
-    try {
-      const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`, { headers: { ...authHeaders() } });
-
-      if (resCheck.ok) {
-        pollingFailureCount = 0;
-        const data = await resCheck.json();
-
-        if (data.status && data.status.completed) {
-          clearInterval(pollingProgressInterval);
-          pollingProgressInterval = null;
-          handleCompletion(promptId);
-          return;
-        }
-      } else {
-        pollingFailureCount++;
-        log(`[POLL ERROR] HTTP ${resCheck.status} (${pollingFailureCount}/${MAX_POLLING_FAILURES})`);
-        if (pollingFailureCount >= MAX_POLLING_FAILURES) {
-          clearInterval(pollingProgressInterval);
-          pollingProgressInterval = null;
-          showProgressOverlay(false);
-          setError(`La tâche ${promptId} a été perdue par le serveur (HTTP ${resCheck.status}).`);
-          return;
-        }
-      }
-    } catch (e) {
-      pollingFailureCount++;
-      log(`[POLL ERROR] ${e.message} (${pollingFailureCount}/${MAX_POLLING_FAILURES})`);
-      if (pollingFailureCount >= MAX_POLLING_FAILURES) {
+    if (pollingProgressInterval) {
         clearInterval(pollingProgressInterval);
-        pollingProgressInterval = null;
-        showProgressOverlay(false);
-        setError(`Échec de la connexion au serveur API (${API_BASE_URL}).`);
-        return;
-      }
     }
-  }, POLLING_INTERVAL_MS);
+
+    const percentSpan = document.getElementById("progress-percent");
+    const innerBar = document.getElementById("progress-inner");
+    const statusPill = document.getElementById("job-status-pill");
+
+    if (statusPill) {
+        statusPill.textContent = "RUNNING";
+        statusPill.classList.remove("pill-green", "pill-danger", "pill-warning");
+        statusPill.classList.add("pill");
+    }
+
+    pollingProgressInterval = setInterval(async () => {
+        // Animation FAKE jusqu'à 92 %
+        fakeProgress = Math.min(fakeProgress + 7, 92);
+
+        if (percentSpan) percentSpan.textContent = fakeProgress + "%";
+        if (innerBar) innerBar.style.width = fakeProgress + "%";
+
+        // Test direct si le résultat est disponible
+        try {
+            const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`, { headers: { ...authHeaders() } });
+
+            if (resCheck.ok) {
+                // Succès : Réinitialise le compteur d'erreurs et vérifie la fin
+                pollingFailureCount = 0;
+                const data = await resCheck.json();
+                
+                if (data.status && data.status.completed) {
+                    clearInterval(pollingProgressInterval);
+                    pollingProgressInterval = null;
+
+                    // On délègue la récupération finale au gestionnaire
+                    handleCompletion(promptId); 
+                    return;
+                }
+            } else {
+                // Si la réponse HTTP n'est pas OK (ex: 404, 500)
+                pollingFailureCount++;
+                log(`[POLL ERROR] HTTP non OK: ${resCheck.status}. Tentative d'arrêt ${pollingFailureCount}/${MAX_POLLING_FAILURES}`);
+                
+                if (pollingFailureCount >= MAX_POLLING_FAILURES) {
+                    clearInterval(pollingProgressInterval);
+                    pollingProgressInterval = null;
+                    showProgressOverlay(false);
+                    setError(`La tâche ${promptId} a été perdue par le serveur (HTTP ${resCheck.status}).`);
+                    return;
+                }
+            }
+
+        } catch (e) {
+            pollingFailureCount++;
+            log(`[POLL ERROR] Erreur réseau/JSON: ${e.message}.`);
+
+            if (pollingFailureCount >= MAX_POLLING_FAILURES) {
+                clearInterval(pollingProgressInterval);
+                pollingProgressInterval = null;
+                showProgressOverlay(false);
+                setError(`Échec de la connexion au serveur API (${API_BASE_URL}).`);
+                return;
+            }
+        }
+
+    }, POLLING_INTERVAL_MS);
 }
 
 // =========================================================
 // GESTIONNAIRE DE COMPLÉTION AVEC RETRY
 // =========================================================
+
 async function handleCompletion(promptId) {
-  const statusPill = document.getElementById("job-status-pill");
-  const percentSpan = document.getElementById("progress-percent");
-  const innerBar = document.getElementById("progress-inner");
+    
+    const statusPill = document.getElementById("job-status-pill");
+    const percentSpan = document.getElementById("progress-percent");
+    const innerBar = document.getElementById("progress-inner");
 
-  if (statusPill) {
-    statusPill.textContent = "FETCHING";
-    statusPill.classList.remove("pill", "pill-green", "pill-danger");
-    statusPill.classList.add("pill-warning");
-  }
-  if (percentSpan) percentSpan.textContent = "92%";
-  if (innerBar) innerBar.style.width = "92%";
-
-  const MAX_FETCH_ATTEMPTS = 10;
-  const RETRY_DELAY_MS = 2000;
-
-  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
-    log(`[FETCH RESULT] Tentative ${attempt}/${MAX_FETCH_ATTEMPTS} pour ${promptId}...`);
-    try {
-      const resp = await fetch(`${API_BASE_URL}/result/${promptId}`, { headers: { ...authHeaders() } });
-
-      if (resp.ok) {
-        const data = await resp.json();
-
-        if (percentSpan) percentSpan.textContent = "100%";
-        if (innerBar) innerBar.style.width = "100%";
-        showProgressOverlay(false);
-
-        if (statusPill) {
-          statusPill.textContent = "DONE";
-          statusPill.classList.remove("pill", "pill-danger", "pill-warning");
-          statusPill.classList.add("pill-green");
-        }
-
-        displayImageAndMetadata(data);
-        setError("");
-        return;
-      }
-
-      log(`[FETCH RESULT] HTTP ${resp.status}. Retry…`);
-      if (attempt === MAX_FETCH_ATTEMPTS) {
-        throw new Error(`Échec de la récupération du résultat après ${MAX_FETCH_ATTEMPTS} tentatives.`);
-      }
-      await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
-    } catch (e) {
-      console.error("Erreur fetchResult/handleCompletion:", e);
-      showProgressOverlay(false);
-      setError(e.message || "Erreur lors de la récupération de l’image générée.");
-      if (statusPill) {
-        statusPill.textContent = "FAILED";
-        statusPill.classList.remove("pill", "pill-green", "pill-warning");
-        statusPill.classList.add("pill-danger");
-      }
-      return;
+    // Mise à jour UI pour indiquer le début de la récupération finale
+    if (statusPill) {
+        statusPill.textContent = "FETCHING";
+        statusPill.classList.remove("pill", "pill-green", "pill-danger");
+        statusPill.classList.add("pill-warning"); 
     }
-  }
+    if (percentSpan) percentSpan.textContent = "92%";
+    if (innerBar) innerBar.style.width = "92%";
+
+
+    const MAX_FETCH_ATTEMPTS = 10;
+    const RETRY_DELAY_MS = 2000;
+
+    for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
+        log(`[FETCH RESULT] Tentative ${attempt}/${MAX_FETCH_ATTEMPTS} pour ${promptId}...`);
+        
+        try {
+            const resp = await fetch(`${API_BASE_URL}/result/${promptId}`, { headers: { ...authHeaders() } }); 
+
+            if (resp.ok) {
+                // SUCCESS! Finish UI and display image
+                const data = await resp.json();
+                
+                // FINAL UI UPDATE 
+                if (percentSpan) percentSpan.textContent = "100%";
+                if (innerBar) innerBar.style.width = "100%";
+                showProgressOverlay(false);
+                if (statusPill) {
+                    statusPill.textContent = "DONE";
+                    statusPill.classList.remove("pill", "pill-danger", "pill-warning");
+                    statusPill.classList.add("pill-green");
+                }
+                
+                displayImageAndMetadata(data);
+                setError("");
+                return; // FINISHED SUCCESSFULLY
+            } 
+            
+            // HTTP NOT OK
+            log(`[FETCH RESULT] HTTP non OK: ${resp.status}. Ré-essai dans ${RETRY_DELAY_MS / 1000}s.`);
+            
+            if (attempt === MAX_FETCH_ATTEMPTS) {
+                throw new Error(`Échec de la récupération du résultat après ${MAX_FETCH_ATTEMPTS} tentatives.`);
+            }
+            
+            await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+
+        } catch (e) {
+            console.error("Erreur fetchResult/handleCompletion:", e);
+            showProgressOverlay(false);
+            setError(e.message || "Erreur lors de la récupération de l’image générée.");
+            if (statusPill) {
+                statusPill.textContent = "FAILED";
+                statusPill.classList.remove("pill", "pill-green", "pill-warning");
+                statusPill.classList.add("pill-danger");
+            }
+            return; 
+        }
+    }
 }
+
 
 // =========================================================
 // AFFICHAGE DU RÉSULTAT ET DES METADATAS
-// (FIX: on pousse aussi l'image dans la galerie)
 // =========================================================
+
 function displayImageAndMetadata(data) {
-  const base64 = data.image_base64;
+    const base64 = data.image_base64;
+    const filename = data.filename || "image.png";
 
-  const resultArea = document.getElementById("result-area");
-  const placeholder = document.getElementById("result-placeholder");
-  if (!resultArea) return;
+    const resultArea = document.getElementById("result-area");
+    const placeholder = document.getElementById("result-placeholder");
 
-  if (placeholder) placeholder.style.display = "none";
+    if (placeholder) placeholder.style.display = "none";
 
-  const imgExisting = resultArea.querySelector("img.result-image");
-  if (imgExisting) imgExisting.remove();
+    const imgExisting = resultArea.querySelector("img.result-image");
+    if (imgExisting) imgExisting.remove();
 
-  const img = document.createElement("img");
-  img.className = "result-image clickable";
-  img.src = `data:image/png;base64,${base64}`;
-  img.alt = "Image générée";
+    const img = document.createElement("img");
+    img.className = "result-image mj-img mj-blur clickable";
+    img.src = `data:image/png;base64,${base64}`;
+    img.alt = "Image générée";
+    img.style.maxWidth = "100%";
+    img.style.height = "auto";
+    img.style.display = "block";
+    img.style.margin = "0 auto";
 
-  img.addEventListener("click", () => openImageModal(img.src));
-  resultArea.appendChild(img);
+    img.onload = () => {
+        img.classList.remove("mj-blur");
+        img.classList.add("mj-ready");
+    };
 
-  // ✅ Injecter dans la galerie (au minimum la dernière image)
-  loadCarrouselGallery([
-    { url: img.src, thumb: img.src }
-  ]);
+    img.addEventListener("click", () => {
+        const modal = document.getElementById("image-modal");
+        const modalImg = document.getElementById("modal-image");
+        const dlLink = document.getElementById("modal-download-link");
 
-  // metas (inchangé)
-  const metaSeed = document.getElementById("meta-seed");
-  const metaSteps = document.getElementById("meta-steps");
-  const metaCfg = document.getElementById("meta-cfg");
-  const metaSampler = document.getElementById("meta-sampler");
+        if (modal && modalImg && dlLink) {
+            modalImg.src = img.src;
+            dlLink.href = img.src;
+            dlLink.download = filename;
+            modal.style.display = "flex";
+        }
+    });
 
-  if (metaSeed) metaSeed.textContent = "–";
-  if (metaSteps) metaSteps.textContent = "–";
-  if (metaCfg) metaCfg.textContent = "–";
-  if (metaSampler) metaSampler.textContent = "–";
+    resultArea.appendChild(img);
 
-  if (lastGenerationStartTime) {
-    const diffMs = Date.now() - lastGenerationStartTime;
-    const sec = (diffMs / 1000).toFixed(1);
-    const timeTakenEl = document.getElementById("time-taken");
-    if (timeTakenEl) timeTakenEl.textContent = `${sec}s`;
-  }
+    const metaSeed = document.getElementById("meta-seed");
+    const metaSteps = document.getElementById("meta-steps");
+    const metaCfg = document.getElementById("meta-cfg");
+    const metaSampler = document.getElementById("meta-sampler");
+
+    if (metaSeed) metaSeed.textContent = "–";
+    if (metaSteps) metaSteps.textContent = "–";
+    if (metaCfg) metaCfg.textContent = "–";
+    if (metaSampler) metaSampler.textContent = "–";
+
+    if (lastGenerationStartTime) {
+        const diffMs = Date.now() - lastGenerationStartTime;
+        const sec = (diffMs / 1000).toFixed(1);
+        const timeTakenEl = document.getElementById("time-taken");
+        if (timeTakenEl) timeTakenEl.textContent = `${sec}s`;
+    }
 }
 
+
 // =========================================================
-// ENVOI DU FORMULAIRE → /generate
+// ENVOI DU FORMULAIRE → /generate (CORRIGÉ COMPLET)
 // =========================================================
+
 async function startGeneration(e) {
-  e.preventDefault();
-  setError("");
+    e.preventDefault();
 
-  const formEl = document.getElementById("generation-form");
-  if (!formEl) return;
+    setError("");
 
-  const currentBtn = document.getElementById("generate-button");
+    const formEl = document.getElementById("generation-form");
+    if (!formEl) return;
 
-  if (currentBtn) {
-    currentBtn.disabled = true;
-    const dot = currentBtn.querySelector(".dot");
-    if (dot) dot.style.background = "#fbbf24";
-    currentBtn.innerHTML = `<span class="dot"></span>Initialisation…`;
-  }
+    const generateBtn = document.getElementById("generate-button");
+    const currentBtn = generateBtn;
 
-  lastGenerationStartTime = Date.now();
-  showProgressOverlay(true, "Initialisation…");
-  fakeProgress = 0;
-
-  const statusPill = document.getElementById("job-status-pill");
-  if (statusPill) {
-    statusPill.textContent = "PENDING";
-    statusPill.classList.remove("pill-green", "pill-danger", "pill-warning");
-    statusPill.classList.add("pill");
-  }
-
-  let success = false;
-  let finalPromptId = null;
-
-  try {
-    const wfName = document.getElementById("workflow-select")?.value;
-    if (!wfName) {
-      setError("Veuillez sélectionner un workflow.");
-      throw new Error("No workflow selected.");
+    // 1. Désactiver le bouton immédiatement et initialiser l'état
+    if (currentBtn) {
+        currentBtn.disabled = true;
+        currentBtn.querySelector(".dot").style.background = "#fbbf24";
+        currentBtn.innerHTML = `<span class="dot"></span>Initialisation…`;
     }
 
-    const formData = new FormData(formEl);
+    lastGenerationStartTime = Date.now();
+    showProgressOverlay(true, "Initialisation…");
+    fakeProgress = 0;
 
-    if (wfName === "affiche.json") {
-      const generatedPrompt = generateAffichePrompt();
-      formData.set("prompt", generatedPrompt);
+    const statusPill = document.getElementById("job-status-pill");
+    if (statusPill) {
+        statusPill.textContent = "PENDING";
+        statusPill.classList.remove("pill-green", "pill-danger", "pill-warning");
+        statusPill.classList.add("pill");
     }
 
-    log("Début de la séquence de génération…");
-    if (currentBtn) currentBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
+    let success = false;
+    let finalPromptId = null;
+    let formData;
+    let finalPromptText = ""; // Variable pour stocker le prompt final
 
-    const maxAttempts = 3;
-    let attempt = 0;
+    // 2. Le bloc try/finally garantit la réactivation du bouton.
+    try {
+        const wfName = document.getElementById("workflow-select")?.value;
 
-    while (attempt < maxAttempts && !success) {
-      attempt++;
-      try {
-        log(`[Tentative ${attempt}/${maxAttempts}] Envoi /generate`);
-        const resp = await fetch(
-          `${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`,
-          { method: "POST", headers: { ...authHeaders() }, body: formData }
-        );
-
-        if (!resp.ok) {
-          log(`Tentative ${attempt} → HTTP ${resp.status}`);
-          if (attempt < maxAttempts) {
-            await new Promise(r => setTimeout(r, 5000));
-            continue;
-          }
-          throw new Error(`Échec après plusieurs tentatives. (HTTP ${resp.status})`);
+        if (!wfName) {
+            setError("Veuillez sélectionner un workflow.");
+            throw new Error("No workflow selected."); 
         }
 
-        const data = await resp.json();
-        if (!data.prompt_id) throw new Error("Réponse invalide de /generate (missing prompt_id)");
+        // ÉTAPE 1 : Créer le FormData avec toutes les données existantes
+        formData = new FormData(formEl);
 
-        success = true;
-        finalPromptId = data.prompt_id;
-      } catch (err) {
-        console.error(`Erreur tentative ${attempt}:`, err);
-        if (attempt >= maxAttempts) setError(`❌ Échec de l’envoi initial de la tâche au serveur API.`);
-        await new Promise(r => setTimeout(r, 5000));
-      }
-    }
+        // ÉTAPE 2 : Gérer le prompt pour le mode AFFICHE (Injection directe)
+        if (wfName === "affiche.json") {
+            log("Workflow Affiche détecté. Génération automatique et injection du prompt.");
+            
+            // La fonction generateAffichePrompt est modifiée pour RETOURNER le prompt généré.
+            // Si votre fonction n'a pas été modifiée, veuillez appliquer la modification suivante:
+            // Remplacer :
+            // function generateAffichePrompt() { ... (calcul prompt) ... promptArea.value = prompt; }
+            // Par :
+            // function generateAffichePrompt() { ... (calcul prompt) ... promptArea.value = prompt; return prompt; }
+            
+            const generatedPrompt = generateAffichePrompt();
+            
+            // 🔥 INJECTION DIRECTE : On s'assure que le champ 'prompt' dans le FormData a la bonne valeur.
+            // Ceci garantit que la valeur est envoyée, même si le DOM n'est pas synchrone.
+            formData.set('prompt', generatedPrompt);
+            finalPromptText = generatedPrompt;
 
-    if (success && finalPromptId) {
-      currentPromptId = finalPromptId;
-      log("Prompt ID final:", finalPromptId);
-      pollProgress(finalPromptId);
-    } else {
-      showProgressOverlay(false);
+        } else {
+            // Pour tous les autres workflows, on prend le prompt tel qu'il a été saisi dans le textarea
+            finalPromptText = formData.get('prompt') || "Prompt par défaut si vide";
+        }
+        
+        log(`Contenu du prompt envoyé: "${finalPromptText.substring(0, 80)}..."`);
+        
+        log("Début de la séquence de génération réelle...");
+        if (currentBtn) currentBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
+
+        const maxAttempts = 3;
+        let attempt = 0;
+
+        // ... Reste du code de l'envoi HTTP, qui est correct ...
+
+        while (attempt < maxAttempts && !success) {
+            attempt++;
+            try {
+                log(`[Tentative ${attempt}/${maxAttempts}] Envoi de la requête de génération.`);
+
+                const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, { method: "POST", headers: { ...authHeaders() }, body: formData });
+
+                if (!resp.ok) {
+                    // ... (gestion des erreurs de tentative) ...
+                    log(`Tentative ${attempt} → HTTP ${resp.status}`);
+                    if (attempt < maxAttempts) {
+                        await new Promise(r => setTimeout(r, 5000));
+                        continue;
+                    } else {
+                        throw new Error(`Échec après plusieurs tentatives. (HTTP ${resp.status})`);
+                    }
+                }
+
+                const data = await resp.json();
+                if (!data.prompt_id) {
+                    throw new Error("Réponse invalide de /generate (missing prompt_id)");
+                }
+
+                success = true;
+                finalPromptId = data.prompt_id;
+
+            } catch (err) {
+                console.error(`Erreur tentative ${attempt}:`, err);
+                log(`Tentative ${attempt}/${maxAttempts} : Échec.`);
+
+                if (attempt >= maxAttempts) {
+                    setError(`❌ Échec de l’envoi initial de la tâche au serveur API.`);
+                }
+
+                await new Promise(r => setTimeout(r, 5000));
+            }
+        }
+
+        if (success && finalPromptId) {
+            currentPromptId = finalPromptId;
+            log("Prompt ID final:", finalPromptId);
+            pollProgress(finalPromptId);
+        } else {
+            showProgressOverlay(false);
+        }
+
+    } catch (globalErr) {
+        console.warn("Generation stopped early:", globalErr.message);
+        if (!document.getElementById("error-box")?.textContent) {
+            setError(`Erreur d'initialisation : ${globalErr.message}`);
+        }
+        showProgressOverlay(false);
+        
+    } finally {
+        if (currentBtn) {
+            currentBtn.disabled = false;
+            currentBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
+            currentBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
+        }
     }
-  } catch (globalErr) {
-    console.warn("Generation stopped early:", globalErr.message);
-    if (!document.getElementById("error-box")?.textContent) {
-      setError(`Erreur d'initialisation : ${globalErr.message}`);
-    }
-    showProgressOverlay(false);
-  } finally {
-    if (currentBtn) {
-      currentBtn.disabled = false;
-      const dot = currentBtn.querySelector(".dot");
-      if (dot) dot.style.background = "rgba(15,23,42,0.9)";
-      currentBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
-    }
-  }
 }
 
 // =========================================================
-// RANDOM AFFICHE
+// RANDOM AFFICHE — CHARGEMENT + GÉNÉRATION AUTOMATIQUE
 // =========================================================
+
 let RANDOM_AFFICHE_DATA = null;
 
+// Charge le fichier JSON une seule fois
 async function loadRandomAfficheJSON() {
-  if (RANDOM_AFFICHE_DATA) return RANDOM_AFFICHE_DATA;
-  try {
-    const resp = await fetch("random_affiche_data.json");
-    if (!resp.ok) {
-      console.error("❌ Fichier random_affiche_data.json introuvable !");
-      return null;
+    if (RANDOM_AFFICHE_DATA) return RANDOM_AFFICHE_DATA;
+
+    try {
+        const resp = await fetch("random_affiche_data.json");
+        if (!resp.ok) {
+            console.error("❌ Fichier random_affiche_data.json introuvable !");
+            return null;
+        }
+
+        RANDOM_AFFICHE_DATA = await resp.json();
+        console.log("📁 random_affiche_data.json chargé !");
+        return RANDOM_AFFICHE_DATA;
+
+    } catch (e) {
+        console.error("Erreur lors du chargement JSON random :", e);
+        return null;
     }
-    RANDOM_AFFICHE_DATA = await resp.json();
-    console.log("📁 random_affiche_data.json chargé !");
-    return RANDOM_AFFICHE_DATA;
-  } catch (e) {
-    console.error("Erreur lors du chargement JSON random :", e);
-    return null;
-  }
 }
 
+// Pioche aléatoire
 function pickRandom(arr) {
-  if (!arr || !arr.length) return "";
-  return arr[Math.floor(Math.random() * arr.length)];
+    if (!arr || !arr.length) return "";
+    const idx = Math.floor(Math.random() * arr.length);
+    return arr[idx];
 }
 
+// Injection massive dans les champs
 function fillAfficheFieldsFromRandom(randomObj) {
-  if (!randomObj) return;
+    if (!randomObj) return;
 
-  setValue("aff_titre", randomObj.titre || "");
-  setValue("aff_sous_titre", randomObj.sous_titre || "");
-  setValue("aff_tagline", randomObj.tagline || "");
+    setValue("aff_titre", randomObj.titre || "");
+    setValue("aff_sous_titre", randomObj.sous_titre || "");
+    setValue("aff_tagline", randomObj.tagline || "");
 
-  if (randomObj.theme) {
-    setValue("aff_theme_custom", randomObj.theme);
-    const s = document.getElementById("aff_theme");
-    if (s) s.value = "";
-  }
+    if (randomObj.theme) {
+        setValue("aff_theme_custom", randomObj.theme);
+        const s = document.getElementById("aff_theme");
+        if (s) s.value = "";
+    }
 
-  if (randomObj.ambiance) {
-    setValue("aff_ambiance_custom", randomObj.ambiance);
-    const s = document.getElementById("aff_ambiance");
-    if (s) s.value = "";
-  }
+    if (randomObj.ambiance) {
+        setValue("aff_ambiance_custom", randomObj.ambiance);
+        const s = document.getElementById("aff_ambiance");
+        if (s) s.value = "";
+    }
 
-  if (randomObj.personnage) {
-    setValue("aff_perso_desc", randomObj.personnage);
-    const s = document.getElementById("aff_perso_sugg");
-    if (s) s.value = "";
-  }
+    if (randomObj.personnage) {
+        setValue("aff_perso_desc", randomObj.personnage);
+        const s = document.getElementById("aff_perso_sugg");
+        if (s) s.value = "";
+    }
 
-  if (randomObj.environnement) {
-    setValue("aff_env_desc", randomObj.environnement);
-    const s = document.getElementById("aff_env_sugg");
-    if (s) s.value = "";
-  }
+    if (randomObj.environnement) {
+        setValue("aff_env_desc", randomObj.environnement);
+        const s = document.getElementById("aff_env_sugg");
+        if (s) s.value = "";
+    }
 
-  if (randomObj.action) {
-    setValue("aff_action_desc", randomObj.action);
-    const s = document.getElementById("aff_action_sugg");
-    if (s) s.value = "";
-  }
+    if (randomObj.action) {
+        setValue("aff_action_desc", randomObj.action);
+        const s = document.getElementById("aff_action_sugg");
+        if (s) s.value = "";
+    }
 
-  if (randomObj.details) setValue("aff_details", randomObj.details);
+    if (randomObj.details) {
+        setValue("aff_details", randomObj.details);
+    }
 
-  if (randomObj.palette) {
-    setValue("aff_palette_custom", randomObj.palette);
-    const s = document.getElementById("aff_palette");
-    if (s) s.value = "";
-  }
+    if (randomObj.palette) {
+        setValue("aff_palette_custom", randomObj.palette);
+        const s = document.getElementById("aff_palette");
+        if (s) s.value = "";
+    }
 
-  if (randomObj.style_titre) {
-    setValue("aff_style_titre_custom", randomObj.style_titre);
-    const s = document.getElementById("aff_style_titre");
-    if (s) s.value = "";
-  }
+    if (randomObj.style_titre) {
+        setValue("aff_style_titre_custom", randomObj.style_titre);
+        const s = document.getElementById("aff_style_titre");
+        if (s) s.value = "";
+    }
 }
 
 // =========================================================
 // INIT GLOBAL (DOMContentLoaded)
 // =========================================================
-function autoClearOnSelect(selectId, customId) {
-  const sel = document.getElementById(selectId);
-  const custom = document.getElementById(customId);
-  if (!sel || !custom) return;
 
-  sel.addEventListener("change", () => {
-    if (sel.value && custom.value.trim() !== "") custom.value = "";
-  });
+function autoClearOnSelect(selectId, customId) {
+    const sel = document.getElementById(selectId);
+    const custom = document.getElementById(customId);
+
+    if (!sel || !custom) return;
+
+    sel.addEventListener("change", () => {
+        if (sel.value && custom.value.trim() !== "") {
+            custom.value = ""; // Efface le champ libre
+        }
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Logout
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("google_id_token");
-      window.location.replace("login.html");
-    });
-  }
+// =========================================================
+// 🔓 LOGOUT
+// =========================================================
+const logoutBtn = document.getElementById("logout-btn");
 
-  // Auto clear
-  autoClearOnSelect("aff_style_titre", "aff_style_titre_custom");
-  autoClearOnSelect("aff_theme", "aff_theme_custom");
-  autoClearOnSelect("aff_ambiance", "aff_ambiance_custom");
-  autoClearOnSelect("aff_perso_sugg", "aff_perso_desc");
-  autoClearOnSelect("aff_env_sugg", "aff_env_desc");
-  autoClearOnSelect("aff_action_sugg", "aff_action_desc");
-  autoClearOnSelect("aff_palette", "aff_palette_custom");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    console.log("🔓 Déconnexion utilisateur");
 
-  // Submit
-  const formEl = document.getElementById("generation-form");
-  if (formEl) formEl.addEventListener("submit", startGeneration);
+    // Supprime le token
+    localStorage.removeItem("google_id_token");
 
-  // Copy params
-  const copyBtn = document.getElementById("copy-params-btn");
-  if (copyBtn) {
-    copyBtn.addEventListener("click", () => {
-      const wfName = document.getElementById("workflow-select")?.value || "–";
-      const width = document.getElementById("width-input")?.value || "–";
-      const height = document.getElementById("height-input")?.value || "–";
-      const steps = document.getElementById("steps-slider")?.value || "–";
-      const cfg = document.getElementById("cfg_scale-slider")?.value || "–";
-      const sampler = document.getElementById("sampler")?.value || "–";
-      const seed = document.getElementById("seed-input")?.value || "–";
-      const txt = `Workflow: ${wfName}\nResolution: ${width}x${height}\nSteps: ${steps}\nCFG: ${cfg}\nSampler: ${sampler}\nSeed: ${seed}`;
-      navigator.clipboard.writeText(txt).then(() => log("Paramètres copiés."));
-    });
-  }
-
-  // Random affiche
-  const randomBtn = document.getElementById("affiche-random-btn");
-  if (randomBtn && formEl) {
-    randomBtn.addEventListener("click", async () => {
-      const data = await loadRandomAfficheJSON();
-      if (!data) return;
-
-      const randomObj = {
-        titre: pickRandom(data.titres),
-        sous_titre: pickRandom(data.sous_titres),
-        tagline: pickRandom(data.taglines || []),
-        theme: pickRandom(data.themes),
-        ambiance: pickRandom(data.ambiances),
-        personnage: pickRandom(data.personnages),
-        environnement: pickRandom(data.environnements),
-        action: pickRandom(data.actions),
-        palette: pickRandom(data.palettes),
-        style_titre: pickRandom(data.styles_titre),
-        details: pickRandom(data.details),
-      };
-
-      fillAfficheFieldsFromRandom(randomObj);
-      generateAffichePrompt();
-
-      randomBtn.classList.add("clicked");
-      randomBtn.innerHTML = "🎲 Champs remplis !";
-      setTimeout(() => {
-        randomBtn.classList.remove("clicked");
-        randomBtn.innerHTML = "🎲 Generate Random Poster";
-      }, 600);
-    });
-  }
-
-  // Generate prompt button
-  const btnPrompt = document.getElementById("affiche-generate-btn");
-  if (btnPrompt && formEl) {
-    btnPrompt.addEventListener("click", () => {
-      generateAffichePrompt();
-      btnPrompt.classList.add("clicked");
-      btnPrompt.innerHTML = "✨ Prompt généré !";
-      setTimeout(() => {
-        btnPrompt.classList.remove("clicked");
-        btnPrompt.innerHTML = "✨ Generate Poster Prompt";
-      }, 600);
-    });
-  }
-
-  // Mode cards
-  const modeCards = document.querySelectorAll(".mode-card");
-  const afficheMenu = document.getElementById("affiche-menu");
-  const generateButton = document.getElementById("generate-button");
-  const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper");
-
-  modeCards.forEach(card => {
-    card.addEventListener("click", () => {
-      const mode = card.dataset.mode;
-
-      modeCards.forEach(c => c.classList.remove("active-mode"));
-      card.classList.add("active-mode");
-
-      if (mode === "affiche") {
-        if (afficheMenu) afficheMenu.style.display = "block";
-        selectWorkflow("affiche.json");
-        if (generateButton) generateButton.style.display = "block";
-        if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = "block";
-      } else {
-        if (afficheMenu) afficheMenu.style.display = "none";
-        if (generateButton) generateButton.style.display = "block";
-        if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = "none";
-      }
-    });
+    // Redirection vers la page login
+    window.location.replace("login.html");
   });
+}
+    // =========================================================
+    // AUTO-CLEAR POUR CHAQUE SELECT → CHAMP CUSTOM
+    // =========================================================
+    autoClearOnSelect("aff_style_titre", "aff_style_titre_custom");
+    autoClearOnSelect("aff_theme", "aff_theme_custom");
+    autoClearOnSelect("aff_ambiance", "aff_ambiance_custom");
+    autoClearOnSelect("aff_perso_sugg", "aff_perso_desc");
+    autoClearOnSelect("aff_env_sugg", "aff_env_desc");
+    autoClearOnSelect("aff_action_sugg", "aff_action_desc");
+    autoClearOnSelect("aff_palette", "aff_palette_custom");
 
-  // Default click mode
-  const defaultModeCard = document.querySelector(".mode-card.active-mode");
-  if (defaultModeCard) defaultModeCard.dispatchEvent(new Event("click"));
+    // =========================================================
+    // LISTENERS GÉNÉRAUX
+    // =========================================================
 
-  // Modal close
-  const modal = document.getElementById("image-modal");
-  const closeBtn = document.querySelector(".image-modal-close");
-  if (modal && closeBtn) {
-    closeBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      modal.classList.remove("active");
-      const mImg = document.getElementById("image-modal-img");
-      if (mImg) mImg.src = "";
+    const formEl = document.getElementById("generation-form");
+    if (formEl) {
+        formEl.addEventListener("submit", startGeneration);
+    }
+
+    const modal = document.getElementById("image-modal");
+    const modalClose = document.querySelector(".modal-close-btn");
+
+    if (modalClose && modal) {
+        modalClose.addEventListener("click", () => {
+            modal.style.display = "none";
+        });
+    }
+
+    if (modal) {
+        modal.addEventListener("click", (ev) => {
+            if (ev.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+    }
+
+    const copyBtn = document.getElementById("copy-params-btn");
+    if (copyBtn) {
+        copyBtn.addEventListener("click", () => {
+            const wfName = document.getElementById("workflow-select")?.value || "–";
+            const width = document.getElementById("width-input")?.value || "–";
+            const height = document.getElementById("height-input")?.value || "–";
+            const steps = document.getElementById("steps-slider")?.value || "–";
+            const cfg = document.getElementById("cfg_scale-slider")?.value || "–";
+            const sampler = document.getElementById("sampler")?.value || "–";
+            const seed = document.getElementById("seed-input")?.value || "–";
+
+            const txt = `Workflow: ${wfName}\nResolution: ${width}x${height}\nSteps: ${steps}\nCFG: ${cfg}\nSampler: ${sampler}\nSeed: ${seed}`;
+            navigator.clipboard.writeText(txt).then(() => {
+                log("Paramètres copiés dans le presse-papiers.");
+            });
+        });
+    }
+    
+    // =========================================================
+    // RANDOM AFFICHE — CHARGEMENT + REMPLISSAGE SEUL
+    // =========================================================
+
+    const randomBtn = document.getElementById("affiche-random-btn");
+    if (randomBtn && formEl) {
+        randomBtn.addEventListener("click", async () => {
+            console.log("🎲 Clic random détecté !");
+
+            const data = await loadRandomAfficheJSON();
+            if (!data) return;
+
+            const theme = pickRandom(data.themes);
+            const ambiance = pickRandom(data.ambiances);
+            const perso = pickRandom(data.personnages);
+            const env = pickRandom(data.environnements);
+            const action = pickRandom(data.actions);
+            const palette = pickRandom(data.palettes);
+            const styleTitre = pickRandom(data.styles_titre);
+            const details = pickRandom(data.details);
+            const titre = pickRandom(data.titres);
+            const sousTitre = pickRandom(data.sous_titres);
+            const tagline = pickRandom(data.taglines || []);
+
+            const randomObj = {
+                titre,
+                sous_titre: sousTitre,
+                tagline,
+                theme,
+                ambiance,
+                personnage: perso,
+                environnement: env,
+                action,
+                palette,
+                style_titre: styleTitre,
+                details
+            };
+
+            fillAfficheFieldsFromRandom(randomObj);
+            generateAffichePrompt(); 
+            
+            randomBtn.classList.add("clicked");
+            randomBtn.innerHTML = "🎲 Champs remplis !";
+            setTimeout(() => {
+                randomBtn.classList.remove("clicked");
+                randomBtn.innerHTML = "🎲 Aléatoire";
+            }, 600);
+            
+            console.log("🎲 Champs affiche remplis aléatoirement:", randomObj);
+        });
+    }
+
+    // =========================================================
+    // GENERATE PROMPT BUTTON LISTENER (PROMPT SEUL)
+    // =========================================================
+
+    const btnPrompt = document.getElementById("affiche-generate-btn");
+    if (btnPrompt && formEl) {
+        btnPrompt.addEventListener("click", () => {
+            
+            generateAffichePrompt(); // Met à jour le champ
+            
+            btnPrompt.classList.add("clicked");
+            btnPrompt.innerHTML = "✨ Prompt généré !";
+            setTimeout(() => {
+                btnPrompt.classList.remove("clicked");
+                btnPrompt.innerHTML = "✨ Générer le prompt de l’affiche";
+            }, 600);
+        });
+    }
+
+    // =========================================================
+// ACTIVATION DES MENUS & BOUTONS (AFFICHE / IMAGE)
+// =========================================================
+
+const modeCards = document.querySelectorAll(".mode-card");
+const afficheMenu = document.getElementById("affiche-menu");
+const generateButton = document.getElementById("generate-button");
+const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper");
+
+modeCards.forEach(card => {
+    card.addEventListener("click", () => {
+        const mode = card.dataset.mode;
+
+        // Visuel actif
+        modeCards.forEach(c => c.classList.remove("active-mode"));
+        card.classList.add("active-mode");
+
+        if (mode === "affiche") {
+            afficheMenu.style.display = "block";
+            selectWorkflow("affiche.json");
+
+            if (generateButton) generateButton.style.display = "block";
+            if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = "block";
+        } else {
+            afficheMenu.style.display = "none";
+
+            if (generateButton) generateButton.style.display = "block";
+            if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = "none";
+        }
     });
+});
 
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        modal.classList.remove("active");
-        const mImg = document.getElementById("image-modal-img");
-        if (mImg) mImg.src = "";
-      }
-    });
+// =========================================================
+// INITIALISATION FINALE
+// =========================================================
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        modal.classList.remove("active");
-        const mImg = document.getElementById("image-modal-img");
-        if (mImg) mImg.src = "";
-      }
-    });
-  }
+// Simuler un clic sur la carte active par défaut
+const defaultModeCard = document.querySelector(".mode-card.active-mode");
+if (defaultModeCard) {
+    defaultModeCard.dispatchEvent(new Event("click"));
+}
 
-  // Init data
-  refreshGPU();
-  setInterval(refreshGPU, 10000);
-  loadWorkflows();
+// GPU
+refreshGPU();
+setInterval(refreshGPU, 10000);
 
-  // ✅ IMPORTANT: on ne lance plus loadCarrouselGallery() sans data.
-  // Elle sera alimentée à la fin de displayImageAndMetadata().
+// Données
+loadWorkflows();
+loadCarrouselGallery();
+
 });
