@@ -105,13 +105,9 @@ async function loadCarrouselGallery() {
 
     // ✅ CLIC → OUVERTURE MODAL (PAS PREVIEW)
     thumb.addEventListener("click", () => {
-      const modal = document.getElementById("image-modal");
-      const modalImg = document.getElementById("image-modal-img");
-
-      if (!modal || !modalImg) return;
-
-      modalImg.src = fullPath;
-      modal.style.display = "flex";
+      // CORRECTION : Utiliser la fonction centralisée pour définir correctement
+      // l'image ET le lien de téléchargement de la modale.
+      openImageModal(fullPath);
     });
 
   console.log("✅ gallery populated");
