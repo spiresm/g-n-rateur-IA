@@ -11,6 +11,7 @@
 <div class="app-shell">
 
     <header>
+    <!-- LEFT ZONE -->
     <div style="display:flex; align-items:center; gap:18px;">
         <button id="logout-btn" class="btn-secondary" title="Déconnexion Google">
             🔓
@@ -25,7 +26,9 @@
         </div>
     </div>
 
+    <!-- RIGHT ZONE -->
     <div style="display:flex; align-items:center; gap:15px;">
+        <!-- USER INFO -->
         <div id="user-info" style="display:none; align-items:center; gap:8px;">
             <img id="user-avatar"
                  src=""
@@ -34,6 +37,7 @@
             <span id="user-name" style="font-size:13px;color:var(--muted);"></span>
         </div>
 
+        <!-- GPU CARD -->
         <div class="gpu-card" id="gpu-card">
             <div class="gpu-main">
                 <span class="gpu-label">GRAPHICS CARD</span>
@@ -185,97 +189,73 @@
             <option>a cozy, candlelit living room</option>
             <option>a neon futuristic landscape</option>
             <option>an enchanted forest</option>
-            <option>a miniature city</option>
-            <option>an underwater palace</option>
-            <option>a spaceship bridge</option>
+            <option>a miniature city model style</option>
+            <option>a festive tropical beach</option>
         </select>
         <input id="aff_env_desc" type="text" placeholder="Personal description (optional)" class="ui-input">
     </div>
 
-    <label for="aff_action_sugg" style="margin-top: 15px;">Action / Scene</label>
+    <label for="aff_action_sugg" style="margin-top: 15px;">Character's Action</label>
     <div class="input-group-row">
         <select id="aff_action_sugg" class="ui-select">
             <option value="">Choose…</option>
-            <option>jumping joyfully</option>
-            <option>sharing a laugh</option>
-            <option>in the middle of a chase</option>
-            <option>doing magic</option>
+            <option>blowing out candles</option>
             <option>opening a gift</option>
+            <option>dancing joyfully</option>
+            <option>throwing confetti</option>
             <option>flying in the sky</option>
-            <option>discovering a hidden treasure</option>
-            <option>having a tea party</option>
-            <option>fighting an epic battle</option>
-            <option>dancing under the stars</option>
+            <option>performing a magic trick</option>
+            <option>exploring a mysterious place</option>
+            <option>fighting a funny monster</option>
+            <option>playing a musical instrument</option>
         </select>
         <input id="aff_action_desc" type="text" placeholder="Personal description (optional)" class="ui-input">
     </div>
+
+    <label for="aff_details" style="margin-top: 15px;">Additional Details</label>
+    <textarea id="aff_details" placeholder="Ex: fireworks, light snow, colorful balloons…" class="ui-input textarea"></textarea>
 
     <label for="aff_palette" style="margin-top: 15px;">Color Palette</label>
     <div class="input-group-row">
         <select id="aff_palette" class="ui-select">
             <option value="">Choose…</option>
-            <option>warm golden tones</option>
-            <option>cool blues and silver</option>
-            <option>vibrant rainbow colors</option>
-            <option>dark and saturated colors</option>
-            <option>pastel and soft colors</option>
-            <option>neon and electric colors</option>
-            <option>monochromatic (black/white/grey)</option>
-            <option>complementary red/green</option>
-            <option>vintage sepia</option>
-            <option>dark cyberpunk magenta/cyan</option>
+            <optgroup label="Simple">
+                <option>warm colors (red, orange, yellow)</option>
+                <option>cool colors (blue, purple, turquoise)</option>
+                <option>soft pastels (pink, peach, lavender)</option>
+                <option>strong contrast (black, red, gold)</option>
+            </optgroup>
+            <optgroup label="Gradients">
+                <option>blue → purple gradient</option>
+                <option>red → orange gradient</option>
+                <option>pink → blue gradient</option>
+                <option>gold → black gradient</option>
+                <option>turquoise → green gradient</option>
+            </optgroup>
         </select>
-        <input id="aff_palette_custom" type="text" placeholder="Or a personalized palette…" class="ui-input">
+        <input id="aff_palette_custom" type="text" placeholder="Or define your own palette…" class="ui-input">
     </div>
 
-
-    <div class="section" style="padding-bottom: 5px;">
-        <label for="aff_style_titre" title="Style of the main title text.">Text Title Style</label>
-        <div class="input-group-row">
-            <select id="aff_style_titre" class="ui-select">
-                <option value="">Choose…</option>
-                <option value="aleatoire">Random Style (Recommended)</option>
-                </select>
-            <input id="aff_style_titre_custom" type="text" placeholder="Or write your own style…" class="ui-input">
-        </div>
+    <label for="aff_style_titre" style="margin-top: 15px;">Title Style</label>
+    <div class="input-group-row">
+        <select id="aff_style_titre" class="ui-select">
+            </select>
+        <input id="aff_style_titre_custom" type="text" placeholder="Or write your own style…" class="ui-input">
     </div>
-
-
-    <button type="button" id="generate-affiche-prompt-btn" class="btn-secondary" style="width:100%; margin-top:15px; margin-bottom: 10px;">
-        ✨ Générer le prompt de l’affiche
-    </button>
-</div>
-
-                <div class="section" id="prompt-section">
-                    <label for="prompt">Prompt</label>
-                    <textarea id="prompt" name="prompt" placeholder="Describe the image to generate precisely…" class="ui-input textarea"></textarea>
-                </div>
-                <div class="section" id="negative-prompt-section" style="display: none;">
-                    <label for="negative_prompt">Negative Prompt</label>
-                    <textarea id="negative_prompt" name="negative_prompt" placeholder="Elements to avoid (e.g., blur, watermark, deformed, bad anatomy)..." class="ui-input textarea"></textarea>
-                </div>
-                
-                <div class="section" id="group-sampler" style="display:none;" title="The method used to calculate the image.">
-                    <label for="sampler-select">Sampler</label>
-                    <select id="sampler-select" name="sampler">
-                        <option value="dpmpp_2m_sde_gpu">DPM++ 2M SDE (Recommended)</option>
-                        <option value="dpmpp_2m_sde">DPM++ 2M SDE (CPU)</option>
-                        <option value="dpmpp_2m">DPM++ 2M</option>
-                        <option value="dpmpp_3m_sde">DPM++ 3M SDE</option>
-                        <option value="euler_ancestral">Euler Ancestral</option>
-                        <option value="euler">Euler</option>
-                        <option value="dpm_fast">DPM Fast</option>
-                        <option value="lcm">LCM (Fast Generation)</option>
-                    </select>
-                </div>
-
-                <div class="section" id="group-quality-sdxl" style="display:none;">
-                    <label for="sdxl_quality" title="Quality preset influencing the number of steps.">Global Quality</label>
-                    <select id="sdxl_quality" class="ui-select">
-                        <option value="normal">Normal</option>
-                        <option value="high">High quality</option>
-                        <option value="ultra">Ultra</option>
-                    </select>
+    
+    </div>
+                <div class="section" id="input-image-section" style="display:none; margin-top: 4px;" title="Reference image used by some workflows (e.g., Image to Image, ControlNet).">
+                    <label>Input Image (optional)</label>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <button type="button" class="btn-secondary" id="input-image-browse-btn">
+                            Choose an image…
+                        </button>
+                        <span id="input-image-label" style="font-size:12px;color:#9ca3af;">
+                            No image selected
+                        </span>
+                    </div>
+                    <input type="file" id="input-image-file" accept="image/*" style="display:none;">
+                    <input type="hidden" id="input_image_path" name="input_image_path">
                 </div>
 
                 <div class="section">
@@ -283,18 +263,20 @@
                         <label for="steps-slider">Steps: <span id="steps-value">30</span></label>
                         <input type="range" id="steps-slider" name="steps" min="10" max="100" value="30" />
                     </div>
-                    
                     <div id="group-cfg" style="display: none; margin-top: 10px;" title="Classifier Free Guidance. Controls the fidelity of the image to the prompt.">
                         <label for="cfg_scale-slider">CFG Scale: <span id="cfg_scale-value">7.0</span></label>
                         <input type="range" id="cfg_scale-slider" name="cfg_scale" min="1" max="20" step="0.5" value="7" />
                     </div>
-
+                    
                     <div class="section" id="group-seed" style="display:none !important; margin-top: 10px;">
                         <label for="seed-input">Seed:</label>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <input type="number" id="seed-input" name="seed_value" value="42" style="flex-grow: 1;" class="ui-input" />
+                            
                             <input type="checkbox" id="seed-random-toggle" name="seed_random" style="width: auto; margin-left: 0;" />
-                            <label for="seed-random-toggle" style="margin-left: -5px; display: flex; align-items: center; cursor: pointer;"> Random ℹ️ </label>
+                            <label for="seed-random-toggle" style="margin-left: -5px; display: flex; align-items: center; cursor: pointer;">
+                                Random ℹ️
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -310,35 +292,72 @@
                     </div>
                 </div>
 
-                <div id="quick-format-image" class="section" style="margin-top: 15px; display: none;">
-                    <label style="font-size:13px;">Quick Format (Aspect Ratio)</label>
-                    <div class="quick-format-icons">
-                        <span class="fmt-icon" data-w="1024" data-h="1024" title="1:1 Square">◼️</span>
-                        <span class="fmt-icon" data-w="1152" data-h="896" title="4:3">🖼️</span>
-                        <span class="fmt-icon" data-w="1216" data-h="832" title="3:2">📷</span>
-                        <span class="fmt-icon" data-w="1344" data-h="768" title="16:9 Landscape">📺</span>
-                        <span class="fmt-icon" data-w="896" data-h="1152" title="3:4 Portrait">📱</span>
-                        <span class="fmt-icon" data-w="768" data-h="1344" title="9:16 Portrait">📐</span>
+                <div class="section">
+                    <div id="group-sampler" style="display: none;" title="The sampling algorithm (sampler) used to create the image.">
+                        <label for="sampler">Sampler</label>
+                        <select id="sampler" name="sampler" class="ui-select">
+                            <option value="euler">Euler</option>
+                            <option value="euler_a">Euler a</option>
+                            <option value="ddim">DDIM</option>
+                        </select>
                     </div>
                 </div>
 
-                <div class="section" id="image-upload-section" style="display: none;">
-                    <label>Input Image (Optional)</label>
-                    <input type="file" id="input-image" name="input_image" accept="image/*" class="ui-input" style="padding: 8px;" />
-                    <div style="font-size: 11px; color: var(--muted); margin-top: 5px;">Requires a workflow that uses an input image (e.g., ControlNet).</div>
+                <div class="section" id="video-params-section" style="display:none; margin-top: 4px;">
+                    <label>Video Parameters</label>
+                    <div class="row">
+                        <div>
+                            <label for="duration">Duration (seconds)</label>
+                            <input type="number" id="duration" name="duration" value="5" min="1" class="ui-input" />
+                        </div>
+                        <div>
+                            <label for="ratio">Ratio</label>
+                            <select id="ratio" name="ratio" class="ui-select">
+                                <option value="1280:720">1280 × 720 (landscape)</option>
+                                <option value="720:1280">720 × 1280 (portrait)</option>
+                                <option value="1920:1080">1920 × 1080 (wide landscape)</option>
+                                <option value="1080:1920">1080 × 1920 (wide portrait)</option>
+                                <option value="1024:576">1024 × 576 (standard)</option>
+                                <option value="576:1024">576 × 1024 (standard portrait)</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                
-                <div id="generate-button-wrapper" class="section" style="padding-top: 20px;">
-                    <button type="submit" id="generate-button" class="btn-main" style="width:100%;">
-                        <span class="dot"></span>Démarrer la génération
-                    </button>
+
+                <div class="section" id="sdxl-panel" style="display:none; margin-top:10px;">
+                    <h3 style="margin:0 0 8px;font-size:14px;">⚙️ SDXL Settings (Refiner)</h3>
+
+                    <label for="sdxl_mode" title="Choice of mode for the image refinement (Refiner) process.">Refiner Mode</label>
+                    <select id="sdxl_mode" class="ui-select">
+                        <option value="standard">Standard</option>
+                        <option value="detail">Detail boost</option>
+                        <option value="soft">Soft</option>
+                    </select>
+
+                    <div class="row" style="margin-top:8px;">
+                        <div title="The percentage of steps at which the refinement process should start.">
+                            <label for="sdxl_start-slider">Refiner Start (%): <span id="sdxl_start-value">60</span></label>
+                            <input type="range" id="sdxl_start-slider" min="0" max="100" value="60" />
+                        </div>
+                        <div title="The percentage of steps at which the refinement process should end.">
+                            <label for="sdxl_end-slider">Refiner End (%): <span id="sdxl_end-value">100</span></label>
+                            <input type="range" id="sdxl_end-slider" min="1" max="100" value="100" />
+                        </div>
+                    </div>
+
+                    <label for="sdxl_quality" style="margin-top:8px;" title="Adjusts the overall image quality, acting on the default number of steps.">Global Quality</label>
+                    <select id="sdxl_quality" class="ui-select">
+                        <option value="normal">Normal</option>
+                        <option value="high">High quality</option>
+                        <option value="ultra">Ultra</option>
+                    </select>
                 </div>
-                
             </form>
+
             <div class="log-box" id="log-box"></div>
         </div>
 
-        <div class="panel result-panel">
+        <div class="panel">
             <div class="panel-header">
                 <div class="panel-title">
                     <span class="icon">🖼️</span>
@@ -349,56 +368,122 @@
                 </div>
                 <span class="pill-green" id="job-status-pill">READY</span>
             </div>
-
-            <div class="section" id="quick-format-affiche" style="margin-bottom:12px;">
-                <label style="font-size:13px;">Quick Format</label>
-                <div class="quick-format-icons">
-                    <span class="fmt-icon" data-w="1080" data-h="1920" title="9:16 Portrait">📱</span>
-                    <span class="fmt-icon" data-w="1920" data-h="1080" title="16:9 Landscape">📺</span>
-                    <span class="fmt-icon" data-w="1080" data-h="1080" title="1:1 Square">◼️</span>
-                    <span class="fmt-icon" data-w="1080" data-h="1350" title="4:5 Instagram">📸</span>
-                </div>
-            </div>
-
-            <div id="result-area" style="text-align: center; margin-bottom: 20px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
-                <img class="result-image" src="" alt="Generated Image" style="max-width: 100%; height: auto; max-height: 80vh; border-radius: var(--radius-md); box-shadow: 0 5px 20px rgba(0,0,0,0.4); display: none;" />
-                <p id="result-message" style="color: var(--muted); font-size: 14px;">Your image will appear here after generation.</p>
-            </div>
-
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button type="button" id="copy-params-btn" class="btn-secondary" style="flex-grow: 1;" title="Copy prompt and settings to clipboard">
-                    📋 Copy Params
+            
+<!-- QUICK FORMAT (AU-DESSUS DU PROMPT AFFICHE) -->
+<div class="section" id="quick-format-affiche" style="margin-bottom:12px;">
+  <label style="font-size:13px;">Quick Format</label>
+  <div class="quick-format-icons">
+    <span class="fmt-icon" data-w="1920" data-h="1080" title="Paysage">🖥️</span>
+    <span class="fmt-icon" data-w="1080" data-h="1920" title="Portrait">📱</span>
+    <span class="fmt-icon" data-w="1080" data-h="1080" title="Carré">⬛</span>
+  </div>
+</div>
+            <div id="affiche-generate-button-wrapper" style="margin-bottom: 12px;"> 
+                <button type="button" id="affiche-generate-btn" class="btn-main" style="font-size:15px; padding:12px; width: 100%;">
+                    ✨ Generate Poster Prompt
                 </button>
-                <a id="image-modal-download-link" href="#" download class="btn-main" style="width: 50%; display:none;">
-                    ⬇️ Download
-                </a>
             </div>
             
+            <div style="margin-bottom: 12px;">
+                <button id="generate-button" type="submit" class="btn-main" form="generation-form" style="width: 100%; display: none;">
+                    <span class="dot"></span>
+                    Start Generation
+                </button>
+            </div>
+            
+            <div id="result-area">
+    <div id="progress-overlay">
+        <div id="progress-spinner"></div>
+        <div id="progress-meta">
+            <span id="progress-label">Awaiting…</span>
+            <span id="progress-percent">0%</span>
+        </div>
+        <div class="progress-bar-large">
+            <div class="progress-inner-large" id="progress-inner"></div>
+        </div>
+    </div>
+
+    <div id="result-placeholder">
+        <p style="font-size:12px;color:var(--muted);text-align:center;">
+            No image generated yet. Configure your workflow on the left and click
+            <strong>"Start Generation"</strong>.
+        </p>
+    </div>
+</div>
+
+<!-- ===================================================== -->
+<!-- 📸 GALERIE D’IMAGES -->
+<!-- ===================================================== -->
+<div id="gallery">
+    <div class="gallery-header">
+        Galerie
+    </div>
+    <div id="gallery-grid"></div>
+</div>
+
+            <div id="result-footer" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border);">
+                <div class="row" style="margin-bottom: 8px; justify-content: space-between;">
+                    <span style="font-size:12px; color:var(--muted); display:flex; align-items:center; gap: 4px;">
+                        ⏱️ Generation Time: <strong id="time-taken">–</strong>
+                    </span>
+                    <button type="button" id="copy-params-btn" class="btn-secondary" style="padding: 4px 10px; font-size: 12px;">
+                        📋 Copy Parameters
+                    </button>
+                </div>
+                
+                <h3 style="margin: 0 0 5px; font-size: 14px; color: var(--text);">Parameters (Info)</h3>
+                <div id="metadata-display" class="metadata-grid">
+                    <span title="Seed">Seed: <strong id="meta-seed">–</strong></span>
+                    <span title="Steps">Steps: <strong id="meta-steps">–</strong></span>
+                    <span title="CFG Scale">CFG: <strong id="meta-cfg">–</strong></span>
+                    <span title="Sampler">Sampler: <strong id="meta-sampler">–</strong></span>
+                </div>
+            </div>
+            
+            <div class="section" id="prompt-section" title="The text describing the image you want to generate. Be as precise as possible;">
+                <label for="prompt">Prompt</label>
+                <textarea id="prompt" name="prompt" placeholder="Describe the image to generate precisely…" class="ui-input textarea"></textarea>
+            </div>
+            
+            <div id="error-box" class="error-text" style="display:none;"></div>
         </div>
     </div>
 </div>
 
-<div id="progress-overlay" class="progress-overlay">
-    <div class="progress-box">
-        <h4 id="progress-label">Génération en cours…</h4>
-        <div class="progress-bar">
-            <div id="progress-inner" class="progress-inner"></div>
-        </div>
-        <span id="progress-percent" class="progress-percent">0%</span>
-        <div id="error-box" class="error-text" style="display:none; margin-top: 15px;"></div>
+<div id="image-modal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close-btn">&times;</span>
+        <img id="modal-image" src="" alt="Full size image" />
+        <a id="modal-download-link" href="#" download class="btn-secondary" style="margin-top: 20px;">
+            Download (Filename)
+        </a>
     </div>
 </div>
 
+<div id="workflow-popover" class="workflow-popover">
+    <div class="popover-content">
+        <h4 id="popover-title">Workflow Name</h4>
+        <div class="workflow-image-wrapper">
+            <img id="popover-image" src="" alt="Workflow Preview">
+        </div>
+        <p id="popover-description">Model description...</p>
+        <span class="popover-tip"></span>
+    </div>
+</div>
+
+<script src="script.js"></script>
+<!-- =========================
+     MODAL IMAGE (GALERIE / RESULT)
+========================= -->
 <div id="image-modal" class="image-modal">
   <div class="image-modal-content">
     <button class="image-modal-close">✕</button>
     <img id="image-modal-img" />
-    <a id="image-modal-download" href="#" download class="btn-secondary" style="margin-top: 20px;">
-        ⬇️ Download Image
+    <a id="image-modal-download" download class="image-modal-download">
+      ⬇️ Download image
     </a>
   </div>
 </div>
 
-<script src="script.js"></script>
 </body>
 </html>
