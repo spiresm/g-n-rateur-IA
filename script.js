@@ -64,7 +64,7 @@ const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
 // 📸 GALERIE CARROUSEL (thumbs légères + images HD)
 // =========================================================
 function loadCarrouselGallery(data) {
-  const gallery = document.getElementById("gallery-content");
+  const gallery = document.getElementById("gallery-grid");
   if (!gallery || !data || !data.images) return;
 
   // Vider la galerie avant de la remplir
