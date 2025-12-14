@@ -274,13 +274,13 @@ function showProgressOverlay(show, label = "En attente…") {
     if (!overlay || !labelSpan || !percentSpan || !innerBar) return;
 
     if (show) {
-        overlay.classList.add("visible");
+        overlay.classList.add("active"); // ✅ modal fullscreen
         labelSpan.textContent = label;
         percentSpan.textContent = "0%";
         innerBar.style.width = "0%";
         fakeProgress = 0;
     } else {
-        overlay.classList.remove("visible");
+        overlay.classList.remove("active");
     }
 }
 
