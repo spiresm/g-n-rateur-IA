@@ -823,14 +823,9 @@ function displayImageAndMetadata(data) {
         img.classList.add("mj-ready");
     };
 
-    img.addEventListener("click", () => {
-    const modal = document.getElementById("image-modal");
-    const modalImg = document.getElementById("image-modal-img");
-
-    if (!modal || !modalImg) return;
-
-    modalImg.src = img.src;
-    modal.style.display = "flex";
+img.addEventListener("click", () => {
+    openImageModal(img.src);
+});
 });
     resultArea.appendChild(img);
 
