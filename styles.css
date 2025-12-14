@@ -954,3 +954,13 @@ input[type=range]::-webkit-slider-thumb {
   width: min(420px, 90vw);
   margin-top: 12px;
 }
+/* Progress overlay = vrai fond modal + flou */
+#progress-overlay.active{
+  display:flex;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 10000;
+}
