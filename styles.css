@@ -964,3 +964,14 @@ input[type=range]::-webkit-slider-thumb {
   -webkit-backdrop-filter: blur(6px);
   z-index: 10000;
 }
+/* GARANTIT QUE LA GALERIE A UNE PRÉSENCE VISUELLE */
+#gallery {
+  display: block;
+  min-height: 80px;
+}
+
+#gallery-grid {
+  display: flex;
+  gap: 12px;
+  min-height: 60px; /* 👈 empêche l’effondrement */
+}
