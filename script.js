@@ -1449,3 +1449,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 })();
+// =========================================================
+// ✅ DOWNLOAD: ne jamais télécharger la page HTML
+// =========================================================
+(function () {
+  const _orig = window.openImageModal;
+  if (typeof _orig !== "function") return;
+
+  window.openImageModal = function (src) {
+    _orig(src);
+
+    const dl = document.getElementById("image-modal-download");
+    if (!dl) return;
+
+    // Force href correct (sinon certains navigateurs retombent sur la page)
+    dl.href = src;
+
+    const filename = src.startsWith("data:")
+      ? "generated-image.png"
+      : src.split("/").pop().split("?")[0] || "image.png";
+
+    dl.setAttribute("download", filename);
+
+    // Protection: si href n’est pas une image => on bloque
+    dl.onclick = (e) => {
+      const h = dl.getAttribute("href") || "";
+      if (!h || h === "#" || h.includes(".html")) {
+        e.preventDefault();
+        console.warn("Download blocked: href not an image", h);
+      }
+    };
+  };
+})();
