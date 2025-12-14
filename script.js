@@ -67,27 +67,23 @@ function loadCarrouselGallery(data) {
   const gallery = document.getElementById("gallery-grid");
   if (!gallery || !data || !data.images) return;
 
-  // Vider la galerie avant de la remplir
   gallery.innerHTML = "";
 
   data.images.forEach((img, index) => {
     const thumb = document.createElement("img");
-    thumb.src = img.thumb; // L'image légère pour la vignette
+    thumb.src = img.thumb;
     thumb.alt = `Generated image ${index + 1}`;
     thumb.classList.add("gallery-thumb");
 
-    // Construire le chemin complet vers l'image HD
-    const fullPath = img.url;
-
-    // Remplacez le bloc d'écoute de clic existant par ceci :
     thumb.addEventListener("click", () => {
-      openImageModal(fullPath);
+      openImageModal(img.url);
     });
 
     gallery.appendChild(thumb);
   });
-// Ajout pour s'assurer que le conteneur principal de la galerie est visible
-    console.log("✅ gallery populated");
+
+  console.log("✅ galerie remplie");
+}
   // L'erreur précédente était probablement causée par une mauvaise fermeture ici.
 }
 // =========================================================
