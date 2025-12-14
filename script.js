@@ -72,7 +72,8 @@ async function loadCarrouselGallery() {
 
   let images;
   try {
-    const resp = await fetch("/carrousel.json");
+    const resp = await fetch("/carrousel.json", { cache: "no-store" });
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
     images = await resp.json();
   } catch (e) {
     console.error("❌ Cannot load carrousel.json", e);
@@ -87,7 +88,7 @@ async function loadCarrouselGallery() {
 
   gallery.innerHTML = "";
 
-  images.forEach(filename => {
+  images.forEach((filename) => {
     const fullPath = `/carrousel/${encodeURIComponent(filename)}`;
     const thumbPath = `/carrousel/${encodeURIComponent(
       filename.replace(/\.png$/i, "_thumb.jpg")
@@ -101,28 +102,19 @@ async function loadCarrouselGallery() {
 
     thumb.onerror = () => {
       console.warn("❌ Thumb not found:", thumbPath);
+      // fallback: si pas de thumb, on affiche l'image HD directement en vignette
+      thumb.src = fullPath;
     };
 
-    // ✅ CLIC → OUVERTURE MODAL (PAS PREVIEW)
+    // ✅ clic vignette -> ouvre modal + prépare le download
     thumb.addEventListener("click", () => {
-  const modal = document.getElementById("image-modal");
-  const modalImg = document.getElementById("image-modal-img");
-  const downloadLink = document.getElementById("image-modal-download");
+      openImageModal(fullPath, filename);
+    });
 
-  if (!modal || !modalImg || !downloadLink) return;
+    gallery.appendChild(thumb);
+  });
 
-  modalImg.src = fullPath;
-
-  // 🔥 FIX CRITIQUE
-  downloadLink.href = fullPath;
-  downloadLink.setAttribute(
-    "download",
-    fullPath.split("/").pop() || "image.png"
-  );
-
-  modal.style.display = "flex";
-});
-  console.log("✅ gallery populated");
+  console.log("✅ gallery populated:", images.length);
 }
 
 // =========================================================
