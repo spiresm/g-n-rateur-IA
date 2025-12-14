@@ -1324,3 +1324,96 @@ if (galleryModal) {
 }
 
 });
+
+
+
+
+// =========================================================
+// 🔧 NON-DESTRUCTIVE FIXES (APPENDED)
+// These fixes DO NOT remove any existing logic.
+// They only patch modal, download, mobile behavior,
+// and prevent duplicated handlers from breaking UX.
+// =========================================================
+
+// ---- Central image modal (safe override) ----
+function openImageModal(src) {
+  const modal = document.getElementById("image-modal");
+  const img = document.getElementById("image-modal-img");
+  const dl = document.getElementById("image-modal-download");
+  if (!modal || !img || !dl) return;
+
+  img.src = src;
+  dl.href = src;
+
+  const filename = src.startsWith("data:")
+    ? "generated-image.png"
+    : src.split("/").pop().split("?")[0];
+
+  dl.setAttribute("download", filename);
+  modal.classList.add("active");
+}
+
+// ---- Patch displayImageAndMetadata without removing existing calls ----
+(function () {
+  const _orig = window.displayImageAndMetadata;
+  if (typeof _orig !== "function") return;
+
+  window.displayImageAndMetadata = function (data) {
+    _orig(data);
+
+    try {
+      const resultArea = document.getElementById("result-area");
+      if (!resultArea) return;
+      const img = resultArea.querySelector("img.result-image");
+      if (!img) return;
+
+      img.style.cursor = "zoom-in";
+      img.onclick = () => openImageModal(img.src);
+
+      const isMobile = window.matchMedia("(max-width: 900px)").matches;
+      if (isMobile) {
+        openImageModal(img.src);
+      }
+    } catch (e) {
+      console.warn("Modal patch failed:", e);
+    }
+  };
+})();
+
+// ---- Progress overlay: force modal mode on mobile ----
+(function () {
+  const _origShow = window.showProgressOverlay;
+  if (typeof _origShow !== "function") return;
+
+  window.showProgressOverlay = function (show, label) {
+    _origShow(show, label);
+    const overlay = document.getElementById("progress-overlay");
+    if (!overlay) return;
+    if (show) overlay.classList.add("active");
+    else overlay.classList.remove("active");
+  };
+})();
+
+// ---- Modal close (idempotent) ----
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("image-modal");
+  const close = document.querySelector(".image-modal-close");
+  if (!modal || !close) return;
+
+  close.onclick = (e) => {
+    e.stopPropagation();
+    modal.classList.remove("active");
+  };
+
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.classList.remove("active");
+  };
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") modal.classList.remove("active");
+  });
+});
+
+// =========================================================
+// END OF NON-DESTRUCTIVE FIXES
+// =========================================================
