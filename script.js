@@ -1251,14 +1251,14 @@ const defaultModeCard = document.querySelector(".mode-card.active-mode");
 if (defaultModeCard) {
     defaultModeCard.dispatchEvent(new Event("click"));
 }
-// FIX URGENT : Forcer la visibilité des conteneurs principaux au cas où le JS échoue.
-    var galleryWrapper = document.getElementById("gallery-wrapper");
-    var resultArea = document.getElementById("result-area");
-    var generateButton = document.getElementById("generate-btn"); 
+// Rétablissement de la visibilité des conteneurs principaux (utilise de nouveaux noms de variables)
+    var _galleryWrapperFix = document.getElementById("gallery-wrapper");
+    var _resultAreaFix = document.getElementById("result-area");
+    var _generateButtonFix = document.getElementById("generate-btn"); 
     
-    if (galleryWrapper) galleryWrapper.style.display = 'block';
-    if (resultArea) resultArea.style.display = 'block';
-    if (generateButton) generateButton.style.display = 'block';
+    if (_galleryWrapperFix) _galleryWrapperFix.style.display = 'block';
+    if (_resultAreaFix) _resultAreaFix.style.display = 'block';
+    if (_generateButtonFix) _generateButtonFix.style.display = 'block';
 // GPU
 refreshGPU();
 setInterval(refreshGPU, 10000);
