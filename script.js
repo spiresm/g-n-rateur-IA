@@ -769,6 +769,29 @@ async function handleCompletion(promptId) {
     }
 }
 
+// =========================================================
+// IMAGE MODAL — OUVERTURE CENTRALISÉE
+// =========================================================
+
+function openImageModal(src) {
+    const modal = document.getElementById("image-modal");
+    const img = document.getElementById("image-modal-img");
+    const dl = document.getElementById("image-modal-download");
+
+    if (!modal || !img || !dl) return;
+
+    img.src = src;
+    dl.href = src;
+
+    // nom de fichier propre
+    const filename = src.startsWith("data:")
+        ? "generated-image.png"
+        : src.split("/").pop().split("?")[0];
+
+    dl.setAttribute("download", filename);
+
+    modal.style.display = "flex";
+}
 
 // =========================================================
 // AFFICHAGE DU RÉSULTAT ET DES METADATAS
