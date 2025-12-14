@@ -1417,3 +1417,35 @@ document.addEventListener("DOMContentLoaded", () => {
 // =========================================================
 // END OF NON-DESTRUCTIVE FIXES
 // =========================================================
+// =========================================================
+// ✅ MOBILE: rester en modal après génération + ouvrir résultat
+// =========================================================
+(function () {
+  const _orig = window.displayImageAndMetadata;
+  if (typeof _orig !== "function") return;
+
+  window.displayImageAndMetadata = function (data) {
+    _orig(data);
+
+    const isMobile = window.matchMedia("(max-width: 900px)").matches;
+    if (!isMobile) return;
+
+    // On garde l’overlay actif en mobile (fond sombre + flou)
+    if (typeof window.showProgressOverlay === "function") {
+      window.showProgressOverlay(true, "Done");
+    }
+
+    // On force la barre à 100% si elle existe
+    const inner = document.getElementById("progress-inner");
+    const pct = document.getElementById("progress-percent");
+    if (inner) inner.style.width = "100%";
+    if (pct) pct.textContent = "100%";
+
+    // Ouvrir le résultat en modal, sans quitter l’ambiance
+    const resultArea = document.getElementById("result-area");
+    const img = resultArea ? resultArea.querySelector("img.result-image") : null;
+    if (img && typeof window.openImageModal === "function") {
+      window.openImageModal(img.src);
+    }
+  };
+})();
