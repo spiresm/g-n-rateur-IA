@@ -105,18 +105,23 @@ async function loadCarrouselGallery() {
 
     // ✅ CLIC → OUVERTURE MODAL (PAS PREVIEW)
     thumb.addEventListener("click", () => {
-      const modal = document.getElementById("image-modal");
-      const modalImg = document.getElementById("image-modal-img");
+  const modal = document.getElementById("image-modal");
+  const modalImg = document.getElementById("image-modal-img");
+  const downloadLink = document.getElementById("image-modal-download");
 
-      if (!modal || !modalImg) return;
+  if (!modal || !modalImg || !downloadLink) return;
 
-      modalImg.src = fullPath;
-      modal.style.display = "flex";
-    });
+  modalImg.src = fullPath;
 
-    gallery.appendChild(thumb);
-  });
+  // 🔥 FIX CRITIQUE
+  downloadLink.href = fullPath;
+  downloadLink.setAttribute(
+    "download",
+    fullPath.split("/").pop() || "image.png"
+  );
 
+  modal.style.display = "flex";
+});
   console.log("✅ gallery populated");
 }
 
