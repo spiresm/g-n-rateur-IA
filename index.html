@@ -12,12 +12,14 @@
 
     <header>
   <!-- LEFT ZONE -->
-  <div class="header-left">
-    <img
-      src="./logo-rubens.png"
-      alt="Rubens logo"
-      class="app-logo"
-    />
+  <div style="display:flex; align-items:center; gap:18px;">
+
+    <!-- ✅ LOGO RUNBENS (AJOUTÉ) -->
+<img
+  src="./logo-rubens.png"
+  alt="Rubens logo"
+  class="app-logo"
+/>
 
     <button id="logout-btn" class="btn-secondary" title="Déconnexion Google">
       🔓
@@ -33,17 +35,38 @@
   </div>
 
   <!-- RIGHT ZONE -->
-  <div class="header-right">
+  <div style="display:flex; align-items:center; gap:15px;">
+    <!-- USER INFO -->
     <div id="user-info" class="user-info" style="display:none;">
-      <img id="user-avatar" alt="Avatar Google" />
+      <img
+        id="user-avatar"
+        src=""
+        alt="Avatar Google"
+      />
       <div class="user-meta">
         <div class="user-label">Connecté en tant que</div>
         <div id="user-name" class="user-name"></div>
       </div>
     </div>
 
+    <!-- GPU CARD -->
     <div class="gpu-card" id="gpu-card">
-      <!-- inchangé -->
+      <div class="gpu-main">
+        <span class="gpu-label">GRAPHICS CARD</span>
+        <strong id="gpu-name">–</strong>
+        <div class="gpu-pills">
+          <div class="gpu-pill">
+            <span id="gpu-util">0%</span> • Usage
+          </div>
+          <div class="gpu-pill">
+            <span id="gpu-mem">0 / 0 GB</span>
+          </div>
+        </div>
+      </div>
+      <div class="gpu-status-indicator">
+        <div class="gpu-dot"></div>
+        <div class="gpu-value" id="gpu-temp">– °C</div>
+      </div>
     </div>
   </div>
 </header>
