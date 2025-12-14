@@ -5,65 +5,62 @@
   <title>Content Generation Demo</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css">
-  <div id="user-info" class="user-info" style="display:none;">
-  <img id="user-avatar" alt="Avatar Google">
-  <div class="user-meta">
-    <div class="user-label">Connecté en tant que</div>
-    <div id="user-name" class="user-name"></div>
-  </div>
-</div>
 </head>
 
 <body>
 <div class="app-shell">
 
     <header>
-    <!-- LEFT ZONE -->
-    <div style="display:flex; align-items:center; gap:18px;">
-        <button id="logout-btn" class="btn-secondary" title="Déconnexion Google">
-            🔓
-        </button>
+  <!-- LEFT ZONE -->
+  <div style="display:flex; align-items:center; gap:18px;">
+    <button id="logout-btn" class="btn-secondary" title="Déconnexion Google">
+      🔓
+    </button>
 
-        <div class="title-group">
-            <h1>AI Content Generator</h1>
-            <div class="title-chip">
-                <span></span>
-                <div id="user-status">Connected</div>
-            </div>
-        </div>
+    <div class="title-group">
+      <h1>AI Content Generator</h1>
+      <div class="title-chip">
+        <span></span>
+        <div id="user-status">Connected</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT ZONE -->
+  <div style="display:flex; align-items:center; gap:15px;">
+    <!-- USER INFO -->
+    <div id="user-info" class="user-info" style="display:none;">
+      <img
+        id="user-avatar"
+        src=""
+        alt="Avatar Google"
+      />
+      <div class="user-meta">
+        <div class="user-label">Connecté en tant que</div>
+        <div id="user-name" class="user-name"></div>
+      </div>
     </div>
 
-    <!-- RIGHT ZONE -->
-    <div style="display:flex; align-items:center; gap:15px;">
-        <!-- USER INFO -->
-        <div id="user-info" style="display:none; align-items:center; gap:8px;">
-            <img id="user-avatar"
-                 src=""
-                 alt="avatar"
-                 style="width:32px;height:32px;border-radius:50%;border:1px solid var(--border);" />
-            <span id="user-name" style="font-size:13px;color:var(--muted);"></span>
+    <!-- GPU CARD -->
+    <div class="gpu-card" id="gpu-card">
+      <div class="gpu-main">
+        <span class="gpu-label">GRAPHICS CARD</span>
+        <strong id="gpu-name">–</strong>
+        <div class="gpu-pills">
+          <div class="gpu-pill">
+            <span id="gpu-util">0%</span> • Usage
+          </div>
+          <div class="gpu-pill">
+            <span id="gpu-mem">0 / 0 GB</span>
+          </div>
         </div>
-
-        <!-- GPU CARD -->
-        <div class="gpu-card" id="gpu-card">
-            <div class="gpu-main">
-                <span class="gpu-label">GRAPHICS CARD</span>
-                <strong id="gpu-name">–</strong>
-                <div class="gpu-pills">
-                    <div class="gpu-pill">
-                        <span id="gpu-util">0%</span> • Usage
-                    </div>
-                    <div class="gpu-pill">
-                        <span id="gpu-mem">0 / 0 GB</span>
-                    </div>
-                </div>
-            </div>
-            <div class="gpu-status-indicator">
-                <div class="gpu-dot"></div>
-                <div class="gpu-value" id="gpu-temp">– °C</div>
-            </div>
-        </div>
+      </div>
+      <div class="gpu-status-indicator">
+        <div class="gpu-dot"></div>
+        <div class="gpu-value" id="gpu-temp">– °C</div>
+      </div>
     </div>
+  </div>
 </header>
 
     <div class="mode-selector">
