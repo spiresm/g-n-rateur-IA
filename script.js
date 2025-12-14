@@ -801,18 +801,14 @@ function displayImageAndMetadata(data) {
     };
 
     img.addEventListener("click", () => {
-        const modal = document.getElementById("image-modal");
-        const modalImg = document.getElementById("modal-image");
-        const dlLink = document.getElementById("modal-download-link");
+    const modal = document.getElementById("image-modal");
+    const modalImg = document.getElementById("image-modal-img");
 
-        if (modal && modalImg && dlLink) {
-            modalImg.src = img.src;
-            dlLink.href = img.src;
-            dlLink.download = filename;
-            modal.style.display = "flex";
-        }
-    });
+    if (!modal || !modalImg) return;
 
+    modalImg.src = img.src;
+    modal.style.display = "flex";
+});
     resultArea.appendChild(img);
 
     const metaSeed = document.getElementById("meta-seed");
