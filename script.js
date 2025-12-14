@@ -21,6 +21,18 @@ function authHeaders() {
     Authorization: `Bearer ${token}`
   };
 }
+function decodeGoogleToken() {
+  const token = localStorage.getItem("google_id_token");
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload;
+  } catch (e) {
+    console.warn("Impossible de décoder le token Google");
+    return null;
+  }
+}
 
 // =========================================================
 // 🔑 Récupération du token depuis l’URL
