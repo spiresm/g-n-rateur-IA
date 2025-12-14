@@ -87,7 +87,6 @@ function loadCarrouselGallery(data) {
     gallery.appendChild(thumb);
   });
 // Ajout pour s'assurer que le conteneur principal de la galerie est visible
-    document.getElementById("gallery-wrapper").style.display = 'block'; 
     console.log("✅ gallery populated");
   // L'erreur précédente était probablement causée par une mauvaise fermeture ici.
 }
@@ -1251,11 +1250,8 @@ if (defaultModeCard) {
     defaultModeCard.dispatchEvent(new Event("click"));
 }
 // Rétablissement de la visibilité des conteneurs principaux (utilise de nouveaux noms de variables)
-    var _galleryWrapperFix = document.getElementById("gallery-wrapper");
     var _resultAreaFix = document.getElementById("result-area");
     var _generateButtonFix = document.getElementById("generate-btn"); 
-    
-    if (_galleryWrapperFix) _galleryWrapperFix.style.display = 'block';
     if (_resultAreaFix) _resultAreaFix.style.display = 'block';
     if (_generateButtonFix) _generateButtonFix.style.display = 'block';
 // GPU
