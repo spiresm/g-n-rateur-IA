@@ -1157,19 +1157,21 @@ if (logoutBtn) {
   // 👤 UTILISATEUR CONNECTÉ (GOOGLE)
   // =========================================================
   const userInfo = document.getElementById("user-info");
-  const userName = document.getElementById("user-name");
-  const userAvatar = document.getElementById("user-avatar");
+const userName = document.getElementById("user-name");
+const userAvatar = document.getElementById("user-avatar");
 
-  const user = decodeGoogleToken();
+const user = decodeGoogleToken();
 
-  if (user && userInfo && userName && userAvatar) {
-    userName.textContent = user.given_name || user.name || "Utilisateur";
-    userAvatar.src = user.picture || "";
-    userAvatar.alt = user.name || "Avatar Google";
-    userInfo.style.display = "flex";
+if (user && userInfo && userName && userAvatar) {
+  userName.textContent = user.given_name || user.name || "Utilisateur";
+  userAvatar.src = user.picture || "";
+  userAvatar.alt = user.name || "Avatar Google";
 
-    console.log("👤 Utilisateur connecté :", user.email);
-  }
+  // 🔥 AFFICHAGE FINAL
+  userInfo.style.display = "flex";
+
+  console.log("✅ Header user affiché :", user.email);
+}
 });
 
     // =========================================================
