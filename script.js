@@ -274,13 +274,13 @@ function showProgressOverlay(show, label = "En attente…") {
     if (!overlay || !labelSpan || !percentSpan || !innerBar) return;
 
     if (show) {
-        overlay.classList.add("visible");
+        overlay.classList.add("active"); // ✅ modal fullscreen
         labelSpan.textContent = label;
         percentSpan.textContent = "0%";
         innerBar.style.width = "0%";
         fakeProgress = 0;
     } else {
-        overlay.classList.remove("visible");
+        overlay.classList.remove("active");
     }
 }
 
@@ -769,6 +769,29 @@ async function handleCompletion(promptId) {
     }
 }
 
+// =========================================================
+// IMAGE MODAL — OUVERTURE CENTRALISÉE
+// =========================================================
+
+function openImageModal(src) {
+    const modal = document.getElementById("image-modal");
+    const img = document.getElementById("image-modal-img");
+    const dl = document.getElementById("image-modal-download");
+
+    if (!modal || !img || !dl) return;
+
+    img.src = src;
+    dl.href = src;
+
+    // nom de fichier propre
+    const filename = src.startsWith("data:")
+        ? "generated-image.png"
+        : src.split("/").pop().split("?")[0];
+
+    dl.setAttribute("download", filename);
+
+    modal.style.display = "flex";
+}
 
 // =========================================================
 // AFFICHAGE DU RÉSULTAT ET DES METADATAS
@@ -801,18 +824,14 @@ function displayImageAndMetadata(data) {
     };
 
     img.addEventListener("click", () => {
-        const modal = document.getElementById("image-modal");
-        const modalImg = document.getElementById("modal-image");
-        const dlLink = document.getElementById("modal-download-link");
+    const modal = document.getElementById("image-modal");
+    const modalImg = document.getElementById("image-modal-img");
 
-        if (modal && modalImg && dlLink) {
-            modalImg.src = img.src;
-            dlLink.href = img.src;
-            dlLink.download = filename;
-            modal.style.display = "flex";
-        }
-    });
+    if (!modal || !modalImg) return;
 
+    modalImg.src = img.src;
+    modal.style.display = "flex";
+});
     resultArea.appendChild(img);
 
     const metaSeed = document.getElementById("meta-seed");
@@ -1277,5 +1296,40 @@ setInterval(refreshGPU, 10000);
 // Données
 loadWorkflows();
 loadCarrouselGallery();
+// =========================================================
+// IMAGE MODAL (GALERIE) — FERMETURE
+// =========================================================
+
+const galleryModal = document.getElementById("image-modal");
+const galleryModalImg = document.getElementById("image-modal-img");
+const galleryModalClose = document.querySelector(".image-modal-close");
+
+if (galleryModal) {
+
+  // ❌ clic sur la croix
+  if (galleryModalClose) {
+    galleryModalClose.addEventListener("click", (e) => {
+      e.stopPropagation();
+      galleryModal.style.display = "none";
+      if (galleryModalImg) galleryModalImg.src = "";
+    });
+  }
+
+  // ❌ clic hors image
+  galleryModal.addEventListener("click", (e) => {
+    if (e.target === galleryModal) {
+      galleryModal.style.display = "none";
+      if (galleryModalImg) galleryModalImg.src = "";
+    }
+  });
+
+  // ❌ touche ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && galleryModal.style.display === "flex") {
+      galleryModal.style.display = "none";
+      if (galleryModalImg) galleryModalImg.src = "";
+    }
+  });
+}
 
 });
