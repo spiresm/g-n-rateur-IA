@@ -26,10 +26,19 @@ function decodeGoogleToken() {
   if (!token) return null;
 
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
+    const base64Url = token.split(".")[1];
+    if (!base64Url) return null;
+
+    // ✅ conversion Base64URL → Base64
+    const base64 = base64Url
+      .replace(/-/g, "+")
+      .replace(/_/g, "/")
+      .padEnd(base64Url.length + (4 - base64Url.length % 4) % 4, "=");
+
+    const payload = JSON.parse(atob(base64));
     return payload;
   } catch (e) {
-    console.warn("Impossible de décoder le token Google");
+    console.error("❌ Erreur décodage token Google", e);
     return null;
   }
 }
