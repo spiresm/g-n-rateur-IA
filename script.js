@@ -813,22 +813,19 @@ function displayImageAndMetadata(data) {
     img.className = "result-image mj-img mj-blur clickable";
     img.src = `data:image/png;base64,${base64}`;
     img.alt = "Image générée";
-    img.style.maxWidth = "100%";
-    img.style.height = "auto";
-    img.style.display = "block";
-    img.style.margin = "0 auto";
 
     img.onload = () => {
         img.classList.remove("mj-blur");
         img.classList.add("mj-ready");
     };
 
-img.addEventListener("click", () => {
-    openImageModal(img.src);
-});
-});
+    img.addEventListener("click", () => {
+        openImageModal(img.src);
+    });
+
     resultArea.appendChild(img);
 
+    // metas
     const metaSeed = document.getElementById("meta-seed");
     const metaSteps = document.getElementById("meta-steps");
     const metaCfg = document.getElementById("meta-cfg");
@@ -846,7 +843,6 @@ img.addEventListener("click", () => {
         if (timeTakenEl) timeTakenEl.textContent = `${sec}s`;
     }
 }
-
 
 // =========================================================
 // ENVOI DU FORMULAIRE → /generate (CORRIGÉ COMPLET)
