@@ -79,10 +79,8 @@ function loadCarrouselGallery(data) {
     // Construire le chemin complet vers l'image HD
     const fullPath = img.url;
 
-    // ✅ CLIC → OUVERTURE MODAL (CORRIGÉ)
+    // Remplacez le bloc d'écoute de clic existant par ceci :
     thumb.addEventListener("click", () => {
-      // CORRECTION : Utiliser la fonction centralisée pour définir correctement
-      // l'image ET le lien de téléchargement de la modale.
       openImageModal(fullPath);
     });
 
