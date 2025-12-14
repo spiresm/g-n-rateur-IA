@@ -1006,3 +1006,50 @@ input[type=range]::-webkit-slider-thumb {
   padding: 6px;
   border-radius: 8px;
 }
+/* ===== HEADER LAYOUT ===== */
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+}
+
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0; /* 🔥 clé anti-débordement */
+}
+
+/* ===== LOGO ===== */
+
+.app-logo {
+  height: 72px;
+  width: auto;
+  max-width: 30vw;   /* empêche de casser le layout */
+  flex-shrink: 0;
+}
+
+/* ===== RESPONSIVE MOBILE ===== */
+
+@media (max-width: 768px) {
+  header {
+    flex-wrap: wrap;
+  }
+
+  .app-logo {
+    height: 48px;
+    max-width: 60vw;
+  }
+
+  .title-group h1 {
+    font-size: 16px;
+  }
+
+  .gpu-card {
+    display: none; /* trop lourd pour mobile */
+  }
+}
