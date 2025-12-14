@@ -144,6 +144,7 @@ header h1 {
 
 /* =========================================================
    MODE SELECTOR
+   CORRECTION : Remplissage de la carte par l'image
 ========================================================= */
 
 .mode-selector {
@@ -157,13 +158,13 @@ header h1 {
     background-color: var(--panel);
     border: 2px solid var(--border);
     border-radius: var(--radius-lg);
-    /* Correction: Retrait du padding pour ajustement bord à bord */
+    /* CORRECTION 1: Retrait du padding pour ajustement bord à bord */
     padding: 0; 
-    /* Correction: Définition d'une hauteur */
+    /* CORRECTION 2: Définition d'une hauteur */
     height: 180px; 
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-    /* Correction: Assure que l'image respecte les coins arrondis */
+    /* CORRECTION 3: Assure que l'image respecte les coins arrondis */
     overflow: hidden; 
 }
 
@@ -173,10 +174,7 @@ header h1 {
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
 }
 
-.mode-card.active-mode {
-    border-color: var(--accent);
-}
-
+/* NOUVEAU: Style de l'image pour qu'elle remplisse la carte */
 .mode-card img {
     width: 100%;
     height: 100%;
@@ -184,7 +182,7 @@ header h1 {
     display: block;
 }
 
-/* Suppression des éléments visuels inutiles (titres, etc.) */
+/* NOUVEAU: Suppression des éléments visuels inutiles (titres, etc.) */
 .mode-card h2,
 .mode-card p {
     display: none;
@@ -244,7 +242,7 @@ header h1 {
     color: var(--muted);
 }
 
-.pill, .pill-green, .pill-danger {
+.pill, .pill-green {
     font-size: 11px;
     font-weight: 600;
     padding: 4px 8px;
@@ -259,11 +257,6 @@ header h1 {
 .pill-green {
     background-color: rgba(76, 175, 80, 0.15);
     color: #4CAF50;
-}
-
-.pill-danger {
-    background-color: rgba(255, 79, 79, 0.15);
-    color: var(--danger);
 }
 
 /* =========================================================
@@ -299,7 +292,6 @@ label {
     color: var(--text);
     font-size: 14px;
     transition: border-color 0.2s, background-color 0.2s;
-    font-family: inherit;
 }
 
 .ui-input:focus, .ui-select:focus {
@@ -321,28 +313,44 @@ label {
     flex: 1;
 }
 
+/* NOUVEAU: Classe pour aligner SELECT et INPUT sur la même ligne (Affiche Ludique) */
 .input-group-row {
     display: grid;
     grid-template-columns: 1fr 1fr; /* Deux colonnes de taille égale */
     gap: 10px; /* Espace entre le select et l'input */
-    margin-bottom: 5px;
+    margin-bottom: 10px; 
 }
 
-/* SLIDERS */
+.input-group-row .ui-select,
+.input-group-row .ui-input {
+    width: 100%;
+    /* Surcharge des marges ou largeurs si définies ailleurs */
+    margin-top: 0; 
+}
+
+.field-group {
+    margin-bottom: 15px;
+}
+
+.field-group:last-child {
+    margin-bottom: 0;
+}
+
+/* =========================================================
+   SLIDERS
+========================================================= */
+
 input[type=range] {
     -webkit-appearance: none;
     width: 100%;
-    height: 10px;
-    background: var(--bg-alt);
+    height: 5px;
+    background: #333;
     border-radius: 5px;
-    border: 1px solid var(--border);
-    outline: none;
-    transition: opacity .2s;
-    margin: 5px 0;
+    margin-top: 10px;
 }
+
 input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    appearance: none;
     width: 15px;
     height: 15px;
     border-radius: 50%;
@@ -355,6 +363,7 @@ input[type=range]::-webkit-slider-thumb {
 /* =========================================================
    BUTTONS
 ========================================================= */
+
 .btn-main, .btn-secondary {
     display: inline-flex;
     align-items: center;
@@ -368,14 +377,14 @@ input[type=range]::-webkit-slider-thumb {
     transition: background-color 0.2s, border-color 0.2s;
     text-decoration: none;
     line-height: 1;
-    border: 1px solid transparent;
 }
 
 .btn-main {
     background-color: var(--accent);
     color: #0b0b0b;
-    border-color: var(--accent);
+    border: 1px solid var(--accent);
 }
+
 .btn-main:hover {
     background-color: var(--accent-strong);
     border-color: var(--accent-strong);
@@ -384,8 +393,9 @@ input[type=range]::-webkit-slider-thumb {
 .btn-secondary {
     background-color: var(--panel-alt);
     color: var(--text);
-    border-color: var(--border);
+    border: 1px solid var(--border);
 }
+
 .btn-secondary:hover {
     background-color: #333;
     border-color: #444;
@@ -398,50 +408,133 @@ input[type=range]::-webkit-slider-thumb {
     background-color: #0b0b0b; /* Contraste */
 }
 
-@keyframes pulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.3); opacity: 0.7; }
-    100% { transform: scale(1); opacity: 1; }
-}
-
 /* =========================================================
    RESULT AREA / IMAGE PREVIEW
 ========================================================= */
+
 #result-area {
-    /* Styles pour centrer la zone de résultat (dans le panel) */
-    text-align: center; 
-    flex-grow: 1; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: center;
+  max-height: 40vh;          /* hauteur réduite */
+  max-width: 360px;          /* ⬅️ empêche l’effet “trop large” */
+  margin: 0 auto;            /* centre horizontalement */
+
+  padding: 8px;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.result-image {
-    max-width: 100%;
-    height: auto;
-    max-height: 80vh; 
-    border-radius: var(--radius-md); 
-    box-shadow: 0 5px 20px rgba(0,0,0,0.4); 
-    display: none;
-    margin: 0 auto;
-    cursor: zoom-in; /* Ajouté pour indiquer le clic pour le zoom */
+/* Image affichée */
+#result-area img.result-image {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;       /* jamais étirée */
 }
 
 /* =========================================================
-   IMAGE MODAL / LIGHTBOX (CONSERVÉ)
+   PROGRESS BAR & OVERLAY
 ========================================================= */
 
-.image-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    display: none; /* Contrôlé par JS */
+#progress-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 10;
+    display: none; /* Caché par défaut */
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
+    padding: 20px;
+    text-align: center;
 }
 
-.image-modal-content {
+#progress-overlay.visible {
+    display: flex;
+}
+
+#progress-spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid var(--accent);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#progress-meta {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 10px;
+}
+
+#progress-percent {
+    margin-left: 10px;
+    color: var(--accent);
+}
+
+.progress-bar-large {
+    width: 80%;
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.progress-inner-large {
+    height: 100%;
+    width: 0%;
+    background-color: var(--accent);
+    transition: width 0.1s linear;
+}
+
+/* =========================================================
+   METADATA & FOOTER
+========================================================= */
+
+.metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 15px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.metadata-grid strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+/* =========================================================
+   MODAL / Fullscreen Preview
+========================================================= */
+
+.modal {
+    display: none; /* Caché par défaut */
+    position: fixed; 
+    z-index: 20; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.95); 
+    backdrop-filter: blur(10px);
+}
+
+.modal-content {
     margin: auto;
     display: block;
     width: 90%;
@@ -450,19 +543,18 @@ input[type=range]::-webkit-slider-thumb {
     padding: 40px 20px;
 }
 
-#image-modal-img {
+#modal-image {
     width: auto;
     max-width: 100%;
     height: auto;
-    max-height: 80vh;
+    max-height: 80vh; 
     display: block;
     margin: 0 auto 20px auto;
     border-radius: var(--radius-lg);
     box-shadow: 0 0 50px rgba(0,0,0,0.5);
-    object-fit: contain;
 }
 
-.image-modal-close {
+.modal-close-btn {
     position: absolute;
     top: 20px;
     right: 35px;
@@ -471,17 +563,365 @@ input[type=range]::-webkit-slider-thumb {
     font-weight: bold;
     transition: 0.3s;
     cursor: pointer;
-    background: none;
-    border: none;
-    line-height: 1;
 }
 
-.image-modal-close:hover, 
-.image-modal-close:focus {
+.modal-close-btn:hover,
+.modal-close-btn:focus {
     color: var(--accent);
     text-decoration: none;
 }
 
+
+/* =========================================================
+   MENU PREMIUM
+========================================================= */
+
+.menu-premium {
+    background-color: var(--panel-alt);
+    border: 1px solid var(--accent);
+    padding: 20px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 0 10px rgba(212,175,55,0.1);
+}
+
+.menu-title {
+    color: var(--accent-strong);
+    font-size: 18px;
+    margin: 0 0 5px 0;
+}
+
+.menu-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+}
+
+/* =========================================================
+   QUICK FORMAT ICONS
+========================================================= */
+
+.quick-format-icons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.fmt-icon {
+    display: inline-block;
+    padding: 8px 12px;
+    background-color: var(--panel-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+.fmt-icon:hover {
+    background-color: #333;
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.fmt-icon.active {
+    background-color: var(--accent-soft);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(212,175,55,0.2);
+}
+
+/* =========================================================
+   SEPARATORS
+========================================================= */
+
+.separator {
+    border: none;
+    border-top: 1px solid #333;
+    margin: 22px 0;
+    opacity: 0.4;
+}
+
+/* =========================================================
+   SELECTED MODE CARD
+========================================================= */
+
+.active-mode {
+    border-color: var(--accent) !important;
+    transform: translateY(-4px);
+    box-shadow: 0 0 20px rgba(212,175,55,0.25);
+}
+
+/* =========================================================
+   FIX LARGEUR SELECTS
+========================================================= */
+
+.dual-field select.ui-select {
+    width: 100% !important;
+}
+
+.ui-select {
+    width: 100% !important;
+    min-width: 100% !important;
+}
+
+
+/* =========================================================
+   LAYOUT — CANONIQUE (DESKTOP / TABLET / MOBILE)
+   Objectif:
+   - Desktop: 2 colonnes (gauche fluide / droite compacte)
+   - Tablet: droite un peu plus étroite
+   - Mobile: 1 colonne (Playful Poster Generator AU-DESSUS de Result & Preview)
+========================================================= */
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
+}
+
+/* Tablet */
+@media (max-width: 1200px) {
+  .layout {
+    grid-template-columns: 1fr 360px;
+  }
+}
+
+/* Mobile: 1 colonne + ordre */
+@media (max-width: 900px) {
+  .layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Par défaut: tous les panels (dont Playful Poster Generator) passent avant */
+  .layout .panel {
+    order: 1;
+    padding: 14px;
+  }
+
+  /* Result & Preview toujours après */
+  .layout .result-preview,
+  .layout .result-panel {
+    order: 2;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+  }
+}
+
+/* =========================================================
+   RESULT & PREVIEW — COLONNE DROITE COMPACTE
+========================================================= */
+
+.result-preview,
+.result-panel,
+#result-preview,
+#result-panel,
+.preview-panel,
+.right-panel {
+  max-width: 420px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 1200px) {
+  .result-preview,
+  .result-panel,
+  #result-preview,
+  #result-panel,
+  .preview-panel,
+  .right-panel {
+    max-width: 360px;
+  }
+}
+
+@media (max-width: 900px) {
+  .result-preview,
+  .result-panel,
+  #result-preview,
+  #result-panel,
+  .preview-panel,
+  .right-panel {
+    max-width: 100%;
+  }
+}
+
+/* =========================================================
+   ZONE IMAGE PRÉVIEW — PLUS PETITE, SANS ÉTIREMENT
+========================================================= */
+
+#result-area {
+  width: 100%;
+  padding: 10px;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Desktop: plus compacte */
+  max-height: 38vh;
+}
+
+@media (max-width: 900px) {
+  #result-area {
+    max-height: 45vh;
+    padding: 8px;
+  }
+}
+
+#result-area img.result-image {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+/* =========================================================
+   GALERIE — CARROUSEL HORIZONTAL (SWIPE FRIENDLY)
+========================================================= */
+
+#gallery {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.gallery-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+#gallery-grid {
+  display: flex;
+  gap: 12px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+
+  padding: 10px 4px;
+}
+
+#gallery-grid::-webkit-scrollbar {
+  height: 6px;
+}
+#gallery-grid::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.25);
+  border-radius: 3px;
+}
+
+.gallery-thumb {
+  flex: 0 0 auto;
+  width: 110px;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gallery-thumb:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
+
+@media (max-width: 900px) {
+  .gallery-thumb {
+    width: 90px;
+    border-radius: 6px;
+  }
+}
+
+/* =========================================================
+   BOUTON GENERATE — FULL WIDTH SUR MOBILE
+========================================================= */
+
+@media (max-width: 900px) {
+  #generate-button {
+    width: 100%;
+  }
+}
+/* =========================================================
+   HEADER — RESPONSIVE FIX
+========================================================= */
+
+@media (max-width: 900px) {
+
+  header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  /* Groupe titre */
+  .title-group {
+    width: 100%;
+  }
+
+  .title-group h1 {
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  /* Chip sous le titre */
+  .title-chip {
+    margin-top: 4px;
+  }
+
+  /* Zone user (Google) */
+  #user-info {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
+  #user-name,
+  #user-status {
+    font-size: 12px;
+  }
+
+  /* Stats à droite → passent en dessous */
+  .header-stats {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+}
+/* =========================
+   IMAGE MODAL / LIGHTBOX
+========================= */
+
+.image-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.image-modal img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.image-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  font-size: 32px;
+  color: white;
+  cursor: pointer;
+  user-select: none;
+}
 /* =========================================================
    PROGRESS MODAL (GÉNÉRATION EN COURS)
 ========================================================= */
@@ -496,59 +936,31 @@ input[type=range]::-webkit-slider-thumb {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  padding: 24px;
 }
 
 #progress-overlay.active {
-    display: flex;
+  display: flex;
 }
 
-.progress-box {
-    background: var(--panel);
-    padding: 30px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-soft);
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
+#progress-meta {
+  color: white;
+  margin-top: 12px;
+  text-align: center;
 }
 
-.progress-box h4 {
-    margin-top: 0;
-    font-size: 18px;
-    font-weight: 600;
+.progress-bar-large {
+  width: min(420px, 90vw);
+  margin-top: 12px;
 }
-
-.progress-bar {
-    width: 100%;
-    height: 10px;
-    background-color: var(--bg-alt);
-    border-radius: 5px;
-    margin: 15px 0;
-    overflow: hidden;
-    position: relative;
-}
-
-.progress-inner {
-    height: 100%;
-    width: 0%;
-    background-color: var(--accent);
-    transition: width 0.3s ease-out;
-    border-radius: 5px;
-}
-
-.progress-percent {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--accent-strong);
-}
-
-.error-text {
-    color: var(--danger);
-    background-color: rgba(255, 79, 79, 0.1);
-    border: 1px solid var(--danger);
-    padding: 10px;
-    border-radius: var(--radius-md);
-    font-size: 14px;
-    font-weight: 500;
-    margin-top: 15px;
+/* Progress overlay = vrai fond modal + flou */
+#progress-overlay.active{
+  display:flex;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 10000;
 }
