@@ -62,59 +62,38 @@ const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
 
 // =========================================================
 // 📸 GALERIE CARROUSEL (thumbs légères + images HD)
-// - Lit /carrousel.json (liste de fichiers HD)
-// - Affiche les vignettes *_thumb.jpg (9/16)
-// - Au clic: affiche l'image HD dans #result-area
 // =========================================================
+function loadCarrouselGallery(data) {
+  const gallery = document.getElementById("gallery-content");
+  if (!gallery || !data || !data.images) return;
 
-async function loadCarrouselGallery() {
-  console.log("🟢 loadCarrouselGallery START");
-
-  let images;
-  try {
-    const resp = await fetch("/carrousel.json");
-    images = await resp.json();
-  } catch (e) {
-    console.error("❌ Cannot load carrousel.json", e);
-    return;
-  }
-
-  const gallery = document.getElementById("gallery-grid");
-  if (!gallery) {
-    console.error("❌ #gallery-grid NOT FOUND");
-    return;
-  }
-
+  // Vider la galerie avant de la remplir
   gallery.innerHTML = "";
 
-  images.forEach(filename => {
-    const fullPath = `/carrousel/${encodeURIComponent(filename)}`;
-    const thumbPath = `/carrousel/${encodeURIComponent(
-      filename.replace(/\.png$/i, "_thumb.jpg")
-    )}`;
-
+  data.images.forEach((img, index) => {
     const thumb = document.createElement("img");
-    thumb.src = thumbPath;
-    thumb.className = "gallery-thumb";
-    thumb.loading = "lazy";
-    thumb.alt = filename;
+    thumb.src = img.thumb; // L'image légère pour la vignette
+    thumb.alt = `Generated image ${index + 1}`;
+    thumb.classList.add("gallery-thumb");
 
-    thumb.onerror = () => {
-      console.warn("❌ Thumb not found:", thumbPath);
-    };
+    // Construire le chemin complet vers l'image HD
+    const fullPath = img.url;
 
-    // ✅ CLIC → OUVERTURE MODAL (PAS PREVIEW)
+    // ✅ CLIC → OUVERTURE MODAL (CORRIGÉ)
     thumb.addEventListener("click", () => {
       // CORRECTION : Utiliser la fonction centralisée pour définir correctement
       // l'image ET le lien de téléchargement de la modale.
       openImageModal(fullPath);
     });
 
-  console.log("✅ gallery populated");
-}
+    gallery.appendChild(thumb);
+  });
 
+  console.log("✅ gallery populated");
+  // L'erreur précédente était probablement causée par une mauvaise fermeture ici.
+}
 // =========================================================
-// 🆕 LISTE DES STYLES DE TITRE
+// 🆕 OUVERTURE MODAL DEPUIS RESULTAT (appelée par la génération)
 // =========================================================
 
 const STYLE_TITRE_OPTIONS = [
