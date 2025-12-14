@@ -105,13 +105,14 @@ async function loadCarrouselGallery() {
 
     // ✅ CLIC → OUVERTURE MODAL (PAS PREVIEW)
     thumb.addEventListener("click", () => {
-      // CORRECTION : Utiliser la fonction centralisée pour définir correctement
-      // l'image et le lien de téléchargement de la modale.
-      openImageModal(fullPath);
-    });
+      const modal = document.getElementById("image-modal");
+      const modalImg = document.getElementById("image-modal-img");
 
-    gallery.appendChild(thumb);
-  });
+      if (!modal || !modalImg) return;
+
+      modalImg.src = fullPath;
+      modal.style.display = "flex";
+    });
 
   console.log("✅ gallery populated");
 }
