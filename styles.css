@@ -964,3 +964,34 @@ input[type=range]::-webkit-slider-thumb {
   -webkit-backdrop-filter: blur(6px);
   z-index: 10000;
 }
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-info img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.user-label {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
