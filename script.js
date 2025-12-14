@@ -88,7 +88,6 @@ function loadCarrouselGallery(data) {
   });
 // Ajout pour s'assurer que le conteneur principal de la galerie est visible
     document.getElementById("gallery-wrapper").style.display = 'block'; 
-    
     console.log("✅ gallery populated");
   // L'erreur précédente était probablement causée par une mauvaise fermeture ici.
 }
