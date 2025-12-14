@@ -1250,9 +1250,9 @@ if (defaultModeCard) {
     defaultModeCard.dispatchEvent(new Event("click"));
 }
 // FIX URGENT : Forcer la visibilité des conteneurs principaux au cas où le JS échoue.
-    const galleryWrapper = document.getElementById("gallery-wrapper");
-    const resultArea = document.getElementById("result-area");
-    const generateButton = document.getElementById("generate-btn"); 
+    var galleryWrapper = document.getElementById("gallery-wrapper");
+    var resultArea = document.getElementById("result-area");
+    var generateButton = document.getElementById("generate-btn"); 
     
     if (galleryWrapper) galleryWrapper.style.display = 'block';
     if (resultArea) resultArea.style.display = 'block';
