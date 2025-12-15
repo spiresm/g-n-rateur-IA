@@ -863,13 +863,8 @@ Premium poster design, professional layout, ultra high resolution, visually stri
           </div>
         </div>
 
-        {/* Affichage du prompt généré (pleine largeur) */}
-        {generatedPrompt && (
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700 mt-4">
-            <h3 className="text-gray-300 mb-2 text-sm">Prompt Généré</h3>
-            <p className="text-white text-sm leading-relaxed">{generatedPrompt}</p>
-          </div>
-        )}
+        {/* Affichage du prompt généré (pleine largeur) - SUPPRIMÉ car redondant */}
+        {/* Le prompt est déjà visible dans PreviewPanel sous l'image générée */}
       </div>
     </div>
   );
