@@ -23,6 +23,7 @@ export function AppContent() {
   // Utiliser useRef au lieu de useState pour stocker les fonctions
   const posterGenerateFnRef = useRef<(() => void) | null>(null);
   const parametersGenerateFnRef = useRef<(() => void) | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [forceUpdate, setForceUpdate] = useState(0);
   
   const { 
