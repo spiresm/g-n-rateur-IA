@@ -1,4 +1,4 @@
-```css
+
 @import "tailwindcss";
 
 * {
@@ -51,4 +51,4 @@ html, body {
 .animate-spin {
   animation: spin 1s linear infinite;
 }
-```
+
