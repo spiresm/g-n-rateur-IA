@@ -2,6 +2,7 @@ import { ImageIcon, FileText, Clock, Copy, Download } from 'lucide-react';
 import { GeneratedImage } from '../App';
 import { useState } from 'react';
 import { SimpleAlertDialog } from './SimpleAlertDialog';
+import { Sparkles } from 'lucide-react';
 
 interface PreviewPanelProps {
   currentImage: GeneratedImage | null;
@@ -12,6 +13,8 @@ interface PreviewPanelProps {
   onCopyParameters: (image: GeneratedImage) => void;
   onSaveToGallery: (image: GeneratedImage) => void;
   generatedPrompt: string;
+  onStartGeneration?: () => void;
+  workflowType?: 'poster' | 'parameters' | string;
 }
 
 export function PreviewPanel({ 
@@ -22,7 +25,9 @@ export function PreviewPanel({
   onSelectImage, 
   onCopyParameters,
   onSaveToGallery,
-  generatedPrompt 
+  generatedPrompt,
+  onStartGeneration,
+  workflowType
 }: PreviewPanelProps) {
   const [showCharte, setShowCharte] = useState(false);
 
@@ -66,6 +71,23 @@ export function PreviewPanel({
         </div>
         <span className="text-xs bg-green-600 text-white px-3 py-1 rounded-full">PRÊT</span>
       </div>
+
+      {/* Bouton Démarrer la Génération - Au-dessus de l'image */}
+      {onStartGeneration && (
+        <div className="mb-4">
+          <button
+            onClick={onStartGeneration}
+            disabled={isGenerating}
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-3 shadow-lg"
+          >
+            <Sparkles className="w-6 h-6" />
+            <span className="text-lg">
+              {isGenerating ? 'Génération en cours...' : 
+               workflowType === 'poster' ? 'Générer l\'Affiche' : 'Démarrer la Génération'}
+            </span>
+          </button>
+        </div>
+      )}
 
       {/* Main Preview - TAILLE RÉDUITE SUR PC */}
       <div className="mb-6">
