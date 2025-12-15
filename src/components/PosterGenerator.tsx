@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Wand2, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { Sparkles, Image as ImageIcon } from 'lucide-react';
 import { PosterParams, GenerationParams } from '../App';
 
 interface PosterGeneratorProps {
