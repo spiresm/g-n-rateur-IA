@@ -1,4 +1,4 @@
-```typescript
+
 import { memo } from 'react';
 
 interface ProgressOverlayProps {
@@ -39,4 +39,4 @@ export const ProgressOverlay = memo(function ProgressOverlay({
     </div>
   );
 });
-```
+
