@@ -1,16 +1,7 @@
 import { ImageIcon, FileText, Clock, Copy, Download } from 'lucide-react';
 import { GeneratedImage } from '../App';
 import { useState } from 'react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from './ui/alert-dialog';
+import { SimpleAlertDialog } from './SimpleAlertDialog';
 
 interface PreviewPanelProps {
   currentImage: GeneratedImage | null;
@@ -250,41 +241,33 @@ export function PreviewPanel({
       )}
 
       {/* Dialogue Charte d'Utilisation */}
-      <AlertDialog open={showCharte} onOpenChange={setShowCharte}>
-        <AlertDialogContent className="bg-gray-800 border-gray-700">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Charte d'Utilisation des Images</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-300 space-y-3">
-              <p>En sauvegardant cette image dans votre galerie permanente, vous acceptez les conditions suivantes :</p>
+      <SimpleAlertDialog
+        open={showCharte}
+        onOpenChange={setShowCharte}
+        title="Charte d'Utilisation des Images"
+        description={
+          <div className="space-y-3">
+            <p>En sauvegardant cette image dans votre galerie permanente, vous acceptez les conditions suivantes :</p>
+            
+            <div className="bg-gray-900 p-4 rounded-lg space-y-2 text-sm">
+              <p>✓ <strong>Usage Personnel :</strong> Les images générées sont destinées à un usage personnel ou professionnel dans le cadre de vos projets.</p>
               
-              <div className="bg-gray-900 p-4 rounded-lg space-y-2 text-sm">
-                <p>✓ <strong>Usage Personnel :</strong> Les images générées sont destinées à un usage personnel ou professionnel dans le cadre de vos projets.</p>
-                
-                <p>✓ <strong>Responsabilité :</strong> Vous êtes responsable de l'utilisation que vous faites des images générées.</p>
-                
-                <p>✓ <strong>Contenu Approprié :</strong> Vous vous engagez à ne pas générer ou sauvegarder de contenu offensant, illégal ou inapproprié.</p>
-                
-                <p>✓ <strong>Droits d'Auteur :</strong> Vous reconnaissez que les images générées par IA peuvent être soumises à des restrictions de droits d'auteur selon votre juridiction.</p>
-                
-                <p>✓ <strong>Stockage Local :</strong> Les images sauvegardées sont stockées localement dans votre navigateur et peuvent être perdues si vous videz le cache.</p>
-              </div>
+              <p>✓ <strong>Responsabilité :</strong> Vous êtes responsable de l'utilisation que vous faites des images générées.</p>
               
-              <p className="text-xs text-gray-400 mt-4">En cliquant sur "Accepter et Sauvegarder", vous confirmez avoir lu et accepté cette charte d'utilisation.</p>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-gray-700 text-white hover:bg-gray-600">
-              Annuler
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleCharteAccept}
-              className="bg-purple-600 text-white hover:bg-purple-700"
-            >
-              Accepter et Sauvegarder
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              <p>✓ <strong>Contenu Approprié :</strong> Vous vous engagez à ne pas générer ou sauvegarder de contenu offensant, illégal ou inapproprié.</p>
+              
+              <p>✓ <strong>Droits d'Auteur :</strong> Vous reconnaissez que les images générées par IA peuvent être soumises à des restrictions de droits d'auteur selon votre juridiction.</p>
+              
+              <p>✓ <strong>Stockage Local :</strong> Les images sauvegardées sont stockées localement dans votre navigateur et peuvent être perdues si vous videz le cache.</p>
+            </div>
+            
+            <p className="text-xs text-gray-400 mt-4">En cliquant sur "Accepter et Sauvegarder", vous confirmez avoir lu et accepté cette charte d'utilisation.</p>
+          </div>
+        }
+        cancelText="Annuler"
+        confirmText="Accepter et Sauvegarder"
+        onConfirm={handleCharteAccept}
+      />
     </div>
   );
 }
