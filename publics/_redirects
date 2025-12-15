@@ -1,0 +1,9 @@
+# Redirection pour SPA React
+# Toutes les routes → index.html (sauf fichiers statiques)
+
+# Auth callback
+/login.html   /   200
+
+# Fallback pour toutes les autres routes
+/*    /index.html   200
+```
