@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Wand2, Sparkles, Image as ImageIcon } from 'lucide-react';
 import { PosterParams, GenerationParams } from '../App';
 
@@ -7,6 +7,7 @@ interface PosterGeneratorProps {
   isGenerating: boolean;
   onPromptGenerated: (prompt: string) => void;
   generatedPrompt: string;
+  onGetGenerateFunction?: (fn: () => void) => void;
 }
 
 // Données aléatoires pour génération d'affiches
@@ -133,7 +134,7 @@ const randomData = {
   ]
 };
 
-export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, generatedPrompt }: PosterGeneratorProps) {
+export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, generatedPrompt, onGetGenerateFunction }: PosterGeneratorProps) {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [tagline, setTagline] = useState('');
@@ -315,6 +316,16 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
 
     onGenerate(posterParams, genParams);
   };
+
+  // Exposer la fonction de génération au parent via callback
+  useEffect(() => {
+    if (onGetGenerateFunction) {
+      onGetGenerateFunction(handleStartGeneration);
+    }
+  }, [title, subtitle, tagline, occasion, customOccasion, ambiance, customAmbiance, 
+      mainCharacter, characterDescription, environment, environmentDescription,
+      characterAction, actionDescription, additionalDetails, colorPalette, 
+      customPalette, titleStyle, generatedPrompt]);
 
   return (
     <div className="p-6">
@@ -570,24 +581,13 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
 
         {/* Action Buttons */}
         <div className="space-y-3 pt-4">
-          <button
-            type="button"
-            onClick={handleGeneratePrompt}
-            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
-            disabled={isGenerating}
-          >
-            <Wand2 className="w-5 h-5" />
-            <span>Générer le Prompt d'Affiche</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleStartGeneration}
-            className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 px-6 rounded-lg transition-colors"
-            disabled={isGenerating}
-          >
-            {isGenerating ? 'Génération en cours...' : 'Démarrer la Génération'}
-          </button>
+          {/* Affichage du prompt généré */}
+          {generatedPrompt && (
+            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <h3 className="text-gray-300 mb-2 text-sm">Prompt Généré (Prévisualisation)</h3>
+              <p className="text-white text-sm leading-relaxed">{generatedPrompt}</p>
+            </div>
+          )}
         </div>
       </form>
     </div>
