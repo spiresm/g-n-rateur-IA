@@ -304,46 +304,87 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
   ];
 
   const generatePrompt = () => {
-    const parts = [];
+    // Vérifier si on a du texte à afficher
+    const hasTitle = Boolean(title.trim());
+    const hasSubtitle = Boolean(subtitle.trim());
+    const hasTagline = Boolean(tagline.trim());
     
-    if (title) parts.push(`Movie poster titled "${title}"`);
-    if (subtitle) parts.push(`subtitle: "${subtitle}"`);
-    if (tagline) parts.push(`tagline: "${tagline}"`);
+    // BLOC TEXTE : Instructions strictes pour le modèle
+    let textBlock = "";
     
+    if (!hasTitle && !hasSubtitle && !hasTagline) {
+      textBlock = `
+NO TEXT MODE:
+The poster must contain ZERO text, letters, symbols or numbers.
+Do not invent any title, subtitle or tagline.
+Avoid any shapes that resemble typography.
+`;
+    } else {
+      textBlock = `
+ALLOWED TEXT ONLY (MODEL MUST NOT INVENT ANYTHING ELSE):
+
+${hasTitle ? `TITLE: "${title}" (top area, clean, sharp, readable, no distortion)` : ""}
+${hasSubtitle ? `SUBTITLE: "${subtitle}" (under title, smaller, crisp, readable)` : ""}
+${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
+
+RULES FOR TEXT:
+- Only the items above are permitted. No additional text, no hallucinated wording.
+- **TEXT STYLE/MATERIAL (APPLIES ONLY TO LETTERING)**: ${titleStyle || "cinematic, elegant contrast"}.
+- **CRITICAL INSTRUCTION: DO NOT APPLY** the text style (e.g., 'dripping horror', 'neon', 'frosted') to the **characters, environment, lighting, or overall rendering**. The main image's mood and style must be defined exclusively by the 'Visual elements' below.
+`;
+    }
+    
+    // ÉLÉMENTS VISUELS : Collecter tous les éléments non-vides
+    const visualParts = [];
+    
+    // Thème/Occasion
     const selectedOccasion = occasion === 'Choisir...' ? '' : occasion;
     const finalOccasion = selectedOccasion || customOccasion;
-    if (finalOccasion) parts.push(`theme: ${finalOccasion}`);
+    if (finalOccasion) visualParts.push(finalOccasion);
     
+    // Ambiance
     const selectedAmbiance = ambiance === 'Choisir...' ? '' : ambiance;
     const finalAmbiance = selectedAmbiance || customAmbiance;
-    if (finalAmbiance) parts.push(`atmosphere: ${finalAmbiance}`);
+    if (finalAmbiance) visualParts.push(finalAmbiance);
     
-    if (mainCharacter && mainCharacter !== 'Choisir...') {
-      parts.push(`featuring ${mainCharacter.toLowerCase()}`);
-      if (characterDescription) parts.push(characterDescription);
-    }
+    // Personnage
+    const selectedCharacter = mainCharacter === 'Choisir...' ? '' : mainCharacter;
+    const finalCharacter = characterDescription || selectedCharacter;
+    if (finalCharacter) visualParts.push(finalCharacter);
     
-    if (environment && environment !== 'Choisir...') {
-      parts.push(`in ${environment.toLowerCase()}`);
-      if (environmentDescription) parts.push(environmentDescription);
-    }
+    // Environnement
+    const selectedEnvironment = environment === 'Choisir...' ? '' : environment;
+    const finalEnvironment = environmentDescription || selectedEnvironment;
+    if (finalEnvironment) visualParts.push(finalEnvironment);
     
-    if (characterAction && characterAction !== 'Choisir...') {
-      parts.push(`${characterAction.toLowerCase()}`);
-      if (actionDescription) parts.push(actionDescription);
-    }
+    // Action
+    const selectedAction = characterAction === 'Choisir...' ? '' : characterAction;
+    const finalAction = actionDescription || selectedAction;
+    if (finalAction) visualParts.push(finalAction);
     
+    // Palette de couleurs
     const selectedPalette = colorPalette === 'Choisir...' ? '' : colorPalette;
     const finalPalette = selectedPalette || customPalette;
-    if (finalPalette) parts.push(`color palette: ${finalPalette}`);
+    if (finalPalette) visualParts.push(finalPalette);
     
-    if (titleStyle) parts.push(`title style: ${titleStyle}`);
+    const visualElements = visualParts.join(', ');
     
-    if (additionalDetails) parts.push(additionalDetails);
+    // Construction du prompt final structuré
+    const prompt = `
+Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
+
+${textBlock}
+
+Visual elements:
+${visualElements || "epic cinematic scene"}
+
+Extra details:
+${additionalDetails || "cinematic particles, depth fog, volumetric light"}
+
+Image style:
+Premium poster design, professional layout, ultra high resolution, visually striking.
+    `.trim().replace(/\n\s*\n/g, '\n').replace(/\s{2,}/g, ' ');
     
-    parts.push('cinematic, professional movie poster design, high quality');
-    
-    const prompt = parts.join(', ');
     onPromptGenerated(prompt);
     
     return prompt;
