@@ -19,7 +19,8 @@ export function AppContent() {
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [imageGallery, setImageGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [workflowToUse, setWorkflowToUse] = useState<string>('default.json');
+  const [workflowToUse, setWorkflowToUse] = useState<string | null>(null);
+  const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
 
   const { 
     isGenerating, 
@@ -30,25 +31,28 @@ export function AppContent() {
     clearError 
   } = useImageGeneration();
   
-  console.log('[APP_CONTENT] State:', { workflow, isGenerating, progress, error, workflowToUse });
+  console.log('[APP_CONTENT] State:', { workflow, isGenerating, progress, error, workflowToUse, workflowsLoaded });
 
   // Charger les workflows disponibles au démarrage
   useEffect(() => {
     const loadWorkflows = async () => {
       try {
         const data = await api.getWorkflows();
-        console.log('[APP_CONTENT] Workflows disponibles:', data.workflows);
+        console.log('[APP_CONTENT] 📋 Workflows disponibles:', data.workflows);
         
-        // Si default.json ou affiche.json n'existent pas, utiliser le premier workflow disponible
         if (data.workflows.length > 0) {
-          if (!data.workflows.includes('default.json') && !data.workflows.includes('affiche.json')) {
-            const firstWorkflow = data.workflows[0];
-            console.log(`[APP_CONTENT] ⚠️ default.json et affiche.json introuvables. Utilisation de: ${firstWorkflow}`);
-            setWorkflowToUse(firstWorkflow);
-          }
+          // Utiliser le premier workflow disponible
+          const selectedWorkflow = data.workflows[0];
+          console.log(`[APP_CONTENT] ✅ Workflow sélectionné: ${selectedWorkflow}`);
+          setWorkflowToUse(selectedWorkflow);
+        } else {
+          console.error('[APP_CONTENT] ❌ Aucun workflow disponible !');
         }
+        
+        setWorkflowsLoaded(true);
       } catch (err) {
-        console.error('[APP_CONTENT] Erreur chargement workflows:', err);
+        console.error('[APP_CONTENT] ❌ Erreur chargement workflows:', err);
+        setWorkflowsLoaded(true);
       }
     };
     
@@ -82,7 +86,13 @@ export function AppContent() {
   }, [generatedImage, isGenerating, generatedPrompt]);
 
   const handleGenerateFromParameters = async (params: GenerationParams) => {
+    if (!workflowToUse) {
+      console.error('[APP_CONTENT] ❌ Aucun workflow chargé, génération impossible');
+      return;
+    }
+    
     clearError();
+    console.log(`[APP_CONTENT] 🚀 Génération avec workflow: ${workflowToUse}`);
     // Adapter les noms de paramètres pour l'API
     await startGeneration(workflowToUse, {
       prompt: params.prompt,
@@ -99,7 +109,13 @@ export function AppContent() {
   };
 
   const handleGenerateFromPoster = async (_posterParams: PosterParams, genParams: GenerationParams) => {
+    if (!workflowToUse) {
+      console.error('[APP_CONTENT] ❌ Aucun workflow chargé, génération impossible');
+      return;
+    }
+    
     clearError();
+    console.log(`[APP_CONTENT] 🚀 Génération affiche avec workflow: ${workflowToUse}`);
     // Adapter les noms de paramètres pour l'API (workflow affiche.json)
     await startGeneration(workflowToUse, {
       prompt: genParams.prompt,
