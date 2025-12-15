@@ -20,6 +20,7 @@ export function AppContent() {
   const [workflowToUse, setWorkflowToUse] = useState<string | null>(null);
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
   const [posterGenerateFn, setPosterGenerateFn] = useState<(() => void) | null>(null);
+  const [parametersGenerateFn, setParametersGenerateFn] = useState<(() => void) | null>(null);
 
   const { 
     isGenerating, 
@@ -32,6 +33,7 @@ export function AppContent() {
   
   console.log('[APP_CONTENT] State:', { workflow, isGenerating, progress, error, workflowToUse, workflowsLoaded });
   console.log('[APP_CONTENT] 🎯 posterGenerateFn:', posterGenerateFn ? 'DÉFINIE ✅' : 'NULL ❌');
+  console.log('[APP_CONTENT] 🎯 parametersGenerateFn:', parametersGenerateFn ? 'DÉFINIE ✅' : 'NULL ❌');
   
   // Charger les workflows disponibles au démarrage
   useEffect(() => {
@@ -209,6 +211,7 @@ export function AppContent() {
             <GenerationParameters 
               onGenerate={handleGenerateFromParameters}
               isGenerating={isGenerating}
+              onGetGenerateFunction={setParametersGenerateFn}
             />
           ) : workflow === 'poster' ? (
             <PosterGenerator 
@@ -237,7 +240,13 @@ export function AppContent() {
             onCopyParameters={handleCopyParameters}
             onSaveToGallery={handleSaveToGallery}
             generatedPrompt={generatedPrompt}
-            onStartGeneration={workflow === 'poster' && posterGenerateFn ? posterGenerateFn : undefined}
+            onStartGeneration={
+              workflow === 'poster' 
+                ? (posterGenerateFn || undefined)
+                : workflow === 'parameters'
+                ? (parametersGenerateFn || undefined)
+                : undefined
+            }
           />
         </div>
       </div>
