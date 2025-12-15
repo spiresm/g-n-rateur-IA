@@ -190,10 +190,8 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
     setCustomPalette(randomPalette);
     setTitleStyle(randomTitleStyle);
 
-    // Générer automatiquement le prompt après avoir rempli les champs
-    setTimeout(() => {
-      handleGeneratePrompt();
-    }, 100);
+    // NE PAS générer automatiquement - juste remplir les champs
+    console.log('[POSTER_GENERATOR] 🎲 Affiche aléatoire générée (champs remplis uniquement)');
   };
 
   const occasions = [
