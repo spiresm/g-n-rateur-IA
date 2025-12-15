@@ -206,11 +206,6 @@ export function AppContent() {
       <div className="flex flex-col lg:flex-row h-[calc(100vh-64px-140px)]">
         {/* Left Panel - Paramètres */}
         <div className="w-full lg:w-1/2 bg-gray-800 lg:border-r border-gray-700 overflow-y-auto">
-          {/* Debug Info */}
-          <div className="px-4 pt-4 pb-2">
-            <WorkflowDebug />
-          </div>
-
           {workflow === 'parameters' ? (
             <GenerationParameters 
               onGenerate={handleGenerateFromParameters}
