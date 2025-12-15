@@ -15,4 +15,3 @@ export default defineConfig({
   },
 });
 
-## 📄 **3. tsconfig.json** (RACINE)
