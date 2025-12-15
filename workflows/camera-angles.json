@@ -1,191 +1,1517 @@
-import { useState } from 'react';
-import { Upload, Camera, X } from 'lucide-react';
-
-type CameraAngle = {
-  id: string;
-  label: string;
-  promptNode: string;
-  icon: string;
-};
-
-const CAMERA_ANGLES: CameraAngle[] = [
-  { id: 'close_up', label: 'Close-up', promptNode: '66', icon: '📷' },
-  { id: 'wide_shot', label: 'Wide Shot', promptNode: '67', icon: '🎬' },
-  { id: '45_right', label: '45° Droite', promptNode: '69', icon: '↗️' },
-  { id: '90_right', label: '90° Droite', promptNode: '68', icon: '→' },
-  { id: 'aerial_view', label: 'Vue Aérienne', promptNode: '70', icon: '🚁' },
-  { id: 'low_angle', label: 'Contre-plongée', promptNode: '71', icon: '⬆️' },
-  { id: '45_left', label: '45° Gauche', promptNode: '73', icon: '↖️' },
-  { id: '90_left', label: '90° Gauche', promptNode: '72', icon: '←' },
-];
-
-interface CameraAnglesGeneratorProps {
-  onGenerate: (params: any) => void;
-  isGenerating: boolean;
-}
-
-export function CameraAnglesGenerator({ onGenerate, isGenerating }: CameraAnglesGeneratorProps) {
-  const [selectedAngle, setSelectedAngle] = useState<CameraAngle>(CAMERA_ANGLES[0]);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target?.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setUploadedImage(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+{
+  "25": {
+    "inputs": {
+      "image": "character_input.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Character Image"
     }
-  };
-
-  const handleRemoveImage = () => {
-    setUploadedImage(null);
-    setImageFile(null);
-  };
-
-  const handleGenerate = () => {
-    if (!imageFile) {
-      alert('Veuillez uploader une image avant de générer.');
-      return;
+  },
+  "31": {
+    "inputs": {
+      "filename_prefix": "ComfyUI-close_up",
+      "images": [
+        "65:33:19",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image - Close up"
     }
-
-    // Générer un seed aléatoire
-    const seed = Math.floor(Math.random() * 1000000000000000);
-
-    onGenerate({
-      workflowType: 'camera-angles',
-      selectedAngle: selectedAngle.id,
-      promptNode: selectedAngle.promptNode,
-      seed,
-      steps: 4, // Fixé à 4 pour ce workflow
-      cfg: 1, // Fixé à 1 pour ce workflow
-      imageFile,
-    });
-  };
-
-  return (
-    <div className="h-full bg-gray-900 rounded-lg">
-      <div className="h-full overflow-y-auto p-6">
-        <div className="space-y-6">
-          {/* En-tête */}
-          <div className="flex items-center gap-3 pb-4 border-b border-gray-700">
-            <Camera className="w-6 h-6 text-purple-400" />
-            <div>
-              <h2 className="text-white text-lg">Angles de Caméra</h2>
-              <p className="text-gray-400 text-sm">Uploadez une image et choisissez un angle</p>
-            </div>
-          </div>
-
-          {/* Zone d'upload */}
-          <div className="space-y-3">
-            <label className="text-gray-300 text-sm block">Image Source</label>
-            
-            {!uploadedImage ? (
-              <label className="block w-full aspect-square max-h-[300px] cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  disabled={isGenerating}
-                />
-                <div className="w-full h-full border-2 border-dashed border-gray-600 rounded-lg hover:border-purple-500 transition-colors flex flex-col items-center justify-center gap-3 bg-gray-800/50">
-                  <Upload className="w-12 h-12 text-gray-500" />
-                  <div className="text-center px-4">
-                    <p className="text-gray-300 mb-1">Cliquez pour uploader</p>
-                    <p className="text-gray-500 text-xs">PNG, JPG jusqu'à 10MB</p>
-                  </div>
-                </div>
-              </label>
-            ) : (
-              <div className="relative aspect-square max-h-[300px] rounded-lg overflow-hidden bg-gray-800">
-                <img 
-                  src={uploadedImage} 
-                  alt="Uploaded" 
-                  className="w-full h-full object-contain"
-                />
-                <button
-                  onClick={handleRemoveImage}
-                  disabled={isGenerating}
-                  className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition-colors disabled:opacity-50"
-                  title="Supprimer l'image"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Sélection de l'angle */}
-          <div className="space-y-3">
-            <label className="text-gray-300 text-sm block">Angle de Caméra</label>
-            <div className="grid grid-cols-2 gap-2">
-              {CAMERA_ANGLES.map((angle) => (
-                <button
-                  key={angle.id}
-                  onClick={() => setSelectedAngle(angle)}
-                  disabled={isGenerating}
-                  className={`p-3 rounded-lg transition-all text-left border-2 ${
-                    selectedAngle.id === angle.id
-                      ? 'bg-purple-600 border-purple-500 text-white'
-                      : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500'
-                  } disabled:opacity-50`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{angle.icon}</span>
-                    <span className="text-sm">{angle.label}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Info technique */}
-          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
-            <h3 className="text-gray-300 text-sm mb-2">Paramètres Techniques</h3>
-            <div className="space-y-1 text-xs text-gray-400">
-              <div className="flex justify-between">
-                <span>Steps:</span>
-                <span className="text-gray-300">4 (fixe)</span>
-              </div>
-              <div className="flex justify-between">
-                <span>CFG Scale:</span>
-                <span className="text-gray-300">1.0 (fixe)</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Sampler:</span>
-                <span className="text-gray-300">Euler</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Modèle:</span>
-                <span className="text-gray-300">Qwen Image Edit</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Bouton Générer */}
-          <button
-            onClick={handleGenerate}
-            disabled={!uploadedImage || isGenerating}
-            className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 disabled:from-gray-700 disabled:to-gray-700 text-white py-4 rounded-lg transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isGenerating ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Génération en cours...
-              </span>
-            ) : (
-              <span className="flex items-center justify-center gap-2">
-                <Camera className="w-5 h-5" />
-                Générer l'Angle
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  },
+  "34": {
+    "inputs": {
+      "filename_prefix": "ComfyUI-wide_shot",
+      "images": [
+        "65:35:19",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image - Wide shot"
+    }
+  },
+  "36": {
+    "inputs": {
+      "filename_prefix": "ComfyUI-45_right",
+      "images": [
+        "65:37:19",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image - 45 right"
+    }
+  },
+  "38": {
+    "inputs": {
+      "filename_prefix": "ComfyUI-90_right",
+      "images": [
+        "65:39:19",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image - 90 right"
+    }
+  },
+  "41": {
+    "inputs": {
+      "filename_prefix": "ComfyUI-aerial_view",
+      "images": [
+        "65:42:19",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image - Aerial view"
+    }
+  },
+  "43": {
+    "inputs": {
+      "filename_prefix": "ComfyUI-low_angle",
+      "images": [
+        "65:44:19",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image - Low angle"
+    }
+  },
+  "45": {
+    "inputs": {
+      "filename_prefix": "ComfyUI-45_left",
+      "images": [
+        "65:46:19",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image - 45 left"
+    }
+  },
+  "47": {
+    "inputs": {
+      "filename_prefix": "ComfyUI-90_left",
+      "images": [
+        "65:40:19",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image - 90 left"
+    }
+  },
+  "66": {
+    "inputs": {
+      "value": " Turn the camera to a close-up.\n"
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "Prompt Close up"
+    }
+  },
+  "67": {
+    "inputs": {
+      "value": "Turn the camera to a wide-angle lens.\n"
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "Prompt Wide angle"
+    }
+  },
+  "68": {
+    "inputs": {
+      "value": "Rotate the camera 90 degrees to the right.\n"
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "Prompt 90deg right"
+    }
+  },
+  "69": {
+    "inputs": {
+      "value": "Rotate the camera 45 degrees to the right.\n"
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "Prompt 45deg right"
+    }
+  },
+  "70": {
+    "inputs": {
+      "value": "Turn the camera to an aerial view."
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "Prompt Aerial view"
+    }
+  },
+  "71": {
+    "inputs": {
+      "value": "Turn the camera to a low-angle view."
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "Prompt Low angle"
+    }
+  },
+  "72": {
+    "inputs": {
+      "value": "Rotate the camera 90 degrees to the left."
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "Prompt 90deg"
+    }
+  },
+  "73": {
+    "inputs": {
+      "value": "Rotate the camera 45 degrees to the left."
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "Prompt Left 45deg"
+    }
+  },
+  "48:9": {
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Charger VAE"
+    }
+  },
+  "48:10": {
+    "inputs": {
+      "clip_name": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+      "type": "qwen_image",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Charger CLIP"
+    }
+  },
+  "48:12": {
+    "inputs": {
+      "unet_name": "qwen_image_edit_2509_fp8_e4m3fn.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Charger Modèle Diffusion"
+    }
+  },
+  "48:20": {
+    "inputs": {
+      "lora_name": "Qwen-Edit-2509-Multiple-angles.safetensors",
+      "strength_model": 1,
+      "model": [
+        "48:26",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoraLoaderModelOnly"
+    }
+  },
+  "48:26": {
+    "inputs": {
+      "lora_name": "Qwen-Image-Edit-2509-Lightning-4steps-V1.0-bf16.safetensors",
+      "strength_model": 1,
+      "model": [
+        "48:12",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoraLoaderModelOnly"
+    }
+  },
+  "65:35:8": {
+    "inputs": {
+      "strength": 1,
+      "model": [
+        "65:35:11",
+        0
+      ]
+    },
+    "class_type": "CFGNorm",
+    "_meta": {
+      "title": "CFGNorm"
+    }
+  },
+  "65:35:11": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "48:20",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "ModelSamplingAuraFlow"
+    }
+  },
+  "65:35:13": {
+    "inputs": {
+      "pixels": [
+        "65:35:28",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "65:35:14": {
+    "inputs": {
+      "prompt": "",
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:35:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:35:19": {
+    "inputs": {
+      "samples": [
+        "65:35:21",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "65:35:21": {
+    "inputs": {
+      "seed": 864993937066247,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "65:35:8",
+        0
+      ],
+      "positive": [
+        "65:35:17",
+        0
+      ],
+      "negative": [
+        "65:35:14",
+        0
+      ],
+      "latent_image": [
+        "65:35:13",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "65:35:28": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "megapixels": 1,
+      "image": [
+        "25",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {
+      "title": "Redimensionner l'image en fonction du nombre total de pixels"
+    }
+  },
+  "65:35:32": {
+    "inputs": {
+      "images": [
+        "65:35:19",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Aperçu Image"
+    }
+  },
+  "65:35:17": {
+    "inputs": {
+      "prompt": [
+        "67",
+        0
+      ],
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:35:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:37:8": {
+    "inputs": {
+      "strength": 1,
+      "model": [
+        "65:37:11",
+        0
+      ]
+    },
+    "class_type": "CFGNorm",
+    "_meta": {
+      "title": "CFGNorm"
+    }
+  },
+  "65:37:11": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "48:20",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "ModelSamplingAuraFlow"
+    }
+  },
+  "65:37:13": {
+    "inputs": {
+      "pixels": [
+        "65:37:28",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "65:37:14": {
+    "inputs": {
+      "prompt": "",
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:37:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:37:19": {
+    "inputs": {
+      "samples": [
+        "65:37:21",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "65:37:21": {
+    "inputs": {
+      "seed": 405868421823137,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "65:37:8",
+        0
+      ],
+      "positive": [
+        "65:37:17",
+        0
+      ],
+      "negative": [
+        "65:37:14",
+        0
+      ],
+      "latent_image": [
+        "65:37:13",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "65:37:28": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "megapixels": 1,
+      "image": [
+        "25",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {
+      "title": "Redimensionner l'image en fonction du nombre total de pixels"
+    }
+  },
+  "65:37:32": {
+    "inputs": {
+      "images": [
+        "65:37:19",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Aperçu Image"
+    }
+  },
+  "65:37:17": {
+    "inputs": {
+      "prompt": [
+        "69",
+        0
+      ],
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:37:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:39:8": {
+    "inputs": {
+      "strength": 1,
+      "model": [
+        "65:39:11",
+        0
+      ]
+    },
+    "class_type": "CFGNorm",
+    "_meta": {
+      "title": "CFGNorm"
+    }
+  },
+  "65:39:11": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "48:20",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "ModelSamplingAuraFlow"
+    }
+  },
+  "65:39:13": {
+    "inputs": {
+      "pixels": [
+        "65:39:28",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "65:39:14": {
+    "inputs": {
+      "prompt": "",
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:39:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:39:19": {
+    "inputs": {
+      "samples": [
+        "65:39:21",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "65:39:21": {
+    "inputs": {
+      "seed": 507933693362283,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "65:39:8",
+        0
+      ],
+      "positive": [
+        "65:39:17",
+        0
+      ],
+      "negative": [
+        "65:39:14",
+        0
+      ],
+      "latent_image": [
+        "65:39:13",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "65:39:28": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "megapixels": 1,
+      "image": [
+        "25",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {
+      "title": "Redimensionner l'image en fonction du nombre total de pixels"
+    }
+  },
+  "65:39:32": {
+    "inputs": {
+      "images": [
+        "65:39:19",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Aperçu Image"
+    }
+  },
+  "65:39:17": {
+    "inputs": {
+      "prompt": [
+        "68",
+        0
+      ],
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:39:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:42:8": {
+    "inputs": {
+      "strength": 1,
+      "model": [
+        "65:42:11",
+        0
+      ]
+    },
+    "class_type": "CFGNorm",
+    "_meta": {
+      "title": "CFGNorm"
+    }
+  },
+  "65:42:11": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "48:20",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "ModelSamplingAuraFlow"
+    }
+  },
+  "65:42:13": {
+    "inputs": {
+      "pixels": [
+        "65:42:28",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "65:42:14": {
+    "inputs": {
+      "prompt": "",
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:42:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:42:19": {
+    "inputs": {
+      "samples": [
+        "65:42:21",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "65:42:21": {
+    "inputs": {
+      "seed": 757958372345700,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "65:42:8",
+        0
+      ],
+      "positive": [
+        "65:42:17",
+        0
+      ],
+      "negative": [
+        "65:42:14",
+        0
+      ],
+      "latent_image": [
+        "65:42:13",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "65:42:28": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "megapixels": 1,
+      "image": [
+        "25",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {
+      "title": "Redimensionner l'image en fonction du nombre total de pixels"
+    }
+  },
+  "65:42:32": {
+    "inputs": {
+      "images": [
+        "65:42:19",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Aperçu Image"
+    }
+  },
+  "65:42:17": {
+    "inputs": {
+      "prompt": [
+        "70",
+        0
+      ],
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:42:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:44:8": {
+    "inputs": {
+      "strength": 1,
+      "model": [
+        "65:44:11",
+        0
+      ]
+    },
+    "class_type": "CFGNorm",
+    "_meta": {
+      "title": "CFGNorm"
+    }
+  },
+  "65:44:11": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "48:20",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "ModelSamplingAuraFlow"
+    }
+  },
+  "65:44:13": {
+    "inputs": {
+      "pixels": [
+        "65:44:28",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "65:44:14": {
+    "inputs": {
+      "prompt": "",
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:44:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:44:19": {
+    "inputs": {
+      "samples": [
+        "65:44:21",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "65:44:21": {
+    "inputs": {
+      "seed": 495293742630408,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "65:44:8",
+        0
+      ],
+      "positive": [
+        "65:44:17",
+        0
+      ],
+      "negative": [
+        "65:44:14",
+        0
+      ],
+      "latent_image": [
+        "65:44:13",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "65:44:28": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "megapixels": 1,
+      "image": [
+        "25",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {
+      "title": "Redimensionner l'image en fonction du nombre total de pixels"
+    }
+  },
+  "65:44:17": {
+    "inputs": {
+      "prompt": [
+        "71",
+        0
+      ],
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:44:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:44:32": {
+    "inputs": {
+      "images": [
+        "65:44:19",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Aperçu Image"
+    }
+  },
+  "65:46:8": {
+    "inputs": {
+      "strength": 1,
+      "model": [
+        "65:46:11",
+        0
+      ]
+    },
+    "class_type": "CFGNorm",
+    "_meta": {
+      "title": "CFGNorm"
+    }
+  },
+  "65:46:11": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "48:20",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "ModelSamplingAuraFlow"
+    }
+  },
+  "65:46:13": {
+    "inputs": {
+      "pixels": [
+        "65:46:28",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "65:46:14": {
+    "inputs": {
+      "prompt": "",
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:46:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:46:19": {
+    "inputs": {
+      "samples": [
+        "65:46:21",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "65:46:28": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "megapixels": 1,
+      "image": [
+        "25",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {
+      "title": "Redimensionner l'image en fonction du nombre total de pixels"
+    }
+  },
+  "65:46:32": {
+    "inputs": {
+      "images": [
+        "65:46:19",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Aperçu Image"
+    }
+  },
+  "65:46:17": {
+    "inputs": {
+      "prompt": [
+        "73",
+        0
+      ],
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:46:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:46:21": {
+    "inputs": {
+      "seed": 941061162245235,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "65:46:8",
+        0
+      ],
+      "positive": [
+        "65:46:17",
+        0
+      ],
+      "negative": [
+        "65:46:14",
+        0
+      ],
+      "latent_image": [
+        "65:46:13",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "65:40:8": {
+    "inputs": {
+      "strength": 1,
+      "model": [
+        "65:40:11",
+        0
+      ]
+    },
+    "class_type": "CFGNorm",
+    "_meta": {
+      "title": "CFGNorm"
+    }
+  },
+  "65:40:11": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "48:20",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "ModelSamplingAuraFlow"
+    }
+  },
+  "65:40:13": {
+    "inputs": {
+      "pixels": [
+        "65:40:28",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "65:40:14": {
+    "inputs": {
+      "prompt": "",
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:40:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:40:19": {
+    "inputs": {
+      "samples": [
+        "65:40:21",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "65:40:21": {
+    "inputs": {
+      "seed": 202646758175812,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "65:40:8",
+        0
+      ],
+      "positive": [
+        "65:40:17",
+        0
+      ],
+      "negative": [
+        "65:40:14",
+        0
+      ],
+      "latent_image": [
+        "65:40:13",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "65:40:28": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "megapixels": 1,
+      "image": [
+        "25",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {
+      "title": "Redimensionner l'image en fonction du nombre total de pixels"
+    }
+  },
+  "65:40:32": {
+    "inputs": {
+      "images": [
+        "65:40:19",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Aperçu Image"
+    }
+  },
+  "65:40:17": {
+    "inputs": {
+      "prompt": [
+        "72",
+        0
+      ],
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:40:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:33:8": {
+    "inputs": {
+      "strength": 1,
+      "model": [
+        "65:33:11",
+        0
+      ]
+    },
+    "class_type": "CFGNorm",
+    "_meta": {
+      "title": "CFGNorm"
+    }
+  },
+  "65:33:11": {
+    "inputs": {
+      "shift": 3,
+      "model": [
+        "48:20",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "ModelSamplingAuraFlow"
+    }
+  },
+  "65:33:13": {
+    "inputs": {
+      "pixels": [
+        "65:33:28",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "65:33:14": {
+    "inputs": {
+      "prompt": "",
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:33:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  },
+  "65:33:19": {
+    "inputs": {
+      "samples": [
+        "65:33:21",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "65:33:21": {
+    "inputs": {
+      "seed": 1106429432136498,
+      "steps": 4,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "65:33:8",
+        0
+      ],
+      "positive": [
+        "65:33:17",
+        0
+      ],
+      "negative": [
+        "65:33:14",
+        0
+      ],
+      "latent_image": [
+        "65:33:13",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "65:33:28": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "megapixels": 1,
+      "image": [
+        "25",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {
+      "title": "Redimensionner l'image en fonction du nombre total de pixels"
+    }
+  },
+  "65:33:32": {
+    "inputs": {
+      "images": [
+        "65:33:19",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Aperçu Image"
+    }
+  },
+  "65:33:17": {
+    "inputs": {
+      "prompt": [
+        "66",
+        0
+      ],
+      "clip": [
+        "48:10",
+        0
+      ],
+      "vae": [
+        "48:9",
+        0
+      ],
+      "image1": [
+        "65:33:28",
+        0
+      ]
+    },
+    "class_type": "TextEncodeQwenImageEditPlus",
+    "_meta": {
+      "title": "TextEncodeQwenImageEditPlus"
+    }
+  }
 }
