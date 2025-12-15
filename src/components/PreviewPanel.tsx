@@ -173,21 +173,21 @@ export function PreviewPanel({
         </>
       )}
 
-      {/* Main Preview - TAILLE RÉDUITE SUR PC */}
+      {/* Main Preview - TAILLE AGRANDIE 1.5x (600px max-height) */}
       <div className="mb-6">
         {isGenerating ? (
-          <div className="aspect-[9/16] max-h-[400px] mx-auto bg-gray-800 rounded-lg flex items-center justify-center">
+          <div className="aspect-[9/16] max-h-[600px] mx-auto bg-gray-800 rounded-lg flex items-center justify-center">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
               <p className="text-gray-300">Génération en cours...</p>
             </div>
           </div>
         ) : currentImage ? (
-          <div className="relative max-h-[400px] mx-auto w-fit">
+          <div className="relative max-h-[600px] mx-auto w-fit">
             <img
               src={currentImage.imageUrl}
               alt="Generated"
-              className="rounded-lg max-h-[400px] w-auto object-contain"
+              className="rounded-lg max-h-[600px] w-auto object-contain"
             />
             <div className="absolute top-4 right-4 flex gap-2">
               <button
@@ -207,7 +207,7 @@ export function PreviewPanel({
             </div>
           </div>
         ) : (
-          <div className="aspect-[9/16] max-h-[400px] mx-auto bg-gray-800 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-700">
+          <div className="aspect-[9/16] max-h-[600px] mx-auto bg-gray-800 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-700">
             <div className="text-center px-6">
               <ImageIcon className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <p className="text-gray-400">Aucune image encore générée. Configurez vos paramètres et lancez la génération.</p>
@@ -216,15 +216,15 @@ export function PreviewPanel({
         )}
       </div>
 
-      {/* Galerie Sauvegardée */}
+      {/* Galerie Sauvegardée - VIGNETTES 2x PLUS PETITES */}
       {savedGallery.length > 0 && (
         <div className="mb-6">
           <h3 className="text-gray-300 mb-3 flex items-center gap-2">
             <ImageIcon className="w-4 h-4 text-purple-400" />
             Galerie Sauvegardée ({savedGallery.length})
           </h3>
-          <div className="grid grid-cols-3 gap-3">
-            {savedGallery.slice(0, 6).map((image) => (
+          <div className="grid grid-cols-6 gap-2">
+            {savedGallery.slice(0, 12).map((image) => (
               <div
                 key={image.id}
                 onClick={() => onSelectImage(image)}
@@ -242,34 +242,6 @@ export function PreviewPanel({
           </div>
         </div>
       )}
-
-      {/* Galerie Temporaire (Historique) */}
-      <div className="mb-6">
-        <h3 className="text-gray-300 mb-3">Historique Récent</h3>
-        {gallery.length > 0 ? (
-          <div className="grid grid-cols-3 gap-3">
-            {gallery.slice(0, 6).map((image) => (
-              <div
-                key={image.id}
-                onClick={() => onSelectImage(image)}
-                className={`aspect-[9/16] rounded-lg overflow-hidden cursor-pointer transition-all hover:ring-2 hover:ring-purple-500 ${
-                  currentImage?.id === image.id ? 'ring-2 ring-purple-500' : ''
-                }`}
-              >
-                <img
-                  src={image.imageUrl}
-                  alt="Gallery"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-gray-800 rounded-lg p-8 text-center">
-            <p className="text-gray-500 text-sm">Aucune image dans l'historique</p>
-          </div>
-        )}
-      </div>
 
       {/* Generation Info */}
       {currentImage && (
