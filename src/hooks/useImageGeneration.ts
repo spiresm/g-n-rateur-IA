@@ -27,7 +27,7 @@ interface UseImageGenerationResult {
   error: string | null;
   generatedImage: string | null;
   promptId: string | null;
-  startGeneration: (workflowName: string, params: GenerationParams) => Promise<void>;
+  startGeneration: (workflowName: string, params: any) => Promise<void>;
   clearError: () => void;
 }
 
