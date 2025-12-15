@@ -18,6 +18,7 @@ export function AppContent() {
   const [workflow, setWorkflow] = useState<WorkflowType>('poster');
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [imageGallery, setImageGallery] = useState<GeneratedImage[]>([]);
+  const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [workflowToUse, setWorkflowToUse] = useState<string | null>(null);
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
@@ -57,6 +58,25 @@ export function AppContent() {
     };
     
     loadWorkflows();
+  }, []);
+
+  // Charger la galerie sauvegardée depuis localStorage au démarrage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('savedGallery');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Reconvertir les dates
+        const images = parsed.map((img: any) => ({
+          ...img,
+          timestamp: new Date(img.timestamp)
+        }));
+        setSavedGallery(images);
+        console.log('[APP_CONTENT] 📚 Galerie sauvegardée chargée:', images.length, 'images');
+      }
+    } catch (err) {
+      console.error('[APP_CONTENT] ❌ Erreur chargement galerie:', err);
+    }
   }, []);
 
   // Quand une nouvelle image est générée, l'ajouter à la galerie
@@ -140,6 +160,20 @@ export function AppContent() {
     navigator.clipboard.writeText(JSON.stringify(image.params, null, 2));
   };
 
+  const handleSaveToGallery = (image: GeneratedImage) => {
+    setSavedGallery((prev) => {
+      const updated = [image, ...prev];
+      // Sauvegarder dans localStorage
+      try {
+        localStorage.setItem('savedGallery', JSON.stringify(updated));
+        console.log('[APP_CONTENT] 💾 Image sauvegardée dans la galerie permanente');
+      } catch (err) {
+        console.error('[APP_CONTENT] ❌ Erreur sauvegarde localStorage:', err);
+      }
+      return updated;
+    });
+  };
+
   return (
     <>
       <Header />
@@ -195,9 +229,11 @@ export function AppContent() {
           <PreviewPanel 
             currentImage={currentImage}
             gallery={imageGallery}
+            savedGallery={savedGallery}
             isGenerating={isGenerating}
             onSelectImage={handleSelectFromGallery}
             onCopyParameters={handleCopyParameters}
+            onSaveToGallery={handleSaveToGallery}
             generatedPrompt={generatedPrompt}
           />
         </div>
