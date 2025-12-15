@@ -20,6 +20,7 @@ export function AppContent() {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [workflowToUse, setWorkflowToUse] = useState<string | null>(null);
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
+  const [posterGenerateFn, setPosterGenerateFn] = useState<(() => void) | null>(null);
 
   const { 
     isGenerating, 
@@ -220,6 +221,7 @@ export function AppContent() {
               isGenerating={isGenerating}
               onPromptGenerated={setGeneratedPrompt}
               generatedPrompt={generatedPrompt}
+              onGetGenerateFunction={setPosterGenerateFn}
             />
           ) : (
             <div className="p-6 text-center">
@@ -240,6 +242,8 @@ export function AppContent() {
             onCopyParameters={handleCopyParameters}
             onSaveToGallery={handleSaveToGallery}
             generatedPrompt={generatedPrompt}
+            onStartGeneration={workflow === 'poster' ? posterGenerateFn || undefined : undefined}
+            workflowType={workflow}
           />
         </div>
       </div>
