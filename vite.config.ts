@@ -1,4 +1,4 @@
-```typescript
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -14,8 +14,5 @@ export default defineConfig({
     sourcemap: true,
   },
 });
-```
-
----
 
 ## 📄 **3. tsconfig.json** (RACINE)
