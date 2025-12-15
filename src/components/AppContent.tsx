@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Header } from './Header';
 import { WorkflowCarousel, WorkflowType } from './WorkflowCarousel';
 import { GenerationParameters } from './GenerationParameters';
@@ -19,9 +19,12 @@ export function AppContent() {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [workflowToUse, setWorkflowToUse] = useState<string | null>(null);
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
-  const [posterGenerateFn, setPosterGenerateFn] = useState<(() => void) | null>(null);
-  const [parametersGenerateFn, setParametersGenerateFn] = useState<(() => void) | null>(null);
-
+  
+  // Utiliser useRef au lieu de useState pour stocker les fonctions
+  const posterGenerateFnRef = useRef<(() => void) | null>(null);
+  const parametersGenerateFnRef = useRef<(() => void) | null>(null);
+  const [forceUpdate, setForceUpdate] = useState(0);
+  
   const { 
     isGenerating, 
     progress, 
@@ -32,8 +35,8 @@ export function AppContent() {
   } = useImageGeneration();
   
   console.log('[APP_CONTENT] State:', { workflow, isGenerating, progress, error, workflowToUse, workflowsLoaded });
-  console.log('[APP_CONTENT] 🎯 posterGenerateFn:', posterGenerateFn ? 'DÉFINIE ✅' : 'NULL ❌');
-  console.log('[APP_CONTENT] 🎯 parametersGenerateFn:', parametersGenerateFn ? 'DÉFINIE ✅' : 'NULL ❌');
+  console.log('[APP_CONTENT] 🎯 posterGenerateFn:', posterGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌');
+  console.log('[APP_CONTENT] 🎯 parametersGenerateFn:', parametersGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌');
   
   // Charger les workflows disponibles au démarrage
   useEffect(() => {
@@ -60,6 +63,14 @@ export function AppContent() {
     
     loadWorkflows();
   }, []);
+
+  // Réinitialiser les fonctions de génération quand on change de workflow
+  useEffect(() => {
+    console.log('[APP_CONTENT] 🔄 Workflow changé:', workflow);
+    posterGenerateFnRef.current = null;
+    parametersGenerateFnRef.current = null;
+    setForceUpdate(prev => prev + 1);
+  }, [workflow]);
 
   // Charger la galerie sauvegardée depuis localStorage au démarrage
   useEffect(() => {
@@ -213,7 +224,10 @@ export function AppContent() {
               <GenerationParameters 
                 onGenerate={handleGenerateFromParameters}
                 isGenerating={isGenerating}
-                onGetGenerateFunction={setParametersGenerateFn}
+                onGetGenerateFunction={(fn) => {
+                  parametersGenerateFnRef.current = fn;
+                  setForceUpdate(prev => prev + 1);
+                }}
               />
             ) : workflow === 'poster' ? (
               <PosterGenerator 
@@ -221,7 +235,10 @@ export function AppContent() {
                 isGenerating={isGenerating}
                 onPromptGenerated={setGeneratedPrompt}
                 generatedPrompt={generatedPrompt}
-                onGetGenerateFunction={setPosterGenerateFn}
+                onGetGenerateFunction={(fn) => {
+                  posterGenerateFnRef.current = fn;
+                  setForceUpdate(prev => prev + 1);
+                }}
               />
             ) : (
               <div className="p-6 text-center">
@@ -244,9 +261,9 @@ export function AppContent() {
               generatedPrompt={generatedPrompt}
               onStartGeneration={
                 workflow === 'poster' 
-                  ? (posterGenerateFn || undefined)
+                  ? (posterGenerateFnRef.current || undefined)
                   : workflow === 'parameters'
-                  ? (parametersGenerateFn || undefined)
+                  ? (parametersGenerateFnRef.current || undefined)
                   : undefined
               }
             />
