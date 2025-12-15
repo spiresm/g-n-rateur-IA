@@ -7,6 +7,7 @@ interface PosterGeneratorProps {
   isGenerating: boolean;
   onPromptGenerated: (prompt: string) => void;
   generatedPrompt: string;
+  imageDimensions?: { width: number; height: number };
   onGetGenerateFunction?: (fn: () => void) => void;
 }
 
@@ -134,7 +135,7 @@ const randomData = {
   ]
 };
 
-export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, generatedPrompt, onGetGenerateFunction }: PosterGeneratorProps) {
+export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, generatedPrompt, imageDimensions, onGetGenerateFunction }: PosterGeneratorProps) {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [tagline, setTagline] = useState('');
@@ -304,8 +305,8 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
       sampler: 'res_multistep', // Optimisé pour Z-Image Turbo
       scheduler: 'simple', // Optimisé pour Z-Image Turbo
       denoise: 1.0,
-      width: 1024,
-      height: 1792, // Format poster (9:16)
+      width: imageDimensions?.width || 1024,
+      height: imageDimensions?.height || 1792, // Format poster (9:16)
     };
 
     onGenerate(posterParams, genParams);
