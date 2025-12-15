@@ -275,10 +275,6 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
     return prompt;
   };
 
-  const handleGeneratePrompt = () => {
-    generatePrompt();
-  };
-
   const handleStartGeneration = () => {
     const prompt = generatedPrompt || generatePrompt();
     
