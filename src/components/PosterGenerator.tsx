@@ -349,7 +349,7 @@ const randomData = {
   ]
 };
 
-export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, generatedPrompt, imageDimensions, onGetGenerateFunction }: PosterGeneratorProps) {
+export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, generatedPrompt: _generatedPrompt, imageDimensions, onGetGenerateFunction }: PosterGeneratorProps) {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [tagline, setTagline] = useState('');
