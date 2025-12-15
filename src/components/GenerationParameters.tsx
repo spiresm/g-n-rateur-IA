@@ -4,10 +4,11 @@ import { GenerationParams } from '../App';
 interface GenerationParametersProps {
   onGenerate: (params: GenerationParams) => void;
   isGenerating: boolean;
+  imageDimensions?: { width: number; height: number };
   onGetGenerateFunction?: (fn: () => void) => void;
 }
 
-export function GenerationParameters({ onGenerate, isGenerating, onGetGenerateFunction }: GenerationParametersProps) {
+export function GenerationParameters({ onGenerate, isGenerating, imageDimensions, onGetGenerateFunction }: GenerationParametersProps) {
   const [prompt, setPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('');
   const [steps, setSteps] = useState(20);
@@ -18,6 +19,14 @@ export function GenerationParameters({ onGenerate, isGenerating, onGetGenerateFu
   const [denoise, setDenoise] = useState(1.0);
   const [width, setWidth] = useState(1024);
   const [height, setHeight] = useState(1024);
+
+  // Mettre à jour les dimensions quand elles changent
+  useEffect(() => {
+    if (imageDimensions) {
+      setWidth(imageDimensions.width);
+      setHeight(imageDimensions.height);
+    }
+  }, [imageDimensions]);
 
   const handleStartGeneration = () => {
     onGenerate({
