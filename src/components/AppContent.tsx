@@ -1,3 +1,5 @@
+// @ts-ignore - CameraAnglesParams est utilisé dans handleGenerateFromCameraAngles
+
 import { useState, useEffect, useRef } from 'react';
 import { Header } from './Header';
 import { WorkflowCarousel, WorkflowType } from './WorkflowCarousel';
