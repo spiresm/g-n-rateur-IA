@@ -10,12 +10,12 @@ interface GenerationParametersProps {
 
 export function GenerationParameters({ onGenerate, isGenerating, imageDimensions, onGetGenerateFunction }: GenerationParametersProps) {
   const [prompt, setPrompt] = useState('');
-  const [negativePrompt, setNegativePrompt] = useState('');
-  const [steps, setSteps] = useState(20);
-  const [cfg, setCfg] = useState(7);
+  const [negativePrompt, setNegativePrompt] = useState('low quality, blurry, distorted text, bad anatomy');
+  const [steps, setSteps] = useState(9); // Optimisé pour Z-Image Turbo
+  const [cfg, setCfg] = useState(1); // Optimisé pour Z-Image Turbo
   const [seed, setSeed] = useState(-1);
-  const [sampler, setSampler] = useState('euler');
-  const [scheduler, setScheduler] = useState('normal');
+  const [sampler, setSampler] = useState('res_multistep'); // Optimisé pour Z-Image Turbo
+  const [scheduler, setScheduler] = useState('simple'); // Optimisé pour Z-Image Turbo
   const [denoise, setDenoise] = useState(1.0);
   const [width, setWidth] = useState(1024);
   const [height, setHeight] = useState(1024);
