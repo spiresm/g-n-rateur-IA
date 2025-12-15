@@ -18,7 +18,6 @@ const IMAGE_FORMATS: ImageFormat[] = [
 
 interface PreviewPanelProps {
   currentImage: GeneratedImage | null;
-  gallery: GeneratedImage[];
   savedGallery: GeneratedImage[];
   isGenerating: boolean;
   onSelectImage: (image: GeneratedImage) => void;
@@ -31,7 +30,6 @@ interface PreviewPanelProps {
 
 export function PreviewPanel({ 
   currentImage, 
-  gallery: _gallery, // Préfixé avec _ pour indiquer qu'il est intentionnellement inutilisé
   savedGallery,
   isGenerating, 
   onSelectImage, 
