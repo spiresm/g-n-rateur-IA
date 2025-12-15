@@ -264,7 +264,6 @@ export function AppContent() {
           <div className="w-full lg:w-1/2">
             <PreviewPanel 
               currentImage={currentImage}
-              gallery={imageGallery}
               savedGallery={savedGallery}
               isGenerating={isGenerating}
               onSelectImage={handleSelectFromGallery}
