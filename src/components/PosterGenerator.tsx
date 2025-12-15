@@ -345,250 +345,250 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
         </button>
       </div>
 
-      <form className="space-y-5">
-        {/* Titre de l'affiche */}
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">
-            Titre de l'affiche (optionnel)
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ex: LA GRANDE AVENTURE"
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            disabled={isGenerating}
-          />
-        </div>
-
-        {/* Sous-titre */}
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">
-            Sous-titre (optionnel)
-          </label>
-          <input
-            type="text"
-            value={subtitle}
-            onChange={(e) => setSubtitle(e.target.value)}
-            placeholder="Ex: Nuit magique, édition spéciale"
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            disabled={isGenerating}
-          />
-        </div>
-
-        {/* Accroche */}
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">
-            Accroche (texte en bas de l'affiche - optionnel)
-          </label>
-          <input
-            type="text"
-            value={tagline}
-            onChange={(e) => setTagline(e.target.value)}
-            placeholder="Ex: Une aventure inoubliable..."
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            disabled={isGenerating}
-          />
-        </div>
-
-        {/* Occasion/Thème */}
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">
-            Occasion / Thème
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <select
-              value={occasion}
-              onChange={(e) => setOccasion(e.target.value)}
-              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              disabled={isGenerating}
-            >
-              {occasions.map(o => (
-                <option key={o} value={o}>{o}</option>
-              ))}
-            </select>
-            <input
-              type="text"
-              value={customOccasion}
-              onChange={(e) => setCustomOccasion(e.target.value)}
-              placeholder="Ou écrivez votre propre thème..."
-              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-              disabled={isGenerating}
-            />
-          </div>
-        </div>
-
-        {/* Ambiance Générale */}
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">
-            Ambiance Générale
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <select
-              value={ambiance}
-              onChange={(e) => setAmbiance(e.target.value)}
-              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              disabled={isGenerating}
-            >
-              {ambiances.map(a => (
-                <option key={a} value={a}>{a}</option>
-              ))}
-            </select>
-            <input
-              type="text"
-              value={customAmbiance}
-              onChange={(e) => setCustomAmbiance(e.target.value)}
-              placeholder="Ou écrivez une ambiance personnalisée..."
-              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-              disabled={isGenerating}
-            />
-          </div>
-        </div>
-
-        {/* Personnage Principal */}
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">
-            Personnage Principal
-          </label>
-          <select
-            value={mainCharacter}
-            onChange={(e) => setMainCharacter(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-2"
-            disabled={isGenerating}
-          >
-            {characters.map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-          <input
-            type="text"
-            value={characterDescription}
-            onChange={(e) => setCharacterDescription(e.target.value)}
-            placeholder="Description personnelle (optionnel)"
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-            disabled={isGenerating}
-          />
-        </div>
-
-        {/* Environnement */}
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">
-            Environnement
-          </label>
-          <select
-            value={environment}
-            onChange={(e) => setEnvironment(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-2"
-            disabled={isGenerating}
-          >
-            {environments.map(e => (
-              <option key={e} value={e}>{e}</option>
-            ))}
-          </select>
-          <input
-            type="text"
-            value={environmentDescription}
-            onChange={(e) => setEnvironmentDescription(e.target.value)}
-            placeholder="Description personnelle (optionnel)"
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-            disabled={isGenerating}
-          />
-        </div>
-
-        {/* Action du Personnage */}
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">
-            Action du Personnage
-          </label>
-          <select
-            value={characterAction}
-            onChange={(e) => setCharacterAction(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-2"
-            disabled={isGenerating}
-          >
-            {actions.map(a => (
-              <option key={a} value={a}>{a}</option>
-            ))}
-          </select>
-          <input
-            type="text"
-            value={actionDescription}
-            onChange={(e) => setActionDescription(e.target.value)}
-            placeholder="Description personnelle (optionnel)"
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-            disabled={isGenerating}
-          />
-        </div>
-
-        {/* Détails Supplémentaires */}
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">
-            Détails Supplémentaires
-          </label>
-          <textarea
-            value={additionalDetails}
-            onChange={(e) => setAdditionalDetails(e.target.value)}
-            placeholder="Ex: Feux d'artifice, neige légère, ballons colorés..."
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-            rows={3}
-            disabled={isGenerating}
-          />
-        </div>
-
-        {/* Palette de Couleurs */}
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">
-            Palette de Couleurs
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <select
-              value={colorPalette}
-              onChange={(e) => setColorPalette(e.target.value)}
-              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              disabled={isGenerating}
-            >
-              {palettes.map(p => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-            <input
-              type="text"
-              value={customPalette}
-              onChange={(e) => setCustomPalette(e.target.value)}
-              placeholder="Ou définissez votre propre palette..."
-              className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-              disabled={isGenerating}
-            />
-          </div>
-        </div>
-
-        {/* Style du Titre */}
-        <div>
-          <label className="block text-sm text-gray-300 mb-2">
-            Style du Titre
-          </label>
-          <select
-            value={titleStyle}
-            onChange={(e) => setTitleStyle(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            disabled={isGenerating}
-          >
-            {titleStyles.map(s => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="space-y-3 pt-4">
-          {/* Affichage du prompt généré */}
-          {generatedPrompt && (
-            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-              <h3 className="text-gray-300 mb-2 text-sm">Prompt Généré (Prévisualisation)</h3>
-              <p className="text-white text-sm leading-relaxed">{generatedPrompt}</p>
+      <form className="space-y-4">
+        {/* Grille 2 colonnes pour les champs */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Colonne 1 */}
+          <div className="space-y-4">
+            {/* Titre de l'affiche */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Titre de l'affiche
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex: LA GRANDE AVENTURE"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
             </div>
-          )}
+
+            {/* Sous-titre */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Sous-titre
+              </label>
+              <input
+                type="text"
+                value={subtitle}
+                onChange={(e) => setSubtitle(e.target.value)}
+                placeholder="Ex: Édition spéciale"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
+
+            {/* Accroche */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Accroche
+              </label>
+              <input
+                type="text"
+                value={tagline}
+                onChange={(e) => setTagline(e.target.value)}
+                placeholder="Ex: Une aventure..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
+
+            {/* Occasion/Thème */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Occasion / Thème
+              </label>
+              <select
+                value={occasion}
+                onChange={(e) => setOccasion(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
+                disabled={isGenerating}
+              >
+                {occasions.map(o => (
+                  <option key={o} value={o}>{o}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={customOccasion}
+                onChange={(e) => setCustomOccasion(e.target.value)}
+                placeholder="Ou thème personnalisé..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
+
+            {/* Ambiance Générale */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Ambiance
+              </label>
+              <select
+                value={ambiance}
+                onChange={(e) => setAmbiance(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
+                disabled={isGenerating}
+              >
+                {ambiances.map(a => (
+                  <option key={a} value={a}>{a}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={customAmbiance}
+                onChange={(e) => setCustomAmbiance(e.target.value)}
+                placeholder="Ou ambiance personnalisée..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
+
+            {/* Personnage Principal */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Personnage
+              </label>
+              <select
+                value={mainCharacter}
+                onChange={(e) => setMainCharacter(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
+                disabled={isGenerating}
+              >
+                {characters.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={characterDescription}
+                onChange={(e) => setCharacterDescription(e.target.value)}
+                placeholder="Description personnelle..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
+          </div>
+
+          {/* Colonne 2 */}
+          <div className="space-y-4">
+            {/* Environnement */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Environnement
+              </label>
+              <select
+                value={environment}
+                onChange={(e) => setEnvironment(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
+                disabled={isGenerating}
+              >
+                {environments.map(e => (
+                  <option key={e} value={e}>{e}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={environmentDescription}
+                onChange={(e) => setEnvironmentDescription(e.target.value)}
+                placeholder="Description personnelle..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
+
+            {/* Action du Personnage */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Action
+              </label>
+              <select
+                value={characterAction}
+                onChange={(e) => setCharacterAction(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
+                disabled={isGenerating}
+              >
+                {actions.map(a => (
+                  <option key={a} value={a}>{a}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={actionDescription}
+                onChange={(e) => setActionDescription(e.target.value)}
+                placeholder="Description personnelle..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
+
+            {/* Palette de Couleurs */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Palette de Couleurs
+              </label>
+              <select
+                value={colorPalette}
+                onChange={(e) => setColorPalette(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
+                disabled={isGenerating}
+              >
+                {palettes.map(p => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={customPalette}
+                onChange={(e) => setCustomPalette(e.target.value)}
+                placeholder="Ou palette personnalisée..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
+
+            {/* Style du Titre */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Style du Titre
+              </label>
+              <select
+                value={titleStyle}
+                onChange={(e) => setTitleStyle(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              >
+                {titleStyles.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Détails Supplémentaires */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Détails Supplémentaires
+              </label>
+              <textarea
+                value={additionalDetails}
+                onChange={(e) => setAdditionalDetails(e.target.value)}
+                placeholder="Ex: Feux d'artifice, neige..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
+                rows={3}
+                disabled={isGenerating}
+              />
+            </div>
+          </div>
         </div>
+
+        {/* Affichage du prompt généré (pleine largeur) */}
+        {generatedPrompt && (
+          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700 mt-4">
+            <h3 className="text-gray-300 mb-2 text-sm">Prompt Généré</h3>
+            <p className="text-white text-sm leading-relaxed">{generatedPrompt}</p>
+          </div>
+        )}
       </form>
     </div>
   );
