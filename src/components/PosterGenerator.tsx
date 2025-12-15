@@ -599,13 +599,13 @@ Premium poster design, professional layout, ultra high resolution, visually stri
   // Exposer la fonction de génération au parent via callback
   useEffect(() => {
     if (onGetGenerateFunction) {
-      console.log('[POSTER_GENERATOR] 📤 Envoi de la fonction de génération au parent');
+      // console.log('[POSTER_GENERATOR] 📤 Envoi de la fonction de génération au parent'); // DÉSACTIVÉ
       onGetGenerateFunction(handleStartGeneration);
     }
-  }, [title, subtitle, tagline, occasion, customOccasion, ambiance, customAmbiance, 
-      mainCharacter, characterDescription, environment, environmentDescription,
-      characterAction, actionDescription, additionalDetails, colorPalette, 
-      customPalette, titleStyle, generatedPrompt, onGetGenerateFunction]);
+    // ✅ DÉPENDANCES VIDES : on envoie la fonction UNE SEULE FOIS au montage
+    // handleStartGeneration utilise toujours les valeurs actuelles grâce aux closures
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="p-6">
