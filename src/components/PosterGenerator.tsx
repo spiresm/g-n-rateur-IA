@@ -224,7 +224,7 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [colorPalette, setColorPalette] = useState('');
   const [customPalette, setCustomPalette] = useState('');
-  const [titleStyle, setTitleStyle] = useState('sanglant dégouttant');
+  const [titleStyle, setTitleStyle] = useState('Choisir...');
 
   // Fonction utilitaire pour choisir un élément aléatoire
   const randomChoice = <T,>(arr: T[]): T => {
@@ -269,38 +269,38 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
   };
 
   const occasions = [
-    'Choisir...', 'Halloween', 'Noël', 'Science-Fiction', 'Fantasy', 
-    'Horreur', 'Aventure', 'Romance', 'Thriller', 'Action'
+    'Choisir...', 
+    ...randomData.themes
   ];
 
   const ambiances = [
-    'Choisir...', 'Sombre et inquiétante', 'Joyeuse et festive', 
-    'Mystérieuse', 'Épique', 'Romantique', 'Intense', 'Calme'
+    'Choisir...', 
+    ...randomData.ambiances
   ];
 
   const characters = [
-    'Choisir...', 'Héros solitaire', 'Groupe d\'aventuriers', 
-    'Créature mystique', 'Détective', 'Guerrier', 'Magicien', 'Robot'
+    'Choisir...', 
+    ...randomData.personnages
   ];
 
   const environments = [
-    'Choisir...', 'Forêt sombre', 'Ville futuriste', 'Château hanté',
-    'Désert aride', 'Océan profond', 'Montagne enneigée', 'Ruines antiques'
+    'Choisir...', 
+    ...randomData.environnements
   ];
 
   const actions = [
-    'Choisir...', 'Combat épique', 'Exploration', 'Fuite',
-    'Méditation', 'Découverte', 'Confrontation', 'Transformation'
+    'Choisir...', 
+    ...randomData.actions
   ];
 
   const palettes = [
-    'Choisir...', 'Rouge et noir', 'Bleu et or', 'Vert et brun',
-    'Violet et argent', 'Orange et noir', 'Monochrome', 'Arc-en-ciel'
+    'Choisir...', 
+    ...randomData.palettes
   ];
 
   const titleStyles = [
-    'sanglant dégouttant', 'élégant', 'graffiti', 'néon',
-    'classique', 'futuriste', 'manuscrit', 'relief 3D'
+    'Choisir...',
+    ...randomData.styles_titre
   ];
 
   const generatePrompt = () => {
@@ -329,7 +329,7 @@ ${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
 
 RULES FOR TEXT:
 - Only the items above are permitted. No additional text, no hallucinated wording.
-- **TEXT STYLE/MATERIAL (APPLIES ONLY TO LETTERING)**: ${titleStyle || "cinematic, elegant contrast"}.
+- **TEXT STYLE/MATERIAL (APPLIES ONLY TO LETTERING)**: ${titleStyle === 'Choisir...' || !titleStyle ? 'cinematic, elegant contrast' : titleStyle}.
 - **CRITICAL INSTRUCTION: DO NOT APPLY** the text style (e.g., 'dripping horror', 'neon', 'frosted') to the **characters, environment, lighting, or overall rendering**. The main image's mood and style must be defined exclusively by the 'Visual elements' below.
 `;
     }
