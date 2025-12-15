@@ -19,6 +19,7 @@ export function AppContent() {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [workflowToUse, setWorkflowToUse] = useState<string | null>(null);
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState({ width: 1920, height: 1080 });
   
   // Utiliser useRef au lieu de useState pour stocker les fonctions
   const posterGenerateFnRef = useRef<(() => void) | null>(null);
@@ -225,6 +226,7 @@ export function AppContent() {
               <GenerationParameters 
                 onGenerate={handleGenerateFromParameters}
                 isGenerating={isGenerating}
+                imageDimensions={imageDimensions}
                 onGetGenerateFunction={(fn) => {
                   parametersGenerateFnRef.current = fn;
                   setForceUpdate(prev => prev + 1);
@@ -236,6 +238,7 @@ export function AppContent() {
                 isGenerating={isGenerating}
                 onPromptGenerated={setGeneratedPrompt}
                 generatedPrompt={generatedPrompt}
+                imageDimensions={imageDimensions}
                 onGetGenerateFunction={(fn) => {
                   posterGenerateFnRef.current = fn;
                   setForceUpdate(prev => prev + 1);
@@ -267,6 +270,10 @@ export function AppContent() {
                   ? (parametersGenerateFnRef.current || undefined)
                   : undefined
               }
+              onFormatChange={(width, height) => {
+                console.log('[APP_CONTENT] 📐 Format changé:', width, 'x', height);
+                setImageDimensions({ width, height });
+              }}
             />
           </div>
         </div>
