@@ -3,6 +3,7 @@ import { GeneratedImage } from '../App';
 import { useState } from 'react';
 import { SimpleAlertDialog } from './SimpleAlertDialog';
 import { Sparkles } from 'lucide-react';
+import { ImageLightbox } from './ImageLightbox';
 
 type ImageFormat = {
   width: number;
@@ -41,6 +42,8 @@ export function PreviewPanel({
 }: PreviewPanelProps) {
   const [showCharte, setShowCharte] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<ImageFormat>(IMAGE_FORMATS[0]);
+  const [lightboxImage, setLightboxImage] = useState<GeneratedImage | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
 
   console.log('[PREVIEW_PANEL] 🔍 DEBUG BOUTON JAUNE:', {
     onStartGeneration: onStartGeneration ? 'DÉFINIE ✅' : 'UNDEFINED ❌',
@@ -83,6 +86,23 @@ export function PreviewPanel({
     if (onFormatChange) {
       onFormatChange(format.width, format.height);
     }
+  };
+
+  const handleLightboxOpen = (image: GeneratedImage, index: number) => {
+    setLightboxImage(image);
+    setLightboxIndex(index);
+  };
+
+  const handleLightboxClose = () => {
+    setLightboxImage(null);
+    setLightboxIndex(-1);
+  };
+
+  const handleLightboxNavigate = (image: GeneratedImage) => {
+    const newIndex = savedGallery.findIndex(img => img.id === image.id);
+    setLightboxImage(image);
+    setLightboxIndex(newIndex);
+    onSelectImage(image);
   };
 
   return (
@@ -181,26 +201,42 @@ export function PreviewPanel({
             </div>
           </div>
         ) : currentImage ? (
-          <div className="relative max-h-[600px] mx-auto w-fit">
-            <img
-              src={currentImage.imageUrl}
-              alt="Generated"
-              className="rounded-lg max-h-[600px] w-auto object-contain"
-            />
-            <div className="absolute top-4 right-4 flex gap-2">
+          <div className="mx-auto w-fit">
+            {/* Image cliquable pour ouvrir en grand */}
+            <div 
+              className="relative max-h-[600px] cursor-pointer group"
+              onClick={() => handleLightboxOpen(currentImage, -1)}
+            >
+              <img
+                src={currentImage.imageUrl}
+                alt="Generated"
+                className="rounded-lg max-h-[600px] w-auto object-contain"
+              />
+              {/* Overlay hover pour indiquer que c'est cliquable */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-lg flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 text-white px-4 py-2 rounded-lg text-sm">
+                  Cliquer pour agrandir
+                </div>
+              </div>
+            </div>
+            
+            {/* Boutons sous l'image */}
+            <div className="flex gap-3 mt-4 justify-center">
               <button
                 onClick={handleSaveToGallery}
-                className="bg-purple-600/80 hover:bg-purple-600 text-white px-4 py-3 rounded-lg backdrop-blur-sm transition-colors flex items-center gap-2"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2 shadow-lg"
                 title="Sauvegarder dans la galerie permanente"
               >
                 <ImageIcon className="w-5 h-5" />
-                <span className="text-sm">Sauvegarder</span>
+                <span>Sauvegarder</span>
               </button>
               <button
                 onClick={() => handleDownload(currentImage.imageUrl)}
-                className="bg-gray-900/80 hover:bg-gray-900 text-white p-3 rounded-lg backdrop-blur-sm transition-colors"
+                className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2 shadow-lg"
+                title="Télécharger l'image"
               >
                 <Download className="w-5 h-5" />
+                <span>Télécharger</span>
               </button>
             </div>
           </div>
@@ -222,10 +258,10 @@ export function PreviewPanel({
             Galerie Sauvegardée ({savedGallery.length})
           </h3>
           <div className="grid grid-cols-6 gap-2">
-            {savedGallery.slice(0, 12).map((image) => (
+            {savedGallery.slice(0, 12).map((image, index) => (
               <div
                 key={image.id}
-                onClick={() => onSelectImage(image)}
+                onClick={() => handleLightboxOpen(image, index)}
                 className={`aspect-[9/16] rounded-lg overflow-hidden cursor-pointer transition-all hover:ring-2 hover:ring-purple-500 ${
                   currentImage?.id === image.id ? 'ring-2 ring-purple-500' : ''
                 }`}
@@ -321,6 +357,18 @@ export function PreviewPanel({
         confirmText="Accepter et Sauvegarder"
         onConfirm={handleCharteAccept}
       />
+
+      {/* Lightbox pour la galerie */}
+      {lightboxImage && (
+        <ImageLightbox
+          open={lightboxImage !== null}
+          onOpenChange={handleLightboxClose}
+          image={lightboxImage}
+          index={lightboxIndex}
+          gallery={savedGallery}
+          onSelectImage={handleLightboxNavigate}
+        />
+      )}
     </div>
   );
 }
