@@ -82,6 +82,148 @@ const randomData = {
     "Underwater exploration"
   ],
   ambiances: [
+    "Epic cinematic",
+    "Dark moody",
+    "Bright vibrant",
+    "Soft dreamy",
+    "Intense action",
+    "Mysterious foggy",
+    "Warm nostalgic",
+    "Cold winter",
+    "Neon cyberpunk",
+    "Magical enchanted",
+    "Gritty realistic",
+    "Whimsical playful",
+    "Elegant luxury",
+    "Raw rustic",
+    "Futuristic metallic"
+  ],
+  personnages: [
+    "Heroic warrior",
+    "Hooded figure",
+    "Young adventurer",
+    "Powerful sorceress",
+    "Space explorer",
+    "Elegant princess",
+    "Battle soldier",
+    "Curious child",
+    "Wise mentor",
+    "Female fighter",
+    "Charming rogue",
+    "Noble knight",
+    "Cybernetic android",
+    "Creature guardian",
+    "Determined survivor"
+  ],
+  environnements: [
+    "Castle ruins",
+    "Alien planet",
+    "Abandoned city",
+    "Enchanted forest",
+    "Space station",
+    "Snowy mountain",
+    "Tropical island",
+    "Crystal cavern",
+    "Medieval village",
+    "Cyberpunk alley",
+    "Desert wasteland",
+    "Underwater ruins",
+    "Sky islands",
+    "Volcanic eruption",
+    "Mystical temple"
+  ],
+  actions: [
+    "Heroic stance",
+    "Running motion",
+    "Looking back",
+    "Reaching out",
+    "Leaping air",
+    "Facing enemy",
+    "Casting spell",
+    "High speed",
+    "Climbing cliff",
+    "Romantic embrace",
+    "Combat stance",
+    "Discovering artifact",
+    "Protecting someone",
+    "Emerging explosion",
+    "Dramatic silhouette"
+  ],
+  palettes: [
+    "Warm sunset",
+    "Cool blue",
+    "Purple pink",
+    "Golden black",
+    "Emerald silver",
+    "Blood red",
+    "Pastel rainbow",
+    "Monochrome blue",
+    "Bronze copper",
+    "Neon electric",
+    "Earth tones",
+    "Icy white",
+    "Royal purple",
+    "Crimson black",
+    "Seafoam coral"
+  ],
+  styles_titre: [
+    "Dripping horror",
+    "Neon tubes",
+    "Frosted glass",
+    "Carved wood",
+    "Engraved steel",
+    "Bubbly cartoon",
+    "Jagged blood",
+    "Gemstone facets",
+    "Weathered stone",
+    "Burning fire",
+    "Water texture",
+    "Polished gold",
+    "Spray paint",
+    "Holographic digital",
+    "Gothic metal",
+    "Molded clay",
+    "Paper cut",
+    "Cosmic nebula",
+    "Steampunk brass",
+    "Glitch corrupted"
+  ],
+  details: [
+    "Light rays",
+    "Dust particles",
+    "Magic sparkles",
+    "Falling snow",
+    "Swirling mist",
+    "Lens flares",
+    "Fire embers",
+    "Glowing runes",
+    "Paper leaves",
+    "Atmospheric smoke",
+    "Light streaks",
+    "Heat distortion",
+    "Crystal reflections",
+    "Ghostly wisps",
+    "Motion blur"
+  ],
+  // Données complètes pour la génération de prompts (non affichées dans les menus)
+  themes_full: [
+    "Epic fantasy adventure",
+    "Sci-fi space opera",
+    "Dark horror atmosphere",
+    "Romantic fairy tale",
+    "Action-packed thriller",
+    "Mysterious noir detective",
+    "Superhero origin story",
+    "Post-apocalyptic survival",
+    "Period drama historical",
+    "Magical Christmas wonder",
+    "Halloween spooky fun",
+    "Summer blockbuster",
+    "Cyberpunk neon future",
+    "Western frontier",
+    "Underwater exploration"
+  ],
+  ambiances_full: [
     "epic dramatic cinematic lighting",
     "dark moody atmospheric shadows",
     "bright colorful vibrant energy",
@@ -98,7 +240,7 @@ const randomData = {
     "raw rustic natural",
     "futuristic sleek metallic"
   ],
-  personnages: [
+  personnages_full: [
     "heroic warrior in armor",
     "mysterious hooded figure",
     "young adventurer with backpack",
@@ -115,7 +257,7 @@ const randomData = {
     "mystical creature guardian",
     "determined survivor"
   ],
-  environnements: [
+  environnements_full: [
     "ancient castle ruins at sunset",
     "vast alien planet landscape",
     "dark abandoned city streets",
@@ -132,7 +274,7 @@ const randomData = {
     "volcanic eruption background",
     "mystical temple entrance"
   ],
-  actions: [
+  actions_full: [
     "standing heroically with weapon raised",
     "running towards camera in slow motion",
     "looking back over shoulder dramatically",
@@ -149,7 +291,7 @@ const randomData = {
     "emerging from explosion",
     "silhouetted against dramatic sky"
   ],
-  palettes: [
+  palettes_full: [
     "warm orange and red sunset tones",
     "cool blue and teal night palette",
     "vibrant purple and pink gradient",
@@ -166,7 +308,7 @@ const randomData = {
     "crimson red and pitch black",
     "seafoam green and coral pink"
   ],
-  styles_titre: [
+  styles_titre_full: [
     "dripping horror lettering, torn edges, glossy red liquid texture, glowing sinister vibe",
     "bright neon tube letters, electric glow, slight chromatic aberration, futuristic vaporwave look",
     "frosted glass letters, icy texture, translucent frozen edges, cold blue inner glow",
@@ -188,7 +330,7 @@ const randomData = {
     "aged brass letters, rivets, gears, Victorian industrial steampunk detailing",
     "distorted corrupted letters, RGB glitch separation, pixel noise, digital malfunction look"
   ],
-  details: [
+  details_full: [
     "volumetric light rays",
     "floating dust particles",
     "magical sparkles and glitter",
@@ -236,14 +378,14 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
     const randomTitle = randomChoice(randomData.titres);
     const randomSubtitle = randomChoice(randomData.sous_titres);
     const randomTagline = randomChoice(randomData.taglines);
-    const randomTheme = randomChoice(randomData.themes);
-    const randomAmbiance = randomChoice(randomData.ambiances);
-    const randomPersonnage = randomChoice(randomData.personnages);
-    const randomEnvironnement = randomChoice(randomData.environnements);
-    const randomAction = randomChoice(randomData.actions);
-    const randomPalette = randomChoice(randomData.palettes);
-    const randomTitleStyle = randomChoice(randomData.styles_titre);
-    const randomDetails = randomChoice(randomData.details);
+    const randomTheme = randomChoice(randomData.themes_full);
+    const randomAmbiance = randomChoice(randomData.ambiances_full);
+    const randomPersonnage = randomChoice(randomData.personnages_full);
+    const randomEnvironnement = randomChoice(randomData.environnements_full);
+    const randomAction = randomChoice(randomData.actions_full);
+    const randomPalette = randomChoice(randomData.palettes_full);
+    const randomTitleStyle = randomChoice(randomData.styles_titre_full);
+    const randomDetails = randomChoice(randomData.details_full);
 
     // Mettre à jour tous les états
     setTitle(randomTitle);
@@ -303,6 +445,31 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
     ...randomData.styles_titre
   ];
 
+  // Fonction pour convertir les labels courts en versions complètes pour le prompt
+  const getFullVersion = (shortLabel: string, type: 'theme' | 'ambiance' | 'character' | 'environment' | 'action' | 'palette' | 'titleStyle'): string => {
+    const index = {
+      theme: randomData.themes.indexOf(shortLabel),
+      ambiance: randomData.ambiances.indexOf(shortLabel),
+      character: randomData.personnages.indexOf(shortLabel),
+      environment: randomData.environnements.indexOf(shortLabel),
+      action: randomData.actions.indexOf(shortLabel),
+      palette: randomData.palettes.indexOf(shortLabel),
+      titleStyle: randomData.styles_titre.indexOf(shortLabel)
+    }[type];
+
+    if (index === -1) return shortLabel; // Si pas trouvé, retourner tel quel
+
+    return {
+      theme: randomData.themes_full[index],
+      ambiance: randomData.ambiances_full[index],
+      character: randomData.personnages_full[index],
+      environment: randomData.environnements_full[index],
+      action: randomData.actions_full[index],
+      palette: randomData.palettes_full[index],
+      titleStyle: randomData.styles_titre_full[index]
+    }[type] || shortLabel;
+  };
+
   const generatePrompt = () => {
     // Vérifier si on a du texte à afficher
     const hasTitle = Boolean(title.trim());
@@ -329,7 +496,7 @@ ${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
 
 RULES FOR TEXT:
 - Only the items above are permitted. No additional text, no hallucinated wording.
-- **TEXT STYLE/MATERIAL (APPLIES ONLY TO LETTERING)**: ${titleStyle === 'Choisir...' || !titleStyle ? 'cinematic, elegant contrast' : titleStyle}.
+- **TEXT STYLE/MATERIAL (APPLIES ONLY TO LETTERING)**: ${titleStyle === 'Choisir...' || !titleStyle ? 'cinematic, elegant contrast' : getFullVersion(titleStyle, 'titleStyle')}.
 - **CRITICAL INSTRUCTION: DO NOT APPLY** the text style (e.g., 'dripping horror', 'neon', 'frosted') to the **characters, environment, lighting, or overall rendering**. The main image's mood and style must be defined exclusively by the 'Visual elements' below.
 `;
     }
@@ -340,32 +507,32 @@ RULES FOR TEXT:
     // Thème/Occasion
     const selectedOccasion = occasion === 'Choisir...' ? '' : occasion;
     const finalOccasion = selectedOccasion || customOccasion;
-    if (finalOccasion) visualParts.push(finalOccasion);
+    if (finalOccasion) visualParts.push(getFullVersion(finalOccasion, 'theme'));
     
     // Ambiance
     const selectedAmbiance = ambiance === 'Choisir...' ? '' : ambiance;
     const finalAmbiance = selectedAmbiance || customAmbiance;
-    if (finalAmbiance) visualParts.push(finalAmbiance);
+    if (finalAmbiance) visualParts.push(getFullVersion(finalAmbiance, 'ambiance'));
     
     // Personnage
     const selectedCharacter = mainCharacter === 'Choisir...' ? '' : mainCharacter;
     const finalCharacter = characterDescription || selectedCharacter;
-    if (finalCharacter) visualParts.push(finalCharacter);
+    if (finalCharacter) visualParts.push(getFullVersion(finalCharacter, 'character'));
     
     // Environnement
     const selectedEnvironment = environment === 'Choisir...' ? '' : environment;
     const finalEnvironment = environmentDescription || selectedEnvironment;
-    if (finalEnvironment) visualParts.push(finalEnvironment);
+    if (finalEnvironment) visualParts.push(getFullVersion(finalEnvironment, 'environment'));
     
     // Action
     const selectedAction = characterAction === 'Choisir...' ? '' : characterAction;
     const finalAction = actionDescription || selectedAction;
-    if (finalAction) visualParts.push(finalAction);
+    if (finalAction) visualParts.push(getFullVersion(finalAction, 'action'));
     
     // Palette de couleurs
     const selectedPalette = colorPalette === 'Choisir...' ? '' : colorPalette;
     const finalPalette = selectedPalette || customPalette;
-    if (finalPalette) visualParts.push(finalPalette);
+    if (finalPalette) visualParts.push(getFullVersion(finalPalette, 'palette'));
     
     const visualElements = visualParts.join(', ');
     
