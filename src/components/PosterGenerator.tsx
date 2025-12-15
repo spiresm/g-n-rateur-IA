@@ -6,7 +6,7 @@ interface PosterGeneratorProps {
   onGenerate: (posterParams: PosterParams, genParams: GenerationParams) => void;
   isGenerating: boolean;
   onPromptGenerated: (prompt: string) => void;
-  generatedPrompt: string;
+  generatedPrompt?: string; // ✅ Rendre OPTIONNEL avec '?' car non utilisé
   imageDimensions?: { width: number; height: number };
   onGetGenerateFunction?: (fn: () => void) => void;
 }
@@ -349,7 +349,7 @@ const randomData = {
   ]
 };
 
-export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, generatedPrompt, imageDimensions, onGetGenerateFunction }: PosterGeneratorProps) {
+export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, generatedPrompt: _generatedPrompt, imageDimensions, onGetGenerateFunction }: PosterGeneratorProps) {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [tagline, setTagline] = useState('');
