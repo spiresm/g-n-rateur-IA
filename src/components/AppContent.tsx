@@ -243,7 +243,6 @@ export function AppContent() {
             onSaveToGallery={handleSaveToGallery}
             generatedPrompt={generatedPrompt}
             onStartGeneration={workflow === 'poster' ? posterGenerateFn || undefined : undefined}
-            workflowType={workflow}
           />
         </div>
       </div>
