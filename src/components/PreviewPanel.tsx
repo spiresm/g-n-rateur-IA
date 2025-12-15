@@ -1,6 +1,6 @@
 import { ImageIcon, Clock, Copy, Download } from 'lucide-react';
 import { GeneratedImage } from '../App';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SimpleAlertDialog } from './SimpleAlertDialog';
 import { Sparkles } from 'lucide-react';
 import { ImageLightbox } from './ImageLightbox';
@@ -44,6 +44,20 @@ export function PreviewPanel({
   const [selectedFormat, setSelectedFormat] = useState<ImageFormat>(IMAGE_FORMATS[0]);
   const [lightboxImage, setLightboxImage] = useState<GeneratedImage | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
+  const imagePreviewRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll vers l'image quand elle est générée (responsive)
+  useEffect(() => {
+    if (currentImage && !isGenerating && imagePreviewRef.current) {
+      // Délai pour laisser le temps au rendu de se terminer
+      setTimeout(() => {
+        imagePreviewRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 100);
+    }
+  }, [currentImage, isGenerating]);
 
   console.log('[PREVIEW_PANEL] 🔍 DEBUG BOUTON JAUNE:', {
     onStartGeneration: onStartGeneration ? 'DÉFINIE ✅' : 'UNDEFINED ❌',
@@ -192,7 +206,7 @@ export function PreviewPanel({
       )}
 
       {/* Main Preview - TAILLE AGRANDIE 1.5x (600px max-height) */}
-      <div className="mb-6">
+      <div className="mb-6" ref={imagePreviewRef}>
         {isGenerating ? (
           <div className="aspect-[9/16] max-h-[600px] mx-auto bg-gray-800 rounded-lg flex items-center justify-center">
             <div className="text-center">
