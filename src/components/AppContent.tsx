@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Header } from './Header';
-import { WorkflowSelector } from './WorkflowSelector';
+import { WorkflowCarousel, WorkflowType } from './WorkflowCarousel';
 import { GenerationParameters } from './GenerationParameters';
 import { PosterGenerator } from './PosterGenerator';
 import { PreviewPanel } from './PreviewPanel';
@@ -9,8 +9,6 @@ import { WorkflowDebug } from './WorkflowDebug';
 import { useImageGeneration } from '../hooks/useImageGeneration';
 import { api } from '../services/api';
 import type { GenerationParams, PosterParams, GeneratedImage } from '../App';
-
-type WorkflowType = 'poster' | 'parameters';
 
 export function AppContent() {
   console.log('[APP_CONTENT] 🎨 Rendu du composant AppContent');
@@ -196,16 +194,18 @@ export function AppContent() {
         </div>
       )}
       
-      <div className="flex h-[calc(100vh-64px)]">
-        {/* Left Panel */}
-        <div className="w-[480px] bg-gray-800 border-r border-gray-700 overflow-y-auto">
-          <WorkflowSelector 
-            currentWorkflow={workflow}
-            onWorkflowChange={setWorkflow}
-          />
-
+      {/* Carrousel de Workflows - Toute la largeur */}
+      <WorkflowCarousel 
+        selectedWorkflow={workflow}
+        onSelectWorkflow={setWorkflow}
+      />
+      
+      {/* Deux panneaux côte à côte */}
+      <div className="flex h-[calc(100vh-64px-140px)]">
+        {/* Left Panel - Paramètres */}
+        <div className="w-1/2 bg-gray-800 border-r border-gray-700 overflow-y-auto">
           {/* Debug Info */}
-          <div className="px-4 pb-4">
+          <div className="px-4 pt-4 pb-2">
             <WorkflowDebug />
           </div>
 
@@ -214,18 +214,23 @@ export function AppContent() {
               onGenerate={handleGenerateFromParameters}
               isGenerating={isGenerating}
             />
-          ) : (
+          ) : workflow === 'poster' ? (
             <PosterGenerator 
               onGenerate={handleGenerateFromPoster}
               isGenerating={isGenerating}
               onPromptGenerated={setGeneratedPrompt}
               generatedPrompt={generatedPrompt}
             />
+          ) : (
+            <div className="p-6 text-center">
+              <p className="text-gray-400">Ce workflow n'est pas encore disponible.</p>
+              <p className="text-gray-500 text-sm mt-2">Sélectionnez un autre workflow pour commencer.</p>
+            </div>
           )}
         </div>
 
-        {/* Right Panel - Preview */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Right Panel - Preview & Gallery */}
+        <div className="w-1/2 overflow-y-auto">
           <PreviewPanel 
             currentImage={currentImage}
             gallery={imageGallery}
