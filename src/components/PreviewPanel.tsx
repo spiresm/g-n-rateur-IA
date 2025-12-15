@@ -10,7 +10,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from './ui/alert-dialog';
+} from '../components/ui/alert-dialog';
 
 interface PreviewPanelProps {
   currentImage: GeneratedImage | null;
@@ -34,7 +34,6 @@ export function PreviewPanel({
   generatedPrompt 
 }: PreviewPanelProps) {
   const [showCharte, setShowCharte] = useState(false);
-  const [charteAccepted, setCharteAccepted] = useState(false);
 
   const handleDownload = async (imageUrl: string) => {
     try {
@@ -61,7 +60,6 @@ export function PreviewPanel({
 
   const handleCharteAccept = () => {
     if (currentImage) {
-      setCharteAccepted(true);
       onSaveToGallery(currentImage);
       setShowCharte(false);
     }
