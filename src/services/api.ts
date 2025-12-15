@@ -1,4 +1,4 @@
-```typescript
+
 // Configuration de l'API Backend (Wrapper API sur Render)
 const API_BASE_URL = "https://g-n-rateur-backend-1.onrender.com";
 
@@ -179,4 +179,4 @@ export const api = {
     return response.json();
   },
 };
-```
+
