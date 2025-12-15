@@ -32,7 +32,8 @@ export function AppContent() {
   } = useImageGeneration();
   
   console.log('[APP_CONTENT] State:', { workflow, isGenerating, progress, error, workflowToUse, workflowsLoaded });
-
+  console.log('[APP_CONTENT] 🎯 posterGenerateFn:', posterGenerateFn ? 'DÉFINIE ✅' : 'NULL ❌');
+  
   // Charger les workflows disponibles au démarrage
   useEffect(() => {
     const loadWorkflows = async () => {
@@ -202,9 +203,9 @@ export function AppContent() {
       />
       
       {/* Deux panneaux côte à côte */}
-      <div className="flex h-[calc(100vh-64px-140px)]">
+      <div className="flex flex-col lg:flex-row h-[calc(100vh-64px-140px)]">
         {/* Left Panel - Paramètres */}
-        <div className="w-1/2 bg-gray-800 border-r border-gray-700 overflow-y-auto">
+        <div className="w-full lg:w-1/2 bg-gray-800 lg:border-r border-gray-700 overflow-y-auto">
           {/* Debug Info */}
           <div className="px-4 pt-4 pb-2">
             <WorkflowDebug />
@@ -232,7 +233,7 @@ export function AppContent() {
         </div>
 
         {/* Right Panel - Preview & Gallery */}
-        <div className="w-1/2 overflow-y-auto">
+        <div className="w-full lg:w-1/2 overflow-y-auto">
           <PreviewPanel 
             currentImage={currentImage}
             gallery={imageGallery}
@@ -242,7 +243,7 @@ export function AppContent() {
             onCopyParameters={handleCopyParameters}
             onSaveToGallery={handleSaveToGallery}
             generatedPrompt={generatedPrompt}
-            onStartGeneration={workflow === 'poster' ? posterGenerateFn || undefined : undefined}
+            onStartGeneration={workflow === 'poster' && posterGenerateFn ? posterGenerateFn : undefined}
           />
         </div>
       </div>
