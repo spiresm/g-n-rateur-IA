@@ -1,4 +1,3 @@
-
 import { memo } from 'react';
 import { LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,7 +6,7 @@ export const Header = memo(function Header() {
   const { user, logout, isAuthenticated } = useAuth();
 
   return (
-    <header className="h-16 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-6">
+    <header className="fixed top-0 left-0 right-0 h-16 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-6 z-50">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
@@ -46,4 +45,3 @@ export const Header = memo(function Header() {
     </header>
   );
 });
-
