@@ -14,7 +14,7 @@ export function AppContent() {
   
   const [workflow, setWorkflow] = useState<WorkflowType>('poster');
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
-  const [imageGallery, setImageGallery] = useState<GeneratedImage[]>([]);
+  const [imageGallery, setImageGallery] = useState<GeneratedImage[]>([]); // Historique de session (non utilisé dans UI)
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [workflowToUse, setWorkflowToUse] = useState<string | null>(null);
