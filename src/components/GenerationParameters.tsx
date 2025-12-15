@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { Wand2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { GenerationParams } from '../App';
 
 interface GenerationParametersProps {
   onGenerate: (params: GenerationParams) => void;
   isGenerating: boolean;
+  onGetGenerateFunction?: (fn: () => void) => void;
 }
 
-export function GenerationParameters({ onGenerate, isGenerating }: GenerationParametersProps) {
+export function GenerationParameters({ onGenerate, isGenerating, onGetGenerateFunction }: GenerationParametersProps) {
   const [prompt, setPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('');
   const [steps, setSteps] = useState(20);
@@ -19,8 +19,7 @@ export function GenerationParameters({ onGenerate, isGenerating }: GenerationPar
   const [width, setWidth] = useState(1024);
   const [height, setHeight] = useState(1024);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleStartGeneration = () => {
     onGenerate({
       prompt,
       negativePrompt,
@@ -35,6 +34,14 @@ export function GenerationParameters({ onGenerate, isGenerating }: GenerationPar
     });
   };
 
+  // Exposer la fonction de génération au parent
+  useEffect(() => {
+    if (onGetGenerateFunction) {
+      console.log('[GENERATION_PARAMETERS] 📤 Envoi de la fonction de génération au parent');
+      onGetGenerateFunction(handleStartGeneration);
+    }
+  }, [prompt, negativePrompt, steps, cfg, seed, sampler, scheduler, denoise, width, height, onGetGenerateFunction]);
+
   const samplers = [
     'euler', 'euler_ancestral', 'heun', 'dpm_2', 'dpm_2_ancestral',
     'lms', 'dpm_fast', 'dpmpp_2m', 'ddim', 'res_multistep'
@@ -44,7 +51,7 @@ export function GenerationParameters({ onGenerate, isGenerating }: GenerationPar
 
   return (
     <div className="p-6">
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-5">
         <div>
           <label className="block text-sm text-gray-300 mb-2">Prompt</label>
           <textarea
@@ -171,25 +178,7 @@ export function GenerationParameters({ onGenerate, isGenerating }: GenerationPar
             />
           </div>
         </div>
-
-        <button
-          type="submit"
-          disabled={isGenerating || !prompt.trim()}
-          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-        >
-          {isGenerating ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span>Génération...</span>
-            </>
-          ) : (
-            <>
-              <Wand2 className="w-5 h-5" />
-              <span>Générer</span>
-            </>
-          )}
-        </button>
-      </form>
+      </div>
     </div>
   );
 }
