@@ -20,7 +20,15 @@ const CAMERA_ANGLES: CameraAngle[] = [
 ];
 
 interface CameraAnglesGeneratorProps {
-  onGenerate: (params: any) => void;
+  onGenerate: (params: {
+    workflowType: string;
+    selectedAngle: string;
+    promptNode: string;
+    seed: number;
+    steps: number;
+    cfg: number;
+    imageFile: File;
+  }) => void;
   isGenerating: boolean;
 }
 
@@ -30,12 +38,14 @@ export function CameraAnglesGenerator({ onGenerate, isGenerating }: CameraAngles
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target?.files?.[0];
+    const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
       const reader = new FileReader();
       reader.onload = (event) => {
-        setUploadedImage(event.target?.result as string);
+        if (event.target?.result) {
+          setUploadedImage(event.target.result as string);
+        }
       };
       reader.readAsDataURL(file);
     }
