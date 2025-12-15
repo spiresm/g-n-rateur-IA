@@ -33,11 +33,22 @@ export interface PosterParams {
   titleStyle: string;
 }
 
+export interface CameraAnglesParams {
+  workflowType: 'camera-angles';
+  selectedAngle: string;
+  promptNode: string;
+  seed: number;
+  steps: number;
+  cfg: number;
+  imageFile: File;
+}
+
 export interface GeneratedImage {
   id: string;
   imageUrl: string;
   params: GenerationParams;
   posterParams?: PosterParams;
+  cameraAnglesParams?: CameraAnglesParams;
   timestamp: Date;
   generationTime?: number;
 }
