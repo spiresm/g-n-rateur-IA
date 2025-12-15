@@ -5,7 +5,6 @@ import { GenerationParameters } from './GenerationParameters';
 import { PosterGenerator } from './PosterGenerator';
 import { PreviewPanel } from './PreviewPanel';
 import { ProgressOverlay } from './ProgressOverlay';
-import { WorkflowDebug } from './WorkflowDebug';
 import { useImageGeneration } from '../hooks/useImageGeneration';
 import { api } from '../services/api';
 import type { GenerationParams, PosterParams, GeneratedImage } from '../App';
