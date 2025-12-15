@@ -197,57 +197,60 @@ export function AppContent() {
         </div>
       )}
       
-      {/* Carrousel de Workflows - Toute la largeur */}
-      <WorkflowCarousel 
-        selectedWorkflow={workflow}
-        onSelectWorkflow={setWorkflow}
-      />
-      
-      {/* Deux panneaux côte à côte */}
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-64px-140px)]">
-        {/* Left Panel - Paramètres */}
-        <div className="w-full lg:w-1/2 bg-gray-800 lg:border-r border-gray-700 overflow-y-auto">
-          {workflow === 'parameters' ? (
-            <GenerationParameters 
-              onGenerate={handleGenerateFromParameters}
-              isGenerating={isGenerating}
-              onGetGenerateFunction={setParametersGenerateFn}
-            />
-          ) : workflow === 'poster' ? (
-            <PosterGenerator 
-              onGenerate={handleGenerateFromPoster}
-              isGenerating={isGenerating}
-              onPromptGenerated={setGeneratedPrompt}
-              generatedPrompt={generatedPrompt}
-              onGetGenerateFunction={setPosterGenerateFn}
-            />
-          ) : (
-            <div className="p-6 text-center">
-              <p className="text-gray-400">Ce workflow n'est pas encore disponible.</p>
-              <p className="text-gray-500 text-sm mt-2">Sélectionnez un autre workflow pour commencer.</p>
-            </div>
-          )}
-        </div>
+      {/* Container scrollable qui commence sous le header fixe */}
+      <div className="pt-16">
+        {/* Carrousel de Workflows - Toute la largeur */}
+        <WorkflowCarousel 
+          selectedWorkflow={workflow}
+          onSelectWorkflow={setWorkflow}
+        />
+        
+        {/* Deux panneaux côte à côte - scrollent avec le carrousel */}
+        <div className="flex flex-col lg:flex-row min-h-[calc(100vh-64px-140px)]">
+          {/* Left Panel - Paramètres */}
+          <div className="w-full lg:w-1/2 bg-gray-800 lg:border-r border-gray-700">
+            {workflow === 'parameters' ? (
+              <GenerationParameters 
+                onGenerate={handleGenerateFromParameters}
+                isGenerating={isGenerating}
+                onGetGenerateFunction={setParametersGenerateFn}
+              />
+            ) : workflow === 'poster' ? (
+              <PosterGenerator 
+                onGenerate={handleGenerateFromPoster}
+                isGenerating={isGenerating}
+                onPromptGenerated={setGeneratedPrompt}
+                generatedPrompt={generatedPrompt}
+                onGetGenerateFunction={setPosterGenerateFn}
+              />
+            ) : (
+              <div className="p-6 text-center">
+                <p className="text-gray-400">Ce workflow n'est pas encore disponible.</p>
+                <p className="text-gray-500 text-sm mt-2">Sélectionnez un autre workflow pour commencer.</p>
+              </div>
+            )}
+          </div>
 
-        {/* Right Panel - Preview & Gallery */}
-        <div className="w-full lg:w-1/2 overflow-y-auto">
-          <PreviewPanel 
-            currentImage={currentImage}
-            gallery={imageGallery}
-            savedGallery={savedGallery}
-            isGenerating={isGenerating}
-            onSelectImage={handleSelectFromGallery}
-            onCopyParameters={handleCopyParameters}
-            onSaveToGallery={handleSaveToGallery}
-            generatedPrompt={generatedPrompt}
-            onStartGeneration={
-              workflow === 'poster' 
-                ? (posterGenerateFn || undefined)
-                : workflow === 'parameters'
-                ? (parametersGenerateFn || undefined)
-                : undefined
-            }
-          />
+          {/* Right Panel - Preview & Gallery */}
+          <div className="w-full lg:w-1/2">
+            <PreviewPanel 
+              currentImage={currentImage}
+              gallery={imageGallery}
+              savedGallery={savedGallery}
+              isGenerating={isGenerating}
+              onSelectImage={handleSelectFromGallery}
+              onCopyParameters={handleCopyParameters}
+              onSaveToGallery={handleSaveToGallery}
+              generatedPrompt={generatedPrompt}
+              onStartGeneration={
+                workflow === 'poster' 
+                  ? (posterGenerateFn || undefined)
+                  : workflow === 'parameters'
+                  ? (parametersGenerateFn || undefined)
+                  : undefined
+              }
+            />
+          </div>
         </div>
       </div>
     </>
