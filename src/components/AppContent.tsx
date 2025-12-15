@@ -8,7 +8,7 @@ import { PreviewPanel } from './PreviewPanel';
 import { ProgressOverlay } from './ProgressOverlay';
 import { useImageGeneration } from '../hooks/useImageGeneration';
 import { api } from '../services/api';
-import type { GenerationParams, PosterParams, CameraAnglesParams, GeneratedImage } from '../App';
+import { GenerationParams, PosterParams, CameraAnglesParams, GeneratedImage } from '../App';
 
 export function AppContent() {
   console.log('[APP_CONTENT] 🎨 Rendu du composant AppContent');
