@@ -320,12 +320,13 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
   // Exposer la fonction de génération au parent via callback
   useEffect(() => {
     if (onGetGenerateFunction) {
+      console.log('[POSTER_GENERATOR] 📤 Envoi de la fonction de génération au parent');
       onGetGenerateFunction(handleStartGeneration);
     }
   }, [title, subtitle, tagline, occasion, customOccasion, ambiance, customAmbiance, 
       mainCharacter, characterDescription, environment, environmentDescription,
       characterAction, actionDescription, additionalDetails, colorPalette, 
-      customPalette, titleStyle, generatedPrompt]);
+      customPalette, titleStyle, generatedPrompt, onGetGenerateFunction]);
 
   return (
     <div className="p-6">
