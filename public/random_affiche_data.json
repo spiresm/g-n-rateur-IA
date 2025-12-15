@@ -1,52 +1,131 @@
-import randomData from '/public/random_affiche_data.json';
+{
+  "titres": [
+    "La Grande Aventure",
+    "L'Épopée Fantastique",
+    "Destination Magique",
+    "Le Royaume Perdu",
+    "La Nuit des Merveilles",
+    "Rêve Éternel",
+    "Horizons",
+    "Aube Nouvelle",
+    "Echo Stellaire",
+    "Le Secret des Lumières"
+  ],
 
-// Fonction utilitaire pour choisir un élément aléatoire
-const randomChoice = <T,>(arr: T[]): T => {
-  return arr[Math.floor(Math.random() * arr.length)];
-};
+  "sous_titres": [
+    "Édition spéciale",
+    "Chapitre I",
+    "Le voyage commence",
+    "Inspiré d’un univers imaginaire",
+    "Une création originale",
+    "Version remasterisée",
+    "Légende moderne",
+    "Histoire visuelle",
+    "Un monde à découvrir",
+    "Aventure cinématographique"
+  ],
 
-// Générer une affiche aléatoire
-const generateRandomPoster = () => {
-  const randomTitle = randomChoice(randomData.titres);
-  const randomSubtitle = randomChoice(randomData.sous_titres);
-  const randomTheme = randomChoice(randomData.themes);
-  const randomAmbiance = randomChoice(randomData.ambiances);
-  const randomPersonnage = randomChoice(randomData.personnages);
-  const randomEnvironnement = randomChoice(randomData.environnements);
-  const randomAction = randomChoice(randomData.actions);
-  const randomPalette = randomChoice(randomData.palettes);
-  const randomTitleStyle = randomChoice(randomData.styles_titre);
-  const randomDetails = randomChoice(randomData.details);
+  "themes": [
+    "Anniversaire",
+    "Noël",
+    "Halloween",
+    "Saint Nicolas",
+    "Nouvel An",
+    "Fête foraine",
+    "Univers fantastique",
+    "Exploration spatiale",
+    "Magie hivernale",
+    "Carnaval lumineux"
+  ],
 
-  // Mettre à jour tous les états
-  setTitle(randomTitle);
-  setSubtitle(randomSubtitle);
-  setCustomOccasion(randomTheme);
-  setCustomAmbiance(randomAmbiance);
-  setCharacterDescription(randomPersonnage);
-  setEnvironmentDescription(randomEnvironnement);
-  setActionDescription(randomAction);
-  setAdditionalDetails(randomDetails);
-  setCustomPalette(randomPalette);
-  setTitleStyle(randomTitleStyle);
+  "ambiances": [
+    "festive et colorée",
+    "magique et lumineuse",
+    "mystérieuse et douce",
+    "énergique et joyeuse",
+    "sombre mais élégante",
+    "cinématique dramatique",
+    "enchanted dream atmosphere",
+    "vintage années 80",
+    "futuriste néon",
+    "cosy et chaleureuse"
+  ],
 
-  // Générer automatiquement le prompt
-  setTimeout(() => {
-    handleGeneratePrompt();
-  }, 100);
-};
-```
+  "personnages": [
+    "un enfant joyeux",
+    "un père Noël souriant",
+    "une silhouette héroïque",
+    "une créature mignonne",
+    "un robot stylisé",
+    "une sorcière amusante",
+    "un chat anthropomorphisé",
+    "un petit monstre rigolo",
+    "une mascotte cartoon",
+    "un explorateur courageux"
+  ],
 
-**Bouton ajouté (en haut du formulaire) :**
+  "environnements": [
+    "un décor enneigé",
+    "une forêt enchantée",
+    "une scène nocturne lumineuse",
+    "une ville futuriste",
+    "un château mystérieux",
+    "une fête colorée",
+    "un paysage spatial",
+    "une plage tropicale stylisée",
+    "une salle décorée",
+    "un univers miniature"
+  ],
 
-```tsx
-<div className="bg-purple-900/20 border border-purple-700 rounded-lg p-4 mb-6">
-  <button
-    onClick={generateRandomPoster}
-    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-    disabled={isGenerating}
-  >
-    <Sparkles className="w-4 h-4" />
-    <span className="text-sm">🎲 Générer une affiche aléatoire</span>
-  </button>
-</div>
+  "actions": [
+    "sourit devant la caméra",
+    "marche vers l’avant",
+    "observe au loin",
+    "flotte dans les airs",
+    "tient un objet lumineux",
+    "lance des confettis",
+    "ouvre un coffre magique",
+    "joue avec la lumière",
+    "court joyeusement",
+    "fait un geste théâtral"
+  ],
+
+  "palettes": [
+    "couleurs chaudes (rouge, orange, jaune)",
+    "couleurs froides (bleu, turquoise, violet)",
+    "pastels doux",
+    "dégradé bleu → violet",
+    "dégradé rose → bleu",
+    "dégradé or → noir",
+    "dégradé rouge → orange",
+    "ambiance néon rose et cyan",
+    "tons dorés cinématiques",
+    "contraste fort noir et or"
+  ],
+
+  "styles_titre": [
+    "blockbuster dramatique",
+    "cartoon arrondi",
+    "vintage rétro",
+    "style manuscrit élégant",
+    "chromé métallique",
+    "minimaliste moderne",
+    "néon futuriste",
+    "style gravure",
+    "typographie épaisse cinéma",
+    "logo stylisé"
+  ],
+
+  "details": [
+    "particules lumineuses",
+    "lueurs magiques",
+    "flocons subtils",
+    "confettis flottants",
+    "effets de lumière douce",
+    "reflets cinématiques",
+    "nuages stylisés",
+    "poussière atmosphérique",
+    "halo lumineux",
+    "effets scintillants"
+  ]
+}
