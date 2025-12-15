@@ -14,7 +14,6 @@ interface PreviewPanelProps {
   onSaveToGallery: (image: GeneratedImage) => void;
   generatedPrompt: string;
   onStartGeneration?: () => void;
-  workflowType?: 'poster' | 'parameters' | string;
 }
 
 export function PreviewPanel({ 
@@ -26,8 +25,7 @@ export function PreviewPanel({
   onCopyParameters,
   onSaveToGallery,
   generatedPrompt,
-  onStartGeneration,
-  workflowType
+  onStartGeneration
 }: PreviewPanelProps) {
   const [showCharte, setShowCharte] = useState(false);
 
