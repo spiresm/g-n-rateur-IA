@@ -1,4 +1,4 @@
-```typescript
+
 // Configuration conforme à la Bible du projet
 const BACKEND_URL = "https://g-n-rateur-backend-1.onrender.com";
 
@@ -93,6 +93,4 @@ export function LoginPage() {
     </div>
   );
 }
-```
 
----
