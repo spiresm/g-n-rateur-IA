@@ -1,4 +1,4 @@
-```json
+
 {
   "name": "generateur-ia-rubens",
   "private": true,
@@ -34,4 +34,3 @@
     "eslint-plugin-react-refresh": "^0.4.3"
   }
 }
-```
