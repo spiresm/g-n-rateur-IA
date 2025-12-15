@@ -44,12 +44,13 @@ body {
 ========================================================= */
 
 header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;        /* 🔥 OBLIGATOIRE */
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  overflow-x: hidden;     /* 🔥 sécurité anti-débordement */
 }
 
 .title-group {
