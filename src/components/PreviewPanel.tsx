@@ -78,12 +78,11 @@ export function PreviewPanel({
           <button
             onClick={onStartGeneration}
             disabled={isGenerating}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-3 shadow-lg"
+            className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-3 shadow-lg"
           >
-            <Sparkles className="w-6 h-6" />
-            <span className="text-lg">
-              {isGenerating ? 'Génération en cours...' : 
-               workflowType === 'poster' ? 'Générer l\'Affiche' : 'Démarrer la Génération'}
+            <Sparkles className="w-5 h-5" />
+            <span>
+              {isGenerating ? 'Génération en cours...' : 'Générer l\'Image'}
             </span>
           </button>
         </div>
