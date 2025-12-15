@@ -3,11 +3,12 @@ import { Header } from './Header';
 import { WorkflowCarousel, WorkflowType } from './WorkflowCarousel';
 import { GenerationParameters } from './GenerationParameters';
 import { PosterGenerator } from './PosterGenerator';
+import { CameraAnglesGenerator } from './CameraAnglesGenerator';
 import { PreviewPanel } from './PreviewPanel';
 import { ProgressOverlay } from './ProgressOverlay';
 import { useImageGeneration } from '../hooks/useImageGeneration';
 import { api } from '../services/api';
-import type { GenerationParams, PosterParams, GeneratedImage } from '../App';
+import type { GenerationParams, PosterParams, CameraAnglesParams, GeneratedImage } from '../App';
 
 export function AppContent() {
   console.log('[APP_CONTENT] 🎨 Rendu du composant AppContent');
@@ -24,6 +25,7 @@ export function AppContent() {
   // Utiliser useRef au lieu de useState pour stocker les fonctions
   const posterGenerateFnRef = useRef<(() => void) | null>(null);
   const parametersGenerateFnRef = useRef<(() => void) | null>(null);
+  const cameraAnglesGenerateFnRef = useRef<(() => void) | null>(null);
   // @ts-ignore - forceUpdate est utilisé uniquement pour déclencher un re-render
   const [forceUpdate, setForceUpdate] = useState(0);
   
@@ -39,6 +41,7 @@ export function AppContent() {
   console.log('[APP_CONTENT] State:', { workflow, isGenerating, progress, error, workflowToUse, workflowsLoaded });
   console.log('[APP_CONTENT] 🎯 posterGenerateFn:', posterGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌');
   console.log('[APP_CONTENT] 🎯 parametersGenerateFn:', parametersGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌');
+  console.log('[APP_CONTENT] 🎯 cameraAnglesGenerateFn:', cameraAnglesGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌');
   
   // Charger les workflows disponibles au démarrage
   useEffect(() => {
@@ -79,6 +82,7 @@ export function AppContent() {
     console.log('[APP_CONTENT] 🔄 Workflow changé:', workflow);
     posterGenerateFnRef.current = null;
     parametersGenerateFnRef.current = null;
+    cameraAnglesGenerateFnRef.current = null;
     setForceUpdate(prev => prev + 1);
   }, [workflow]);
 
@@ -173,6 +177,24 @@ export function AppContent() {
     });
   };
 
+  const handleGenerateFromCameraAngles = async (cameraAnglesParams: any) => {
+    const cameraWorkflow = 'camera-angles.json'; // Utiliser le nouveau workflow
+    
+    clearError();
+    console.log(`[APP_CONTENT] 🎥 Génération angles caméra avec workflow: ${cameraWorkflow}`);
+    console.log('[APP_CONTENT] 📸 Params:', cameraAnglesParams);
+    
+    // Adapter les paramètres pour l'API du workflow camera-angles
+    await startGeneration(cameraWorkflow, {
+      selected_angle: cameraAnglesParams.selectedAngle,
+      prompt_node: cameraAnglesParams.promptNode,
+      seed: cameraAnglesParams.seed,
+      steps: cameraAnglesParams.steps,
+      cfg_scale: cameraAnglesParams.cfg,
+      image_file: cameraAnglesParams.imageFile,
+    });
+  };
+
   const handleSelectFromGallery = (image: GeneratedImage) => {
     setCurrentImage(image);
   };
@@ -252,6 +274,11 @@ export function AppContent() {
                   setForceUpdate(prev => prev + 1);
                 }}
               />
+            ) : workflow === 'cameraAngles' ? (
+              <CameraAnglesGenerator 
+                onGenerate={handleGenerateFromCameraAngles}
+                isGenerating={isGenerating}
+              />
             ) : (
               <div className="p-6 text-center">
                 <p className="text-gray-400">Ce workflow n'est pas encore disponible.</p>
@@ -275,6 +302,8 @@ export function AppContent() {
                   ? (posterGenerateFnRef.current || undefined)
                   : workflow === 'parameters'
                   ? (parametersGenerateFnRef.current || undefined)
+                  : workflow === 'cameraAngles'
+                  ? (cameraAnglesGenerateFnRef.current || undefined)
                   : undefined
               }
               onFormatChange={(width, height) => {
