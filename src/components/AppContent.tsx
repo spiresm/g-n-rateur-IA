@@ -48,9 +48,17 @@ export function AppContent() {
         console.log('[APP_CONTENT] 📋 Workflows disponibles:', data.workflows);
         
         if (data.workflows.length > 0) {
-          // Utiliser le premier workflow disponible
-          const selectedWorkflow = data.workflows[0];
+          // 🎯 PRIORISER affiche.json si disponible
+          const afficheWorkflow = data.workflows.find((wf: string) => wf === 'affiche.json');
+          const selectedWorkflow = afficheWorkflow || data.workflows[0];
+          
           console.log(`[APP_CONTENT] ✅ Workflow sélectionné: ${selectedWorkflow}`);
+          if (afficheWorkflow) {
+            console.log('[APP_CONTENT] 🎬 affiche.json détecté et utilisé !');
+          } else {
+            console.warn('[APP_CONTENT] ⚠️ affiche.json non trouvé, utilisation du fallback:', selectedWorkflow);
+          }
+          
           setWorkflowToUse(selectedWorkflow);
         } else {
           console.error('[APP_CONTENT] ❌ Aucun workflow disponible !');
