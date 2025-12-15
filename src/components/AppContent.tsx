@@ -6,46 +6,11 @@ import { PosterGenerator } from './PosterGenerator';
 import { PreviewPanel } from './PreviewPanel';
 import { ProgressOverlay } from './ProgressOverlay';
 import { WorkflowDebug } from './WorkflowDebug';
-import { WorkflowDebugPanel } from './WorkflowDebugPanel';
 import { useImageGeneration } from '../hooks/useImageGeneration';
 import { api } from '../services/api';
+import type { GenerationParams, PosterParams, GeneratedImage } from '../App';
 
 type WorkflowType = 'poster' | 'parameters';
-
-export interface GenerationParams {
-  prompt: string;
-  negativePrompt: string;
-  steps: number;
-  cfg: number;
-  seed: number;
-  sampler: string;
-  scheduler: string;
-  denoise: number;
-  width: number;
-  height: number;
-}
-
-export interface PosterParams {
-  titre: string;
-  sousTitre: string;
-  tagline: string;
-  occasion: string;
-  ambiance: string;
-  personnage: string;
-  environnement: string;
-  action: string;
-  palette: string;
-  styleTitre: string;
-}
-
-export interface GeneratedImage {
-  id: string;
-  imageUrl: string;
-  params: GenerationParams;
-  posterParams?: PosterParams;
-  timestamp: Date;
-  generationTime?: number;
-}
 
 export function AppContent() {
   console.log('[APP_CONTENT] 🎨 Rendu du composant AppContent');
@@ -54,7 +19,6 @@ export function AppContent() {
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [imageGallery, setImageGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [availableWorkflows, setAvailableWorkflows] = useState<string[]>([]);
   const [workflowToUse, setWorkflowToUse] = useState<string>('default.json');
 
   const { 
@@ -66,7 +30,7 @@ export function AppContent() {
     clearError 
   } = useImageGeneration();
   
-  console.log('[APP_CONTENT] State:', { workflow, isGenerating, progress, error });
+  console.log('[APP_CONTENT] State:', { workflow, isGenerating, progress, error, workflowToUse });
 
   // Charger les workflows disponibles au démarrage
   useEffect(() => {
@@ -74,7 +38,6 @@ export function AppContent() {
       try {
         const data = await api.getWorkflows();
         console.log('[APP_CONTENT] Workflows disponibles:', data.workflows);
-        setAvailableWorkflows(data.workflows);
         
         // Si default.json ou affiche.json n'existent pas, utiliser le premier workflow disponible
         if (data.workflows.length > 0) {
@@ -135,7 +98,7 @@ export function AppContent() {
     });
   };
 
-  const handleGenerateFromPoster = async (posterParams: PosterParams, genParams: GenerationParams) => {
+  const handleGenerateFromPoster = async (_posterParams: PosterParams, genParams: GenerationParams) => {
     clearError();
     // Adapter les noms de paramètres pour l'API (workflow affiche.json)
     await startGeneration(workflowToUse, {
@@ -223,9 +186,6 @@ export function AppContent() {
           />
         </div>
       </div>
-
-      {/* Panneau de debug backend (en bas à droite) */}
-      <WorkflowDebugPanel />
     </>
   );
 }
