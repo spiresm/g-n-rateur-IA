@@ -21,7 +21,7 @@ const CAMERA_ANGLES: CameraAngle[] = [
 
 interface CameraAnglesGeneratorProps {
   onGenerate: (params: {
-    workflowType: string;
+    workflowType: 'camera-angles'; // Type littéral strict
     selectedAngle: string;
     promptNode: string;
     seed: number;
