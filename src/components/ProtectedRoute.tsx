@@ -1,4 +1,4 @@
-```typescript
+
 import { ReactNode } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { LoginPage } from './LoginPage';
@@ -27,6 +27,3 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   return <>{children}</>;
 }
-```
-
----
