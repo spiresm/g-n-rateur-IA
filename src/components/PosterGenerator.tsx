@@ -391,7 +391,9 @@ Premium poster design, professional layout, ultra high resolution, visually stri
   };
 
   const handleStartGeneration = () => {
-    const prompt = generatedPrompt || generatePrompt();
+    // ✅ TOUJOURS régénérer le prompt avec les valeurs ACTUELLES des champs
+    // Ne pas utiliser generatedPrompt qui peut être obsolète
+    const prompt = generatePrompt();
     
     const posterParams: PosterParams = {
       title,
@@ -423,6 +425,7 @@ Premium poster design, professional layout, ultra high resolution, visually stri
       height: imageDimensions?.height || 1792, // Format poster (9:16)
     };
 
+    console.log('[POSTER_GENERATOR] 🚀 Génération avec prompt ACTUEL:', prompt.substring(0, 100) + '...');
     onGenerate(posterParams, genParams);
   };
 
