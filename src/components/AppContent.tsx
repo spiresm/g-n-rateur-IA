@@ -1,4 +1,3 @@
-import { GenerationParams, PosterParams, GeneratedImage } from '../App';
 import { useState, useEffect } from 'react';
 import { Header } from './Header';
 import { WorkflowSelector } from './WorkflowSelector';
@@ -7,9 +6,46 @@ import { PosterGenerator } from './PosterGenerator';
 import { PreviewPanel } from './PreviewPanel';
 import { ProgressOverlay } from './ProgressOverlay';
 import { WorkflowDebug } from './WorkflowDebug';
+import { WorkflowDebugPanel } from './WorkflowDebugPanel';
 import { useImageGeneration } from '../hooks/useImageGeneration';
+import { api } from '../services/api';
 
 type WorkflowType = 'poster' | 'parameters';
+
+export interface GenerationParams {
+  prompt: string;
+  negativePrompt: string;
+  steps: number;
+  cfg: number;
+  seed: number;
+  sampler: string;
+  scheduler: string;
+  denoise: number;
+  width: number;
+  height: number;
+}
+
+export interface PosterParams {
+  titre: string;
+  sousTitre: string;
+  tagline: string;
+  occasion: string;
+  ambiance: string;
+  personnage: string;
+  environnement: string;
+  action: string;
+  palette: string;
+  styleTitre: string;
+}
+
+export interface GeneratedImage {
+  id: string;
+  imageUrl: string;
+  params: GenerationParams;
+  posterParams?: PosterParams;
+  timestamp: Date;
+  generationTime?: number;
+}
 
 export function AppContent() {
   console.log('[APP_CONTENT] 🎨 Rendu du composant AppContent');
@@ -18,6 +54,8 @@ export function AppContent() {
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [imageGallery, setImageGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
+  const [availableWorkflows, setAvailableWorkflows] = useState<string[]>([]);
+  const [workflowToUse, setWorkflowToUse] = useState<string>('default.json');
 
   const { 
     isGenerating, 
@@ -29,6 +67,30 @@ export function AppContent() {
   } = useImageGeneration();
   
   console.log('[APP_CONTENT] State:', { workflow, isGenerating, progress, error });
+
+  // Charger les workflows disponibles au démarrage
+  useEffect(() => {
+    const loadWorkflows = async () => {
+      try {
+        const data = await api.getWorkflows();
+        console.log('[APP_CONTENT] Workflows disponibles:', data.workflows);
+        setAvailableWorkflows(data.workflows);
+        
+        // Si default.json ou affiche.json n'existent pas, utiliser le premier workflow disponible
+        if (data.workflows.length > 0) {
+          if (!data.workflows.includes('default.json') && !data.workflows.includes('affiche.json')) {
+            const firstWorkflow = data.workflows[0];
+            console.log(`[APP_CONTENT] ⚠️ default.json et affiche.json introuvables. Utilisation de: ${firstWorkflow}`);
+            setWorkflowToUse(firstWorkflow);
+          }
+        }
+      } catch (err) {
+        console.error('[APP_CONTENT] Erreur chargement workflows:', err);
+      }
+    };
+    
+    loadWorkflows();
+  }, []);
 
   // Quand une nouvelle image est générée, l'ajouter à la galerie
   useEffect(() => {
@@ -58,7 +120,8 @@ export function AppContent() {
 
   const handleGenerateFromParameters = async (params: GenerationParams) => {
     clearError();
-    await startGeneration('default.json', {
+    // Adapter les noms de paramètres pour l'API
+    await startGeneration(workflowToUse, {
       prompt: params.prompt,
       negative_prompt: params.negativePrompt,
       steps: params.steps,
@@ -74,7 +137,8 @@ export function AppContent() {
 
   const handleGenerateFromPoster = async (posterParams: PosterParams, genParams: GenerationParams) => {
     clearError();
-    await startGeneration('affiche.json', {
+    // Adapter les noms de paramètres pour l'API (workflow affiche.json)
+    await startGeneration(workflowToUse, {
       prompt: genParams.prompt,
       negative_prompt: genParams.negativePrompt,
       steps: genParams.steps,
@@ -85,21 +149,6 @@ export function AppContent() {
       denoise: genParams.denoise,
       width: genParams.width,
       height: genParams.height,
-      // Poster params
-      title: posterParams.title,
-      subtitle: posterParams.subtitle,
-      tagline: posterParams.tagline,
-      occasion: posterParams.occasion,
-      ambiance: posterParams.ambiance,
-      main_character: posterParams.mainCharacter,
-      character_description: posterParams.characterDescription,
-      environment: posterParams.environment,
-      environment_description: posterParams.environmentDescription,
-      character_action: posterParams.characterAction,
-      action_description: posterParams.actionDescription,
-      additional_details: posterParams.additionalDetails,
-      color_palette: posterParams.colorPalette,
-      title_style: posterParams.titleStyle,
     });
   };
 
@@ -174,6 +223,9 @@ export function AppContent() {
           />
         </div>
       </div>
+
+      {/* Panneau de debug backend (en bas à droite) */}
+      <WorkflowDebugPanel />
     </>
   );
 }
