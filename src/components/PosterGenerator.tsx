@@ -1,3 +1,28 @@
+// Exposer la fonction de génération au parent via callback
+useEffect(() => {
+  if (onGetGenerateFunction) {
+    console.log('[POSTER_GENERATOR] 📤 Envoi de la fonction de génération au parent');
+    onGetGenerateFunction(handleStartGeneration);
+  }
+  // ✅ DÉPENDANCES VIDES : on envoie la fonction UNE SEULE FOIS au montage
+  // handleStartGeneration utilise toujours les valeurs actuelles grâce aux closures
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
+⚠️ CRITICAL : Le tableau de dépendances DOIT être vide [] !
+
+🛠️ SI ÇA NE MARCHE TOUJOURS PAS :
+Envoyez-moi :
+
+Le contenu de votre console navigateur (F12)
+Les lignes 600-610 de votre fichier /src/components/PosterGenerator.tsx
+Confirmez que vous êtes bien sur le workflow "Générateur d'Affiches" (pas "Paramètres" ou "Angles Caméra")
+🎯 OU SOLUTION RAPIDE : Télécharger le fichier complet
+Voulez-vous que je vous donne le fichier PosterGenerator.tsx COMPLET et CORRECT pour le copier-coller ?
+
+oui
+📄 FICHIER COMPLET /src/components/PosterGenerator.tsx
+Copiez-collez CE FICHIER COMPLET dans votre projet local :
+
 import { useState, useEffect } from 'react';
 import { Sparkles, Image as ImageIcon } from 'lucide-react';
 import { PosterParams, GenerationParams } from '../App';
@@ -6,7 +31,7 @@ interface PosterGeneratorProps {
   onGenerate: (posterParams: PosterParams, genParams: GenerationParams) => void;
   isGenerating: boolean;
   onPromptGenerated: (prompt: string) => void;
-  generatedPrompt?: string; // ✅ Rendre OPTIONNEL avec '?' car non utilisé
+  generatedPrompt?: string; // ✅ Optionnel car non utilisé dans le composant
   imageDimensions?: { width: number; height: number };
   onGetGenerateFunction?: (fn: () => void) => void;
 }
@@ -596,10 +621,10 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     onGenerate(posterParams, genParams);
   };
 
-  // Exposer la fonction de génération au parent via callback
+  // ✅ CRITIQUE : Exposer la fonction de génération au parent via callback
   useEffect(() => {
     if (onGetGenerateFunction) {
-      // console.log('[POSTER_GENERATOR] 📤 Envoi de la fonction de génération au parent'); // DÉSACTIVÉ
+      console.log('[POSTER_GENERATOR] 📤 Envoi de la fonction de génération au parent');
       onGetGenerateFunction(handleStartGeneration);
     }
     // ✅ DÉPENDANCES VIDES : on envoie la fonction UNE SEULE FOIS au montage
