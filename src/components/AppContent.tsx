@@ -1,3 +1,4 @@
+import { GenerationParams, PosterParams, GeneratedImage } from '../App';
 import { useState, useEffect } from 'react';
 import { Header } from './Header';
 import { WorkflowSelector } from './WorkflowSelector';
@@ -9,41 +10,6 @@ import { WorkflowDebug } from './WorkflowDebug';
 import { useImageGeneration } from '../hooks/useImageGeneration';
 
 type WorkflowType = 'poster' | 'parameters';
-
-export interface GenerationParams {
-  prompt: string;
-  negativePrompt: string;
-  steps: number;
-  cfg: number;
-  seed: number;
-  sampler: string;
-  scheduler: string;
-  denoise: number;
-  width: number;
-  height: number;
-}
-
-export interface PosterParams {
-  titre: string;
-  sousTitre: string;
-  tagline: string;
-  occasion: string;
-  ambiance: string;
-  personnage: string;
-  environnement: string;
-  action: string;
-  palette: string;
-  styleTitre: string;
-}
-
-export interface GeneratedImage {
-  id: string;
-  imageUrl: string;
-  params: GenerationParams;
-  posterParams?: PosterParams;
-  timestamp: Date;
-  generationTime?: number;
-}
 
 export function AppContent() {
   console.log('[APP_CONTENT] 🎨 Rendu du composant AppContent');
@@ -92,7 +58,6 @@ export function AppContent() {
 
   const handleGenerateFromParameters = async (params: GenerationParams) => {
     clearError();
-    // Adapter les noms de paramètres pour l'API
     await startGeneration('default.json', {
       prompt: params.prompt,
       negative_prompt: params.negativePrompt,
@@ -109,7 +74,6 @@ export function AppContent() {
 
   const handleGenerateFromPoster = async (posterParams: PosterParams, genParams: GenerationParams) => {
     clearError();
-    // Adapter les noms de paramètres pour l'API (workflow affiche.json)
     await startGeneration('affiche.json', {
       prompt: genParams.prompt,
       negative_prompt: genParams.negativePrompt,
@@ -121,6 +85,21 @@ export function AppContent() {
       denoise: genParams.denoise,
       width: genParams.width,
       height: genParams.height,
+      // Poster params
+      title: posterParams.title,
+      subtitle: posterParams.subtitle,
+      tagline: posterParams.tagline,
+      occasion: posterParams.occasion,
+      ambiance: posterParams.ambiance,
+      main_character: posterParams.mainCharacter,
+      character_description: posterParams.characterDescription,
+      environment: posterParams.environment,
+      environment_description: posterParams.environmentDescription,
+      character_action: posterParams.characterAction,
+      action_description: posterParams.actionDescription,
+      additional_details: posterParams.additionalDetails,
+      color_palette: posterParams.colorPalette,
+      title_style: posterParams.titleStyle,
     });
   };
 
