@@ -31,13 +31,13 @@ interface PreviewPanelProps {
 
 export function PreviewPanel({ 
   currentImage, 
-  gallery, 
+  gallery: _gallery, // Préfixé avec _ pour indiquer qu'il est intentionnellement inutilisé
   savedGallery,
   isGenerating, 
   onSelectImage, 
   onCopyParameters,
   onSaveToGallery,
-  generatedPrompt,
+  generatedPrompt: _generatedPrompt, // Non utilisé car supprimé
   onStartGeneration,
   onFormatChange
 }: PreviewPanelProps) {
@@ -283,23 +283,15 @@ export function PreviewPanel({
             </div>
           </div>
 
-          {/* Prompt */}
+          {/* Prompt - COMPACT 4 lignes avec scroll */}
           <div className="bg-gray-800 rounded-lg p-4">
-            <h3 className="text-gray-300 mb-2">Prompt</h3>
-            <p className="text-white text-sm leading-relaxed">
-              {currentImage.params.prompt}
-            </p>
+            <h3 className="text-gray-300 mb-2 text-sm">Prompt</h3>
+            <div className="max-h-24 overflow-y-auto">
+              <p className="text-white text-sm leading-relaxed">
+                {currentImage.params.prompt}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Generated Prompt Display */}
-      {generatedPrompt && !currentImage && (
-        <div className="bg-gray-800 rounded-lg p-4">
-          <h3 className="text-gray-300 mb-2">Prompt Généré</h3>
-          <p className="text-white text-sm leading-relaxed">
-            {generatedPrompt}
-          </p>
         </div>
       )}
 
