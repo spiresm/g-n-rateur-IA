@@ -1,4 +1,4 @@
-import { ImageIcon, FileText, Clock, Copy, Download } from 'lucide-react';
+import { ImageIcon, Clock, Copy, Download } from 'lucide-react';
 import { GeneratedImage } from '../App';
 import { useState } from 'react';
 import { SimpleAlertDialog } from './SimpleAlertDialog';
@@ -28,6 +28,12 @@ export function PreviewPanel({
   onStartGeneration
 }: PreviewPanelProps) {
   const [showCharte, setShowCharte] = useState(false);
+
+  console.log('[PREVIEW_PANEL] 🔍 DEBUG BOUTON JAUNE:', {
+    onStartGeneration: onStartGeneration ? 'DÉFINIE ✅' : 'UNDEFINED ❌',
+    typeOf: typeof onStartGeneration,
+    isGenerating
+  });
 
   const handleDownload = async (imageUrl: string) => {
     try {
@@ -127,21 +133,6 @@ export function PreviewPanel({
             </div>
           </div>
         )}
-      </div>
-
-      {/* Format Rapide */}
-      <div className="mb-6">
-        <h3 className="text-gray-300 text-sm mb-3">Format Rapide</h3>
-        <div className="flex gap-3">
-          <button className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
-            <ImageIcon className="w-4 h-4" />
-            <span className="text-sm">Image</span>
-          </button>
-          <button className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
-            <FileText className="w-4 h-4" />
-            <span className="text-sm">Document</span>
-          </button>
-        </div>
       </div>
 
       {/* Galerie Sauvegardée */}
