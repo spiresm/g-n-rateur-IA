@@ -1,9 +1,8 @@
-
 import { useState, useCallback, useRef } from 'react';
 import { api } from '../services/api';
 
 // Constantes conformes à la Bible du projet
-const POLLING_INTERVAL_MS = 900; // Toutes les 900ms (conforme à la Bible)
+const POLLING_INTERVAL_MS = 900;
 const MAX_POLLING_FAILURES = 5;
 const MAX_FETCH_ATTEMPTS = 10;
 const RETRY_DELAY_MS = 2000;
@@ -19,6 +18,7 @@ export interface GenerationParams {
   denoise: number;
   width: number;
   height: number;
+  [key: string]: any; // ✅ Permet des paramètres supplémentaires
 }
 
 interface UseImageGenerationResult {
@@ -31,13 +31,6 @@ interface UseImageGenerationResult {
   clearError: () => void;
 }
 
-/**
- * Hook personnalisé pour gérer la génération d'images via ComfyUI
- * Implémente le flux décrit dans la Bible du projet:
- * 1. POST /generate → retourne prompt_id
- * 2. Polling GET /progress/{id} toutes les 900ms
- * 3. GET /result/{id} → récupère l'image base64
- */
 export function useImageGeneration(): UseImageGenerationResult {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -59,10 +52,6 @@ export function useImageGeneration(): UseImageGenerationResult {
     }
   }, []);
 
-  /**
-   * Polling de progression (conforme à la Bible)
-   * Appelle /progress/{id} toutes les 900ms jusqu'à completion
-   */
   const pollProgress = useCallback(async (id: string) => {
     let fakeProgress = 0;
     pollingFailureCountRef.current = 0;
@@ -70,7 +59,6 @@ export function useImageGeneration(): UseImageGenerationResult {
     stopPolling();
 
     pollingIntervalRef.current = setInterval(async () => {
-      // Animation de progression fake jusqu'à 92%
       fakeProgress = Math.min(fakeProgress + 7, 92);
       setProgress(fakeProgress);
 
@@ -79,13 +67,11 @@ export function useImageGeneration(): UseImageGenerationResult {
         const data = await api.getProgress(id);
         pollingFailureCountRef.current = 0;
 
-        // Si la génération est terminée
         if (data.status && data.status.completed) {
           console.log('[POLLING] ✅ Génération terminée !');
           stopPolling();
           setProgress(92);
           
-          // Récupération du résultat avec retry
           await fetchResultWithRetry(id);
           return;
         }
@@ -93,7 +79,6 @@ export function useImageGeneration(): UseImageGenerationResult {
         pollingFailureCountRef.current++;
         console.error(`[POLL ERROR] Tentative ${pollingFailureCountRef.current}/${MAX_POLLING_FAILURES}:`, e.message);
 
-        // Si trop d'échecs consécutifs, arrêter
         if (pollingFailureCountRef.current >= MAX_POLLING_FAILURES) {
           stopPolling();
           setIsGenerating(false);
@@ -103,10 +88,6 @@ export function useImageGeneration(): UseImageGenerationResult {
     }, POLLING_INTERVAL_MS);
   }, [stopPolling]);
 
-  /**
-   * Récupération du résultat avec retry (conforme à la Bible)
-   * Appelle /result/{id} jusqu'à 10 fois avec délai de 2s
-   */
   const fetchResultWithRetry = async (id: string) => {
     for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
       console.log(`[FETCH RESULT] Tentative ${attempt}/${MAX_FETCH_ATTEMPTS} pour récupérer l'image`);
@@ -114,7 +95,6 @@ export function useImageGeneration(): UseImageGenerationResult {
       try {
         const data = await api.getResult(id);
         
-        // SUCCESS - Image récupérée
         console.log('[FETCH RESULT] ✅ Image récupérée avec succès !');
         setProgress(100);
         setGeneratedImage(`data:image/png;base64,${data.image_base64}`);
@@ -125,24 +105,17 @@ export function useImageGeneration(): UseImageGenerationResult {
       } catch (e: any) {
         console.error(`[FETCH RESULT] ❌ Tentative ${attempt} échouée:`, e.message);
         
-        // Si dernière tentative, abandonner
         if (attempt === MAX_FETCH_ATTEMPTS) {
           setError(`Échec de la récupération du résultat après ${MAX_FETCH_ATTEMPTS} tentatives.`);
           setIsGenerating(false);
           return;
         }
         
-        // Attendre avant retry
         await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
       }
     }
   };
 
-  /**
-   * Démarre une génération d'image
-   * @param workflowName - Nom du workflow (ex: "affiche.json", "default.json")
-   * @param params - Paramètres de génération
-   */
   const startGeneration = useCallback(async (workflowName: string, params: GenerationParams) => {
     console.log(`[GENERATE] 🚀 Démarrage de la génération avec workflow: ${workflowName}`);
     console.log('[GENERATE] Paramètres:', params);
@@ -154,7 +127,6 @@ export function useImageGeneration(): UseImageGenerationResult {
     setPromptId(null);
 
     try {
-      // Étape 1: Envoi de la requête de génération
       console.log('[GENERATE] Envoi de la requête /generate...');
       const response = await api.generate(workflowName, params);
       
@@ -163,7 +135,6 @@ export function useImageGeneration(): UseImageGenerationResult {
         console.log(`[GENERATE] ✅ Tâche créée avec prompt_id: ${id}`);
         setPromptId(id);
         
-        // Étape 2: Démarrer le polling
         await pollProgress(id);
       } else {
         throw new Error('Aucun prompt_id retourné par le serveur');
@@ -172,7 +143,6 @@ export function useImageGeneration(): UseImageGenerationResult {
     } catch (err: any) {
       console.error('[GENERATE] ❌ Erreur lors de la génération:', err);
       
-      // Gestion des erreurs spécifiques
       if (err.message.includes('401') || err.message.includes('non authentifié')) {
         setError('Session expirée. Veuillez vous reconnecter.');
       } else if (err.message.includes('500')) {
@@ -197,4 +167,3 @@ export function useImageGeneration(): UseImageGenerationResult {
     clearError,
   };
 }
-
