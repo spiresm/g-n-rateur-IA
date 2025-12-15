@@ -92,7 +92,12 @@ export function WorkflowCarousel({ selectedWorkflow, onSelectWorkflow }: Workflo
           {workflows.map((workflow) => (
             <button
               key={workflow.id}
-              onClick={() => !workflow.comingSoon && onSelectWorkflow(workflow.id)}
+              onClick={() => {
+                if (!workflow.comingSoon) {
+                  console.log(`[WORKFLOW_CAROUSEL] 🔄 Changement de workflow vers: ${workflow.id}`);
+                  onSelectWorkflow(workflow.id);
+                }
+              }}
               disabled={workflow.comingSoon}
               className={`
                 flex-shrink-0 w-[300px] p-6 rounded-lg border-2 transition-all
