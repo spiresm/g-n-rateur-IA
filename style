@@ -54,9 +54,13 @@ header {
 }
 
 .title-group {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+  min-width: 0;
+}
+
+.title-group h1 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 header h1 {
@@ -966,9 +970,8 @@ input[type=range]::-webkit-slider-thumb {
   z-index: 10000;
 }
 .user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .user-info img {
@@ -992,9 +995,9 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .user-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 /* Logo Runbens – visibilité garantie */
 .app-logo {
@@ -1038,10 +1041,14 @@ header {
 /* ===== RESPONSIVE MOBILE ===== */
 
 @media (max-width: 768px) {
-  header {
-    flex-wrap: wrap;
+  .gpu-card {
+    display: none;
   }
 
+  .header-right {
+    justify-content: flex-end;
+  }
+}
   .app-logo {
     height: 48px;
     max-width: 60vw;
