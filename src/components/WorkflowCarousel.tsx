@@ -1,7 +1,7 @@
-import { Sparkles, Sliders, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sparkles, Sliders, Image as ImageIcon, Camera, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
-export type WorkflowType = 'poster' | 'parameters' | 'future1' | 'future2';
+export type WorkflowType = 'poster' | 'parameters' | 'cameraAngles' | 'future2';
 
 interface WorkflowOption {
   id: WorkflowType;
@@ -24,17 +24,16 @@ const workflows: WorkflowOption[] = [
     icon: <Sparkles className="w-8 h-8" />,
   },
   {
+    id: 'cameraAngles',
+    name: 'Angles de Caméra',
+    description: 'Générez 8 vues différentes d\'une même image',
+    icon: <Camera className="w-8 h-8" />,
+  },
+  {
     id: 'parameters',
     name: 'Paramètres de Génération',
     description: 'Contrôle avancé avec tous les paramètres ComfyUI',
     icon: <Sliders className="w-8 h-8" />,
-  },
-  {
-    id: 'future1',
-    name: 'Workflow Personnalisé',
-    description: 'Importez vos propres workflows ComfyUI',
-    icon: <ImageIcon className="w-8 h-8" />,
-    comingSoon: true,
   },
   {
     id: 'future2',
