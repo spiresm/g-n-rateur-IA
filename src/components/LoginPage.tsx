@@ -1,16 +1,17 @@
 import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 export function LoginPage() {
+  const { signInWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     try {
       setIsLoading(true);
       setError(null);
-
-      // ✅ Redirection directe vers le backend FastAPI
-      window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/google`;
+      await signInWithGoogle();
+      // La redirection vers Google sera automatique
     } catch (err) {
       console.error('Erreur de connexion:', err);
       setError('Impossible de se connecter avec Google. Veuillez réessayer.');
@@ -37,7 +38,7 @@ export function LoginPage() {
             </p>
           </div>
 
-          {/* Error */}
+          {/* Error message */}
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm">
               {error}
@@ -53,7 +54,7 @@ export function LoginPage() {
             {isLoading ? (
               <>
                 <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
-                <span>Connexion en cours…</span>
+                <span>Connexion en cours...</span>
               </>
             ) : (
               <>
@@ -68,14 +69,19 @@ export function LoginPage() {
             )}
           </button>
 
+          {/* Info */}
           <p className="text-xs text-gray-500 text-center">
             En vous connectant, vous acceptez nos conditions d'utilisation
           </p>
         </div>
 
-        <div className="text-center mt-6">
+        {/* Footer note */}
+        <div className="text-center mt-6 space-y-2">
           <p className="text-gray-600 text-xs">
-            🔒 Authentification sécurisée via Google OAuth
+            🔒 Authentification sécurisée via Supabase + Google OAuth
+          </p>
+          <p className="text-yellow-500 text-xs">
+            ⚠️ Configuration requise : Activez Google OAuth dans Supabase Dashboard
           </p>
         </div>
       </div>
