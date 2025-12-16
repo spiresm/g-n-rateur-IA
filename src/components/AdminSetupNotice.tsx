@@ -1,3 +1,7 @@
-Affichage : Bas droit de l'écran
-Visibilité : Seulement si les tables ne sont pas configurées
-Actions : Instructions claires + bouton "Fermer"
+export function AdminSetupNotice() {
+  return (
+    <div className="p-4 rounded-lg border border-yellow-500/40 bg-yellow-500/10 text-yellow-400 text-sm">
+      ⚠️ Configuration requise : Activez Google OAuth dans le dashboard Supabase.
+    </div>
+  );
+}
