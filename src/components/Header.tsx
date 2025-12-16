@@ -41,15 +41,22 @@ export const Header = memo(function Header() {
               <span className="font-medium">Premium</span>
             </button>
             
-            <div className="flex items-center gap-3">
+            {/* User Info with Connection Status */}
+            <div className="flex items-center gap-3 px-4 py-2 bg-gray-700/50 rounded-lg border border-gray-600">
               {user.picture && (
                 <img 
                   src={user.picture} 
                   alt={user.name || 'User'}
-                  className="w-12 h-12 rounded-full border-2 border-gray-600"
+                  className="w-10 h-10 rounded-full border-2 border-gray-600"
                 />
               )}
-              <span className="text-base text-gray-300">{user.given_name || user.name || 'Utilisateur'}</span>
+              <div className="flex flex-col">
+                <span className="text-sm text-gray-300">{user.given_name || user.name || 'Utilisateur'}</span>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-green-400">Connecté</span>
+                </div>
+              </div>
             </div>
             
             <button
