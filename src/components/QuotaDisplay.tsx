@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CreditCard, Sparkles } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -24,13 +24,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
   const [loading, setLoading] = useState(true);
   const [systemEnabled, setSystemEnabled] = useState(true);
 
-  useEffect(() => {
-    if (user?.email) {
-      fetchQuota();
-    }
-  }, [user?.email]);
-
-  const fetchQuota = async () => {
+  const fetchQuota = useCallback(async () => {
     if (!user?.email) return;
 
     try {
@@ -61,15 +55,25 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.email]);
+
+  useEffect(() => {
+    if (user?.email) {
+      fetchQuota();
+    }
+  }, [user?.email, fetchQuota]);
 
   // Expose refresh function to parent components via window object
   useEffect(() => {
-    (window as any).refreshQuota = fetchQuota;
+    if (typeof window !== 'undefined') {
+      (window as any).refreshQuota = fetchQuota;
+    }
     return () => {
-      delete (window as any).refreshQuota;
+      if (typeof window !== 'undefined') {
+        delete (window as any).refreshQuota;
+      }
     };
-  }, [user?.email]);
+  }, [user?.email, fetchQuota]);
 
   // Don't render anything if system is not enabled
   if (!systemEnabled) {
