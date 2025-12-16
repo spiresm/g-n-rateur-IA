@@ -252,7 +252,7 @@ export function AppContent() {
       />
 
       {error && (
-        <div className="fixed top-20 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-40 flex items-center gap-3">
+        <div className="fixed top-36 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-40 flex items-center gap-3">
           <span>{error}</span>
           <button 
             onClick={clearError}
@@ -264,7 +264,7 @@ export function AppContent() {
       )}
       
       {/* Container scrollable qui commence sous le header fixe */}
-      <div className="pt-16">
+      <div className="pt-32">
         {/* Carrousel de Workflows - Toute la largeur */}
         <WorkflowCarousel 
           selectedWorkflow={workflow}
@@ -272,7 +272,7 @@ export function AppContent() {
         />
         
         {/* Deux panneaux côte à côte - scrollent avec le carrousel */}
-        <div className="flex flex-col lg:flex-row min-h-[calc(100vh-64px-140px)]">
+        <div className="flex flex-col lg:flex-row min-h-[calc(100vh-128px-140px)]">
           {/* Left Panel - Paramètres */}
           <div className="w-full lg:w-1/2 bg-gray-800 lg:border-r border-gray-700">
             {workflow === 'parameters' ? (
