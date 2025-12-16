@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CreditCard, Sparkles } from 'lucide-react';
-import { Button } from '../src/components/ui/button';
-import { Badge } from '../src/components/ui/badge';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
 import { useAuth } from '../contexts/AuthContext';
 import { projectId } from '../utils/supabase/info';
 
@@ -73,7 +73,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
         delete (window as any).refreshQuota;
       }
     };
-  }, [user?.email, fetchQuota]);
+  }, [fetchQuota]);
 
   // Don't render anything if system is not enabled
   if (!systemEnabled) {
@@ -92,6 +92,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
     return (
       <div className="flex items-center gap-2">
         <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 px-3 py-1.5">
+          <Sparkles className="w-3 h-3 mr-1.5" />
           {quota.subscription_type.toUpperCase()}
         </Badge>
         <div className="text-sm text-gray-400">
@@ -137,6 +138,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
           size="sm"
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 gap-1.5"
         >
+          <CreditCard className="w-3.5 h-3.5" />
           {isEmpty ? 'Passer Premium' : 'Upgrade'}
         </Button>
       )}
