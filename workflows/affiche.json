@@ -64,7 +64,7 @@
 
   "44": {
     "inputs": {
-      "seed": "{{seed}}",
+      "seed": 123456,
       "steps": 9,
       "cfg": 1,
       "sampler_name": "res_multistep",
