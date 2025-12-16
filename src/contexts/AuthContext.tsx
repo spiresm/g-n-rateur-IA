@@ -56,23 +56,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     console.log('[AUTH] 🚀 Initialisation...');
     
+    // Fonction asynchrone pour l'initialisation
     const initAuth = async () => {
       try {
+        // Récupérer le token depuis l'URL (retour de Google OAuth via backend)
         const params = new URLSearchParams(window.location.search);
         const urlToken = params.get("token");
 
         if (urlToken) {
           console.log('[AUTH] Token trouvé dans l\'URL');
+          // Stocker le token dans localStorage
           localStorage.setItem("google_id_token", urlToken);
           setToken(urlToken);
           const decoded = decodeGoogleToken(urlToken);
           console.log('[AUTH] Token décodé:', decoded);
           setUser(decoded);
           
+          // Nettoyer l'URL (enlever le token de l'URL)
           const url = new URL(window.location.href);
           url.searchParams.delete("token");
           window.history.replaceState({}, document.title, url.toString());
         } else {
+          // Vérifier si un token existe déjà dans localStorage
           const storedToken = localStorage.getItem("google_id_token");
           
           if (storedToken) {
@@ -86,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setUser(decoded);
             } else {
               console.log('[AUTH] Token expiré');
+              // Token expiré - nettoyer
               localStorage.removeItem("google_id_token");
             }
           } else {
