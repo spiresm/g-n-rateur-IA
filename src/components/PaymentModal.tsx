@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { X, Check, Sparkles, Zap, Crown } from 'lucide-react';
-import { Button } from '../src/components/ui/button';
-import { Card } from '../src/components/ui/card';
-import { Badge } from '../src/components/ui/badge';
+import { Button } from './ui/button';
+import { Card } from './ui/card';
+import { Badge } from './ui/badge';
 import { useAuth } from '../contexts/AuthContext';
 import { projectId } from '../utils/supabase/info';
 
