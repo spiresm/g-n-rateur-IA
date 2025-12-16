@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { CreditCard, Sparkles } from 'lucide-react';
 import { Button } from '../src/components/ui/button';
 import { Badge } from '../src/components/ui/badge';
-import { useAuth } from '../src/contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { projectId } from '../utils/supabase/info';
 
 interface QuotaInfo {
