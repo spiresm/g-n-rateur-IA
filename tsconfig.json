@@ -16,20 +16,15 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-
-  "include": ["src"],
-
-  "exclude": [
-    "src/components/PaymentModal.tsx",
-    "src/components/QuotaDisplay.tsx",
-    "src/components/ui/**",
-    "src/utils/supabase/**"
-  ],
-
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src", "components", "contexts", "hooks", "services", "utils", "workflows"]
 }
-
