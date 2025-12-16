@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { X, Check, Sparkles, Zap, Crown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Zap, Crown, Sparkles, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../src/contexts/AuthContext';
 import { projectId } from '../utils/supabase/info';
 
 interface PaymentModalProps {
@@ -33,7 +33,7 @@ const plans = [
     name: 'Pro',
     price: '29.99',
     currency: '€',
-    images: -1,
+    images: -1, // unlimited
     period: 'mois',
     icon: Crown,
     color: 'from-purple-500 to-pink-500',
@@ -68,6 +68,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
       setError(null);
       setSelectedPlan(planId);
 
+      // Call backend to create PayPal payment
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-52811d4b/payment/create`,
         {
@@ -88,10 +89,18 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
       const data = await response.json();
       
+      // For demo purposes, simulate successful upgrade
+      // In production, redirect to PayPal approval URL
       if (data.approval_url) {
+        // Redirect to PayPal
         window.location.href = data.approval_url;
       } else {
-        alert(`🔧 Intégration PayPal en cours\n\nPlan: ${planId}\nPrix: ${plans.find(p => p.id === planId)?.price}€\n\n${data.note || ''}`);
+        // Demo mode - show message
+        alert(`🔧 Intégration PayPal en cours\n\nPlan sélectionné: ${planId}\nPrix: ${plans.find(p => p.id === planId)?.price}€\n\n${data.note || ''}`);
+        
+        // For demo, you can manually upgrade by calling the upgrade endpoint
+        // This would normally happen after PayPal payment confirmation
+        console.log('💡 Pour tester: Appelez manuellement /subscription/upgrade avec votre email et le plan');
       }
     } catch (err) {
       console.error('Payment error:', err);
@@ -106,6 +115,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto">
         <Card className="bg-gray-900 border-gray-800 p-8">
+          {/* Header */}
           <div className="flex items-start justify-between mb-8">
             <div>
               <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -125,12 +135,14 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             </Button>
           </div>
 
+          {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400">
               {error}
             </div>
           )}
 
+          {/* Plans Grid */}
           <div className="grid md:grid-cols-2 gap-6">
             {plans.map((plan) => {
               const Icon = plan.icon;
@@ -145,6 +157,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                       : 'border-gray-700 bg-gray-800/30 hover:border-gray-600'
                   }`}
                 >
+                  {/* Popular Badge */}
                   {plan.popular && (
                     <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
                       <Sparkles className="w-3 h-3 mr-1" />
@@ -152,6 +165,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                     </Badge>
                   )}
 
+                  {/* Plan Header */}
                   <div className="flex items-center gap-3 mb-4">
                     <div className={`p-3 rounded-xl bg-gradient-to-br ${plan.color}`}>
                       <Icon className="w-6 h-6 text-white" />
@@ -165,6 +179,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                     </div>
                   </div>
 
+                  {/* Images Info */}
                   <div className="mb-6 p-3 rounded-lg bg-gray-700/30">
                     <div className="text-sm text-gray-400">Générations mensuelles</div>
                     <div className="text-2xl font-bold text-white">
@@ -172,6 +187,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                     </div>
                   </div>
 
+                  {/* Features List */}
                   <ul className="space-y-3 mb-6">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start gap-2">
@@ -181,6 +197,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                     ))}
                   </ul>
 
+                  {/* CTA Button */}
                   <Button
                     onClick={() => handleUpgrade(plan.id)}
                     disabled={loading}
@@ -200,9 +217,13 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
             })}
           </div>
 
+          {/* Footer Note */}
           <div className="mt-8 p-4 bg-gray-800/30 rounded-lg border border-gray-700">
             <p className="text-sm text-gray-400 text-center">
-              💳 Paiement sécurisé via PayPal • Annulation à tout moment
+              💳 Paiement sécurisé via PayPal • Annulation à tout moment • Support email disponible
+            </p>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              Note: L'intégration PayPal complète nécessite la configuration des clés API PayPal dans le backend
             </p>
           </div>
         </Card>
