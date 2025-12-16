@@ -68,6 +68,9 @@ export function AppContent() {
         setWorkflowsLoaded(true);
       } catch (err) {
         console.error('[APP_CONTENT] ❌ Erreur chargement workflows:', err);
+        // 🚨 FALLBACK : Si l'API échoue, utiliser affiche.json par défaut
+        console.warn('[APP_CONTENT] 🔧 FALLBACK : Utilisation de affiche.json par défaut');
+        setWorkflowToUse('affiche.json');
         setWorkflowsLoaded(true);
       }
     };
