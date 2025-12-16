@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { CreditCard, Sparkles } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../src/contexts/AuthContext';
 import { projectId } from '../utils/supabase/info';
 
 interface QuotaInfo {
@@ -39,6 +38,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
       );
 
       if (!response.ok) {
+        // If tables don't exist yet, disable system silently
         console.warn('⚠️ Système de quota non configuré. Voir SUPABASE_TABLES_SETUP.md');
         setSystemEnabled(false);
         setLoading(false);
@@ -62,6 +62,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
     }
   }, [user?.email, fetchQuota]);
 
+  // Expose refresh function to parent components via window object
   useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as any).refreshQuota = fetchQuota;
@@ -71,8 +72,9 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
         delete (window as any).refreshQuota;
       }
     };
-  }, [fetchQuota]);
+  }, [user?.email, fetchQuota]);
 
+  // Don't render anything if system is not enabled
   if (!systemEnabled) {
     return null;
   }
@@ -89,7 +91,6 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
     return (
       <div className="flex items-center gap-2">
         <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 px-3 py-1.5">
-          <Sparkles className="w-3 h-3 mr-1.5" />
           {quota.subscription_type.toUpperCase()}
         </Badge>
         <div className="text-sm text-gray-400">
@@ -106,6 +107,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
 
   return (
     <div className="flex items-center gap-3">
+      {/* Quota Display */}
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700">
         <div className="flex flex-col items-end">
           <div className={`text-sm font-medium ${isEmpty ? 'text-red-400' : isLow ? 'text-yellow-400' : 'text-green-400'}`}>
@@ -114,6 +116,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
           <div className="text-xs text-gray-500">images restantes</div>
         </div>
         
+        {/* Progress Bar */}
         <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
           <div 
             className={`h-full transition-all duration-300 ${
@@ -126,13 +129,13 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
         </div>
       </div>
 
+      {/* Upgrade Button */}
       {(isEmpty || isLow) && (
         <Button
           onClick={onUpgradeClick}
           size="sm"
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 gap-1.5"
         >
-          <CreditCard className="w-3.5 h-3.5" />
           {isEmpty ? 'Passer Premium' : 'Upgrade'}
         </Button>
       )}
