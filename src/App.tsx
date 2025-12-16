@@ -1,7 +1,7 @@
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { AppContent } from './components/AppContent';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { AppContent } from '../../components/AppContent';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 export interface GenerationParams {
   prompt: string;
@@ -52,6 +52,8 @@ export interface GeneratedImage {
   timestamp: Date;
   generationTime?: number;
 }
+
+export type WorkflowType = 'parameters' | 'poster' | 'cameraAngles';
 
 export default function App() {
   return (
