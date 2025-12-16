@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useImageGeneration } from '../hooks/useImageGeneration';
 import { useAuth } from '../src/contexts/AuthContext';
+import { useQuotaSystemStatus } from '../hooks/useQuotaSystemStatus';
 import { api } from '../services/api';
 import type { GenerationParams, PosterParams, CameraAnglesParams, GeneratedImage, WorkflowType } from '../src/App';
 import { Header } from './Header';
@@ -10,11 +11,14 @@ import { PosterGenerator } from './PosterGenerator';
 import { CameraAnglesGenerator } from './CameraAnglesGenerator';
 import { PreviewPanel } from './PreviewPanel';
 import { ProgressOverlay } from './ProgressOverlay';
+import { AdminSetupNotice } from './AdminSetupNotice';
 
 export function AppContent() {
   // console.log('[APP_CONTENT] 🎨 Rendu du composant AppContent'); // DÉSACTIVÉ
   
   const { user } = useAuth();
+  const { isConfigured, isChecking } = useQuotaSystemStatus();
+  const [showAdminNotice, setShowAdminNotice] = useState(false);
   
   const [workflow, setWorkflow] = useState<WorkflowType>('poster');
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
@@ -162,7 +166,7 @@ export function AppContent() {
       denoise: params.denoise,
       width: params.width,
       height: params.height,
-    }, user?.email);
+    }, user?.email || undefined);
   }, [startGeneration, clearError, user]); // ✅ Ajouter user aux dépendances
 
   const handleGenerateFromPoster = useCallback(async (_posterParams: PosterParams, genParams: GenerationParams) => {
@@ -187,7 +191,7 @@ export function AppContent() {
       denoise: genParams.denoise,
       width: genParams.width,
       height: genParams.height,
-    }, user?.email);
+    }, user?.email || undefined);
   }, [startGeneration, clearError, user]); // ✅ Ajouter user aux dépendances
 
   const handleGenerateFromCameraAngles = useCallback(async (cameraAnglesParams: CameraAnglesParams) => {
@@ -243,6 +247,13 @@ export function AppContent() {
     console.log('[APP_CONTENT] Fonction de génération PARAMETERS reçue');
     setParametersGenerateFn(() => fn); // ✅ Wrapper pour éviter que React l'exécute
   }, []);
+  
+  // Effect to show admin notice when quota system is not configured
+  useEffect(() => {
+    if (!isChecking && isConfigured === false) {
+      setShowAdminNotice(true);
+    }
+  }, [isChecking, isConfigured]);
 
   return (
     <>
@@ -331,7 +342,7 @@ export function AppContent() {
                     )
                   : undefined
               }
-              onFormatChange={(width, height) => {
+              onFormatChange={(width: number, height: number) => {
                 console.log('[APP_CONTENT] 📐 Format changé:', width, 'x', height);
                 setImageDimensions({ width, height });
               }}
@@ -339,6 +350,13 @@ export function AppContent() {
           </div>
         </div>
       </div>
+      
+      {/* Admin Setup Notice */}
+      {showAdminNotice && !isConfigured && !isChecking && (
+        <AdminSetupNotice 
+          onDismiss={() => setShowAdminNotice(false)}
+        />
+      )}
     </>
   );
 }
