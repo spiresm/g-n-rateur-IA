@@ -37,15 +37,6 @@
       "title": "Empty SD3 Latent Image"
     }
   },
-  "42": {
-    "inputs": {
-      "conditioning": ["45", 0]
-    },
-    "class_type": "ConditioningZeroOut",
-    "_meta": {
-      "title": "ConditioningZeroOut"
-    }
-  },
   "43": {
     "inputs": {
       "samples": ["44", 0],
@@ -66,7 +57,7 @@
       "denoise": 1,
       "model": ["47", 0],
       "positive": ["45", 0],
-      "negative": ["42", 0],
+      "negative": ["48", 0],
       "latent_image": ["41", 0]
     },
     "class_type": "KSampler",
@@ -81,7 +72,7 @@
     },
     "class_type": "CLIPTextEncode",
     "_meta": {
-      "title": "CLIP Text Encode"
+      "title": "CLIP Text Encode (Positive)"
     }
   },
   "46": {
@@ -102,6 +93,16 @@
     "class_type": "ModelSamplingAuraFlow",
     "_meta": {
       "title": "ModelSamplingAuraFlow"
+    }
+  },
+  "48": {
+    "inputs": {
+      "text": "{{negative_prompt}}",
+      "clip": ["39", 0]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative)"
     }
   }
 }
