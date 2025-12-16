@@ -1,22 +1,15 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 
 export function LoginPage() {
-  const { signInWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGoogleLogin = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      await signInWithGoogle();
-      // La redirection vers Google sera automatique
-    } catch (err) {
-      console.error('Erreur de connexion:', err);
-      setError('Impossible de se connecter avec Google. Veuillez réessayer.');
-      setIsLoading(false);
-    }
+  const handleGoogleLogin = () => {
+    setIsLoading(true);
+    setError(null);
+
+    // Redirection directe vers le backend Render
+    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/google`;
   };
 
   return (
@@ -69,19 +62,14 @@ export function LoginPage() {
             )}
           </button>
 
-          {/* Info */}
           <p className="text-xs text-gray-500 text-center">
             En vous connectant, vous acceptez nos conditions d'utilisation
           </p>
         </div>
 
-        {/* Footer note */}
         <div className="text-center mt-6 space-y-2">
           <p className="text-gray-600 text-xs">
-            🔒 Authentification sécurisée via Supabase + Google OAuth
-          </p>
-          <p className="text-yellow-500 text-xs">
-            ⚠️ Configuration requise : Activez Google OAuth dans Supabase Dashboard
+            🔒 Authentification sécurisée via Google OAuth
           </p>
         </div>
       </div>
