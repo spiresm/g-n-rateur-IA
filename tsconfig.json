@@ -1,3 +1,4 @@
 "strict": false,
 "noUnusedLocals": false,
 "noUnusedParameters": false
+"moduleResolution": "node16"
