@@ -22,6 +22,9 @@ export function AppContent() {
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({ width: 1920, height: 1080 });
   
+  // ✅ REF pour capturer la valeur ACTUELLE de workflowToUse (évite problème de closure)
+  const workflowToUseRef = useRef<string | null>(null);
+  
   // ✅ UTILISER DES STATES AU LIEU DE REFS pour forcer le re-render
   const [posterGenerateFn, setPosterGenerateFn] = useState<(() => void) | null>(null);
   const [parametersGenerateFn, setParametersGenerateFn] = useState<(() => void) | null>(null);
@@ -61,6 +64,7 @@ export function AppContent() {
           }
           
           setWorkflowToUse(selectedWorkflow);
+          workflowToUseRef.current = selectedWorkflow; // ✅ Mettre à jour la ref
         } else {
           console.error('[APP_CONTENT] ❌ Aucun workflow disponible !');
         }
@@ -71,6 +75,7 @@ export function AppContent() {
         // 🚨 FALLBACK : Si l'API échoue, utiliser affiche.json par défaut
         console.warn('[APP_CONTENT] 🔧 FALLBACK : Utilisation de affiche.json par défaut');
         setWorkflowToUse('affiche.json');
+        workflowToUseRef.current = 'affiche.json'; // ✅ Mettre à jour la ref
         setWorkflowsLoaded(true);
       }
     };
@@ -133,15 +138,17 @@ export function AppContent() {
   }, [generatedImage, isGenerating, generatedPrompt]);
 
   const handleGenerateFromParameters = useCallback(async (params: GenerationParams) => {
-    if (!workflowToUse) {
+    const currentWorkflow = workflowToUseRef.current; // ✅ Utiliser la ref pour avoir la valeur ACTUELLE
+    
+    if (!currentWorkflow) {
       console.error('[APP_CONTENT] ❌ Aucun workflow chargé, génération impossible');
       return;
     }
     
     clearError();
-    console.log(`[APP_CONTENT] 🚀 Génération avec workflow: ${workflowToUse}`);
+    console.log(`[APP_CONTENT] 🚀 Génération avec workflow: ${currentWorkflow}`);
     // Adapter les noms de paramètres pour l'API
-    await startGeneration(workflowToUse, {
+    await startGeneration(currentWorkflow, {
       prompt: params.prompt,
       negative_prompt: params.negativePrompt,
       steps: params.steps,
@@ -153,18 +160,20 @@ export function AppContent() {
       width: params.width,
       height: params.height,
     });
-  }, [workflowToUse, startGeneration, clearError]);
+  }, [startGeneration, clearError]); // ✅ Retirer workflowToUse des dépendances
 
   const handleGenerateFromPoster = useCallback(async (_posterParams: PosterParams, genParams: GenerationParams) => {
-    if (!workflowToUse) {
+    const currentWorkflow = workflowToUseRef.current; // ✅ Utiliser la ref pour avoir la valeur ACTUELLE
+    
+    if (!currentWorkflow) {
       console.error('[APP_CONTENT] ❌ Aucun workflow chargé, génération impossible');
       return;
     }
     
     clearError();
-    console.log(`[APP_CONTENT] 🚀 Génération affiche avec workflow: ${workflowToUse}`);
+    console.log(`[APP_CONTENT] 🚀 Génération affiche avec workflow: ${currentWorkflow}`);
     // Adapter les noms de paramètres pour l'API (workflow affiche.json)
-    await startGeneration(workflowToUse, {
+    await startGeneration(currentWorkflow, {
       prompt: genParams.prompt,
       negative_prompt: genParams.negativePrompt,
       steps: genParams.steps,
@@ -176,7 +185,7 @@ export function AppContent() {
       width: genParams.width,
       height: genParams.height,
     });
-  }, [workflowToUse, startGeneration, clearError]);
+  }, [startGeneration, clearError]); // ✅ Retirer workflowToUse des dépendances
 
   const handleGenerateFromCameraAngles = useCallback(async (cameraAnglesParams: CameraAnglesParams) => {
     const cameraWorkflow = 'multiple-angles.json'; // Nom avec tiret comme sur le backend
@@ -306,12 +315,17 @@ export function AppContent() {
               onSaveToGallery={handleSaveToGallery}
               generatedPrompt={generatedPrompt}
               onStartGeneration={
-                workflow === 'poster' 
-                  ? (posterGenerateFn || undefined)
-                  : workflow === 'parameters'
-                  ? (parametersGenerateFn || undefined)
-                  : workflow === 'cameraAngles'
-                  ? (cameraAnglesGenerateFn || undefined)
+                // ✅ Ne passer la fonction QUE si les workflows sont chargés
+                (workflowsLoaded && workflowToUse)
+                  ? (
+                      workflow === 'poster' 
+                        ? (posterGenerateFn || undefined)
+                        : workflow === 'parameters'
+                        ? (parametersGenerateFn || undefined)
+                        : workflow === 'cameraAngles'
+                        ? (cameraAnglesGenerateFn || undefined)
+                        : undefined
+                    )
                   : undefined
               }
               onFormatChange={(width, height) => {
