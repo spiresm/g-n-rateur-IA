@@ -18,7 +18,7 @@ export function AppContent() {
   const [_imageGallery, setImageGallery] = useState<GeneratedImage[]>([]); // Historique de session (non affiché dans UI, uniquement savedGallery)
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [workflowToUse, setWorkflowToUse] = useState<string | null>('affiche.json'); // ✅ HARDCODÉ PAR DÉFAUT
+  const [workflowToUse, setWorkflowToUse] = useState<string | null>(null); // ✅ Sera défini par l'API au chargement
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({ width: 1920, height: 1080 });
   
