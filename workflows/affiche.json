@@ -10,7 +10,6 @@
       "output_node": true
     }
   },
-
   "39": {
     "inputs": {
       "clip_name": "qwen_3_4b.safetensors",
@@ -20,7 +19,6 @@
     "class_type": "CLIPLoader",
     "_meta": { "title": "CLIP Loader" }
   },
-
   "40": {
     "inputs": {
       "vae_name": "ae.safetensors"
@@ -28,11 +26,10 @@
     "class_type": "VAELoader",
     "_meta": { "title": "VAELoader" }
   },
-
   "41": {
     "inputs": {
-      "width": "{{width}}",
-      "height": "{{height}}",
+      "width": 1024,
+      "height": 1024,
       "batch_size": 1
     },
     "class_type": "EmptySD3LatentImage",
@@ -40,7 +37,6 @@
       "title": "Empty SD3 Latent Image"
     }
   },
-
   "42": {
     "inputs": {
       "conditioning": ["45", 0]
@@ -50,7 +46,6 @@
       "title": "ConditioningZeroOut"
     }
   },
-
   "43": {
     "inputs": {
       "samples": ["44", 0],
@@ -61,7 +56,6 @@
       "title": "VAE Decode"
     }
   },
-
   "44": {
     "inputs": {
       "seed": 123456,
@@ -80,7 +74,6 @@
       "title": "KSampler"
     }
   },
-
   "45": {
     "inputs": {
       "text": "{{prompt}}",
@@ -91,7 +84,6 @@
       "title": "CLIP Text Encode"
     }
   },
-
   "46": {
     "inputs": {
       "unet_name": "z_image_turbo_bf16.safetensors",
@@ -102,7 +94,6 @@
       "title": "UNET Loader"
     }
   },
-
   "47": {
     "inputs": {
       "shift": 3,
