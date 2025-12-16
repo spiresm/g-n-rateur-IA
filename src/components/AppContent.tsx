@@ -21,6 +21,7 @@ export function AppContent() {
   const [workflowToUse, setWorkflowToUse] = useState<string | null>(null);
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({ width: 1920, height: 1080 });
+  const [, setForceUpdate] = useState(0); // Compteur pour forcer les re-renders
   
   // Utiliser useRef au lieu de useState pour stocker les fonctions
   const posterGenerateFnRef = useRef<(() => void) | null>(null);
@@ -36,10 +37,10 @@ export function AppContent() {
     clearError 
   } = useImageGeneration();
   
-  // console.log('[APP_CONTENT] State:', { workflow, isGenerating, progress, error, workflowToUse, workflowsLoaded }); // DÉSACTIVÉ
-  // console.log('[APP_CONTENT] 🎯 posterGenerateFn:', posterGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌'); // DÉSACTIVÉ
-  // console.log('[APP_CONTENT] 🎯 parametersGenerateFn:', parametersGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌'); // DÉSACTIVÉ
-  // console.log('[APP_CONTENT] 🎯 cameraAnglesGenerateFn:', cameraAnglesGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌'); // DÉSACTIVÉ
+  console.log('[APP_CONTENT] State:', { workflow, isGenerating, progress, error, workflowToUse, workflowsLoaded });
+  console.log('[APP_CONTENT] 🎯 posterGenerateFn:', posterGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌');
+  console.log('[APP_CONTENT] 🎯 parametersGenerateFn:', parametersGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌');
+  console.log('[APP_CONTENT] 🎯 cameraAnglesGenerateFn:', cameraAnglesGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌');
   
   // Charger les workflows disponibles au démarrage
   useEffect(() => {
@@ -220,13 +221,15 @@ export function AppContent() {
 
   // 🔧 Callbacks mémorisés pour éviter les boucles infinies
   const handlePosterGenerateFunctionReceived = useCallback((fn: () => void) => {
+    console.log('[APP_CONTENT] Fonction de génération POSTER reçue');
     posterGenerateFnRef.current = fn;
-    // ❌ NE PAS appeler setForceUpdate ici ! Ça crée une boucle infinie
+    setForceUpdate(n => n + 1); // Force un re-render pour afficher le bouton
   }, []);
 
   const handleParametersGenerateFunctionReceived = useCallback((fn: () => void) => {
+    console.log('[APP_CONTENT] Fonction de génération PARAMETERS reçue');
     parametersGenerateFnRef.current = fn;
-    // ❌ NE PAS appeler setForceUpdate ici ! Ça crée une boucle infinie
+    setForceUpdate(n => n + 1); // Force un re-render pour afficher le bouton
   }, []);
 
   return (
