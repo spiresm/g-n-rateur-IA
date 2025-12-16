@@ -1,8 +1,8 @@
 import { memo, useState } from 'react';
-import { LogOut } from 'lucide-react';
+import { LogOut, CreditCard } from 'lucide-react';
 import { useAuth } from '../src/contexts/AuthContext';
-import { QuotaDisplay } from './QuotaDisplay';
-import { PaymentModal } from './PaymentModal';
+import { QuotaDisplay } from '../src/components/QuotaDisplay';
+import { PaymentModal } from '../src/components/PaymentModal';
 
 export const Header = memo(function Header() {
   const { user, logout, isAuthenticated } = useAuth();
@@ -28,8 +28,18 @@ export const Header = memo(function Header() {
 
         {isAuthenticated && user && (
           <div className="flex items-center gap-4">
-            {/* Quota Display */}
+            {/* Quota Display - only shows if quota system is configured */}
             <QuotaDisplay onUpgradeClick={() => setShowPaymentModal(true)} />
+            
+            {/* PayPal / Upgrade Button - always visible */}
+            <button
+              onClick={() => setShowPaymentModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50"
+              title="Voir les plans premium"
+            >
+              <CreditCard className="w-5 h-5" />
+              <span className="font-medium">Premium</span>
+            </button>
             
             <div className="flex items-center gap-3">
               {user.picture && (
