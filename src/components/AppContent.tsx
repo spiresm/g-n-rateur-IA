@@ -18,7 +18,7 @@ export function AppContent() {
   const [_imageGallery, setImageGallery] = useState<GeneratedImage[]>([]); // Historique de session (non affiché dans UI, uniquement savedGallery)
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [workflowToUse, setWorkflowToUse] = useState<string | null>(null);
+  const [workflowToUse, setWorkflowToUse] = useState<string | null>('affiche.json'); // ✅ HARDCODÉ PAR DÉFAUT
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({ width: 1920, height: 1080 });
   
@@ -132,7 +132,7 @@ export function AppContent() {
     }
   }, [generatedImage, isGenerating, generatedPrompt]);
 
-  const handleGenerateFromParameters = async (params: GenerationParams) => {
+  const handleGenerateFromParameters = useCallback(async (params: GenerationParams) => {
     if (!workflowToUse) {
       console.error('[APP_CONTENT] ❌ Aucun workflow chargé, génération impossible');
       return;
@@ -153,9 +153,9 @@ export function AppContent() {
       width: params.width,
       height: params.height,
     });
-  };
+  }, [workflowToUse, startGeneration, clearError]);
 
-  const handleGenerateFromPoster = async (_posterParams: PosterParams, genParams: GenerationParams) => {
+  const handleGenerateFromPoster = useCallback(async (_posterParams: PosterParams, genParams: GenerationParams) => {
     if (!workflowToUse) {
       console.error('[APP_CONTENT] ❌ Aucun workflow chargé, génération impossible');
       return;
@@ -176,9 +176,9 @@ export function AppContent() {
       width: genParams.width,
       height: genParams.height,
     });
-  };
+  }, [workflowToUse, startGeneration, clearError]);
 
-  const handleGenerateFromCameraAngles = async (cameraAnglesParams: CameraAnglesParams) => {
+  const handleGenerateFromCameraAngles = useCallback(async (cameraAnglesParams: CameraAnglesParams) => {
     const cameraWorkflow = 'multiple-angles.json'; // Nom avec tiret comme sur le backend
     
     clearError();
@@ -196,7 +196,7 @@ export function AppContent() {
       cfg_scale: cameraAnglesParams.cfg,
       image_file: cameraAnglesParams.imageFile,
     });
-  };
+  }, [startGeneration, clearError]);
 
   const handleSelectFromGallery = (image: GeneratedImage) => {
     setCurrentImage(image);
