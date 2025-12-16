@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useImageGeneration } from '../hooks/useImageGeneration';
-import { useAuth } from '../src/contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useQuotaSystemStatus } from '../hooks/useQuotaSystemStatus';
 import { api } from '../services/api';
-import type { GenerationParams, PosterParams, CameraAnglesParams, GeneratedImage, WorkflowType } from '../src/App';
+import type { GenerationParams, PosterParams, CameraAnglesParams, GeneratedImage, WorkflowType } from '../App';
 import { Header } from './Header';
 import { WorkflowCarousel } from './WorkflowCarousel';
 import { GenerationParameters } from './GenerationParameters';
