@@ -130,7 +130,7 @@ export function PreviewPanel({
         <span className="text-xs bg-green-600 text-white px-3 py-1 rounded-full">PRÊT</span>
       </div>
 
-      {/* Format Selection - Au-dessus du bouton de génération */}
+      {/* Format Selection - Au-dessus du bouton de g��nération */}
       {onStartGeneration && (
         <>
           <div className="mb-4">
@@ -197,12 +197,19 @@ export function PreviewPanel({
               className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-3 shadow-lg"
             >
               <Sparkles className="w-5 h-5" />
-              <span>
-                {isGenerating ? 'Génération en cours...' : 'Générer l\'Image'}
-              </span>
+              <span>{isGenerating ? 'Génération en cours...' : 'Générer l\'Image'}</span>
             </button>
           </div>
         </>
+      )}
+
+      {/* ⚠️ Message si le bouton de génération n'est pas disponible */}
+      {!onStartGeneration && (
+        <div className="mb-4 p-4 bg-gray-800 border border-gray-700 rounded-lg">
+          <p className="text-gray-400 text-sm text-center">
+            ⏳ Chargement des workflows...
+          </p>
+        </div>
       )}
 
       {/* Main Preview - TAILLE AGRANDIE 1.5x (600px max-height) */}
