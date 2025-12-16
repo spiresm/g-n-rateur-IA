@@ -38,4 +38,3 @@ export const ProgressOverlay = memo(function ProgressOverlay({
     </div>
   );
 });
-
