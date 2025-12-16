@@ -1,16 +1,7 @@
-import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 export function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleGoogleLogin = () => {
-    setIsLoading(true);
-    setError(null);
-
-    // Redirection directe vers le backend Render
-    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/google`;
-  };
+  const { signInWithGoogle, isLoading } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
@@ -31,23 +22,16 @@ export function LoginPage() {
             </p>
           </div>
 
-          {/* Error message */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-
           {/* Google Login Button */}
           <button
-            onClick={handleGoogleLogin}
+            onClick={signInWithGoogle}
             disabled={isLoading}
             className="w-full bg-white hover:bg-gray-100 text-gray-900 py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-3 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
                 <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
-                <span>Connexion en cours...</span>
+                <span>Chargement...</span>
               </>
             ) : (
               <>
@@ -62,14 +46,19 @@ export function LoginPage() {
             )}
           </button>
 
+          {/* Info */}
           <p className="text-xs text-gray-500 text-center">
             En vous connectant, vous acceptez nos conditions d'utilisation
           </p>
         </div>
 
+        {/* Footer note */}
         <div className="text-center mt-6 space-y-2">
           <p className="text-gray-600 text-xs">
-            🔒 Authentification sécurisée via Google OAuth
+            🔒 Authentification sécurisée via backend FastAPI + Google OAuth
+          </p>
+          <p className="text-green-500 text-xs">
+            ✅ Backend Render connecté et fonctionnel
           </p>
         </div>
       </div>
