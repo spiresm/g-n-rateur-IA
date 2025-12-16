@@ -46,10 +46,11 @@ export function GenerationParameters({ onGenerate, isGenerating, imageDimensions
   // Exposer la fonction de génération au parent
   useEffect(() => {
     if (onGetGenerateFunction) {
-      console.log('[GENERATION_PARAMETERS] 📤 Envoi de la fonction de génération au parent');
+      console.log('[GENERATION_PARAMETERS] Envoi de la fonction de génération au parent');
       onGetGenerateFunction(handleStartGeneration);
     }
-  }, [prompt, negativePrompt, steps, cfg, seed, sampler, scheduler, denoise, width, height, onGetGenerateFunction]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const samplers = [
     'euler', 'euler_ancestral', 'heun', 'dpm_2', 'dpm_2_ancestral',
