@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CreditCard, Sparkles } from 'lucide-react';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import { useAuth } from '../contexts/AuthContext';
-import { projectId } from '../utils/supabase/info';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { useAuth } from '../../contexts/AuthContext';
+import { projectId } from '../../utils/supabase/info';
 
 interface QuotaInfo {
   allowed: boolean;
@@ -73,7 +73,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
         delete (window as any).refreshQuota;
       }
     };
-  }, [user?.email, fetchQuota]);
+  }, [fetchQuota]);
 
   // Don't render anything if system is not enabled
   if (!systemEnabled) {
@@ -145,3 +145,25 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
     </div>
   );
 }
+Fichier 2: src/components/PaymentModal.tsx
+Copiez exactement le contenu que je vous ai donné précédemment (celui dans /src/components/PaymentModal.tsx dans Figma Make) avec les imports corrects :
+
+import { useState } from 'react';
+import { X, Check, Sparkles, Zap, Crown } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { useAuth } from '../../contexts/AuthContext';
+import { projectId } from '../../utils/supabase/info';
+(Le reste du contenu est identique à ce que j'ai créé plus tôt)
+
+🚨 Point clé
+Les imports dans /src/components/ doivent utiliser ../../ car ils sont deux niveaux en dessous de la racine :
+
+// ✅ CORRECT pour /src/components/
+import { Button } from '../../components/ui/button';
+import { useAuth } from '../../contexts/AuthContext';
+
+// ❌ INCORRECT (ce que GitHub a actuellement)
+import { Button } from './ui/button';
+import { useAuth } from '../contexts/AuthContext';
