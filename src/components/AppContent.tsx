@@ -1,17 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useImageGeneration } from '../hooks/useImageGeneration';
+import { useAuth } from '../src/contexts/AuthContext';
+import { api } from '../services/api';
+import type { GenerationParams, PosterParams, CameraAnglesParams, GeneratedImage, WorkflowType } from '../src/App';
 import { Header } from './Header';
-import { WorkflowCarousel, WorkflowType } from './WorkflowCarousel';
+import { WorkflowCarousel } from './WorkflowCarousel';
 import { GenerationParameters } from './GenerationParameters';
 import { PosterGenerator } from './PosterGenerator';
 import { CameraAnglesGenerator } from './CameraAnglesGenerator';
 import { PreviewPanel } from './PreviewPanel';
 import { ProgressOverlay } from './ProgressOverlay';
-import { useImageGeneration } from '../hooks/useImageGeneration';
-import { api } from '../services/api';
-import type { GenerationParams, PosterParams, CameraAnglesParams, GeneratedImage } from '../App';
 
 export function AppContent() {
   // console.log('[APP_CONTENT] 🎨 Rendu du composant AppContent'); // DÉSACTIVÉ
+  
+  const { user } = useAuth();
   
   const [workflow, setWorkflow] = useState<WorkflowType>('poster');
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
@@ -159,8 +162,8 @@ export function AppContent() {
       denoise: params.denoise,
       width: params.width,
       height: params.height,
-    });
-  }, [startGeneration, clearError]); // ✅ Retirer workflowToUse des dépendances
+    }, user?.email);
+  }, [startGeneration, clearError, user]); // ✅ Ajouter user aux dépendances
 
   const handleGenerateFromPoster = useCallback(async (_posterParams: PosterParams, genParams: GenerationParams) => {
     const currentWorkflow = workflowToUseRef.current; // ✅ Utiliser la ref pour avoir la valeur ACTUELLE
@@ -184,8 +187,8 @@ export function AppContent() {
       denoise: genParams.denoise,
       width: genParams.width,
       height: genParams.height,
-    });
-  }, [startGeneration, clearError]); // ✅ Retirer workflowToUse des dépendances
+    }, user?.email);
+  }, [startGeneration, clearError, user]); // ✅ Ajouter user aux dépendances
 
   const handleGenerateFromCameraAngles = useCallback(async (cameraAnglesParams: CameraAnglesParams) => {
     const cameraWorkflow = 'multiple-angles.json'; // Nom avec tiret comme sur le backend
