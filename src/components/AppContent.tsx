@@ -21,12 +21,11 @@ export function AppContent() {
   const [workflowToUse, setWorkflowToUse] = useState<string | null>(null);
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({ width: 1920, height: 1080 });
-  const [, setForceUpdate] = useState(0); // Compteur pour forcer les re-renders
   
-  // Utiliser useRef au lieu de useState pour stocker les fonctions
-  const posterGenerateFnRef = useRef<(() => void) | null>(null);
-  const parametersGenerateFnRef = useRef<(() => void) | null>(null);
-  const cameraAnglesGenerateFnRef = useRef<(() => void) | null>(null);
+  // ✅ UTILISER DES STATES AU LIEU DE REFS pour forcer le re-render
+  const [posterGenerateFn, setPosterGenerateFn] = useState<(() => void) | null>(null);
+  const [parametersGenerateFn, setParametersGenerateFn] = useState<(() => void) | null>(null);
+  const [cameraAnglesGenerateFn, setCameraAnglesGenerateFn] = useState<(() => void) | null>(null);
   
   const { 
     isGenerating, 
@@ -38,9 +37,9 @@ export function AppContent() {
   } = useImageGeneration();
   
   console.log('[APP_CONTENT] State:', { workflow, isGenerating, progress, error, workflowToUse, workflowsLoaded });
-  console.log('[APP_CONTENT] 🎯 posterGenerateFn:', posterGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌');
-  console.log('[APP_CONTENT] 🎯 parametersGenerateFn:', parametersGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌');
-  console.log('[APP_CONTENT] 🎯 cameraAnglesGenerateFn:', cameraAnglesGenerateFnRef.current ? 'DÉFINIE ✅' : 'NULL ❌');
+  console.log('[APP_CONTENT] 🎯 posterGenerateFn:', posterGenerateFn ? 'DÉFINIE ✅' : 'NULL ❌');
+  console.log('[APP_CONTENT] 🎯 parametersGenerateFn:', parametersGenerateFn ? 'DÉFINIE ✅' : 'NULL ❌');
+  console.log('[APP_CONTENT] 🎯 cameraAnglesGenerateFn:', cameraAnglesGenerateFn ? 'DÉFINIE ✅' : 'NULL ❌');
   
   // Charger les workflows disponibles au démarrage
   useEffect(() => {
@@ -79,9 +78,9 @@ export function AppContent() {
   // Réinitialiser les fonctions de génération quand on change de workflow
   useEffect(() => {
     console.log('[APP_CONTENT] 🔄 Workflow changé:', workflow);
-    posterGenerateFnRef.current = null;
-    parametersGenerateFnRef.current = null;
-    cameraAnglesGenerateFnRef.current = null;
+    setPosterGenerateFn(null);
+    setParametersGenerateFn(null);
+    setCameraAnglesGenerateFn(null);
     // ✅ Pas besoin de forceUpdate, React va re-render de toute façon quand workflow change
   }, [workflow]);
 
@@ -222,14 +221,12 @@ export function AppContent() {
   // 🔧 Callbacks mémorisés pour éviter les boucles infinies
   const handlePosterGenerateFunctionReceived = useCallback((fn: () => void) => {
     console.log('[APP_CONTENT] Fonction de génération POSTER reçue');
-    posterGenerateFnRef.current = fn;
-    setForceUpdate(n => n + 1); // Force un re-render pour afficher le bouton
+    setPosterGenerateFn(() => fn); // ✅ Wrapper pour éviter que React l'exécute
   }, []);
 
   const handleParametersGenerateFunctionReceived = useCallback((fn: () => void) => {
     console.log('[APP_CONTENT] Fonction de génération PARAMETERS reçue');
-    parametersGenerateFnRef.current = fn;
-    setForceUpdate(n => n + 1); // Force un re-render pour afficher le bouton
+    setParametersGenerateFn(() => fn); // ✅ Wrapper pour éviter que React l'exécute
   }, []);
 
   return (
@@ -307,11 +304,11 @@ export function AppContent() {
               generatedPrompt={generatedPrompt}
               onStartGeneration={
                 workflow === 'poster' 
-                  ? (posterGenerateFnRef.current || undefined)
+                  ? (posterGenerateFn || undefined)
                   : workflow === 'parameters'
-                  ? (parametersGenerateFnRef.current || undefined)
+                  ? (parametersGenerateFn || undefined)
                   : workflow === 'cameraAngles'
-                  ? (cameraAnglesGenerateFnRef.current || undefined)
+                  ? (cameraAnglesGenerateFn || undefined)
                   : undefined
               }
               onFormatChange={(width, height) => {
