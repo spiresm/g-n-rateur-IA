@@ -282,7 +282,7 @@ export function AppContent() {
         {/* Carrousel de Workflows - Toute la largeur */}
         <WorkflowCarousel 
           selectedWorkflow={workflow}
-          onSelectWorkflow={setWorkflow}
+          onSelectWorkflow={(w) => setWorkflow(w)}
         />
         
         {/* Deux panneaux côte à côte - scrollent avec le carrousel */}
