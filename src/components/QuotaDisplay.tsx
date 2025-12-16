@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CreditCard, Sparkles } from 'lucide-react';
-import { Button } from '../../components/ui/button';
-import { Badge } from '../../components/ui/badge';
-import { useAuth } from '../../contexts/AuthContext';
-import { projectId } from '../../utils/supabase/info';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { useAuth } from '../contexts/AuthContext';
+import { projectId } from '../utils/supabase/info';
 
 interface QuotaInfo {
   allowed: boolean;
@@ -39,7 +39,6 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
       );
 
       if (!response.ok) {
-        // If tables don't exist yet, disable system silently
         console.warn('⚠️ Système de quota non configuré. Voir SUPABASE_TABLES_SETUP.md');
         setSystemEnabled(false);
         setLoading(false);
@@ -63,7 +62,6 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
     }
   }, [user?.email, fetchQuota]);
 
-  // Expose refresh function to parent components via window object
   useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as any).refreshQuota = fetchQuota;
@@ -75,7 +73,6 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
     };
   }, [fetchQuota]);
 
-  // Don't render anything if system is not enabled
   if (!systemEnabled) {
     return null;
   }
@@ -109,7 +106,6 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
 
   return (
     <div className="flex items-center gap-3">
-      {/* Quota Display */}
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700">
         <div className="flex flex-col items-end">
           <div className={`text-sm font-medium ${isEmpty ? 'text-red-400' : isLow ? 'text-yellow-400' : 'text-green-400'}`}>
@@ -118,7 +114,6 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
           <div className="text-xs text-gray-500">images restantes</div>
         </div>
         
-        {/* Progress Bar */}
         <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
           <div 
             className={`h-full transition-all duration-300 ${
@@ -131,7 +126,6 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
         </div>
       </div>
 
-      {/* Upgrade Button */}
       {(isEmpty || isLow) && (
         <Button
           onClick={onUpgradeClick}
