@@ -3,7 +3,7 @@ import { X, Check, Sparkles, Zap, Crown } from 'lucide-react';
 import { Button } from '../src/components/ui/button';
 import { Card } from '../src/components/ui/card';
 import { Badge } from '../src/components/ui/badge';
-import { useAuth } from '../src/contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { projectId } from '../utils/supabase/info';
 
 interface PaymentModalProps {
