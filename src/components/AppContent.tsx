@@ -78,10 +78,10 @@ export function AppContent() {
   // Réinitialiser les fonctions de génération quand on change de workflow
   useEffect(() => {
     console.log('[APP_CONTENT] 🔄 Workflow changé:', workflow);
-    setPosterGenerateFn(null);
-    setParametersGenerateFn(null);
-    setCameraAnglesGenerateFn(null);
-    // ✅ Pas besoin de forceUpdate, React va re-render de toute façon quand workflow change
+    // ✅ Réinitialiser seulement les workflows qui ne sont PAS actifs
+    if (workflow !== 'poster') setPosterGenerateFn(null);
+    if (workflow !== 'parameters') setParametersGenerateFn(null);
+    if (workflow !== 'cameraAngles') setCameraAnglesGenerateFn(null);
   }, [workflow]);
 
   // Charger la galerie sauvegardée depuis localStorage au démarrage
