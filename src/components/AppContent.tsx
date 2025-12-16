@@ -154,7 +154,7 @@ export function AppContent() {
     
     clearError();
     console.log(`[APP_CONTENT] 🚀 Génération avec workflow: ${currentWorkflow}`);
-    // Adapter les noms de paramètres pour l'API
+    // Adapter les noms de paramètres pour l'API (workflow default.json)
     await startGeneration(currentWorkflow, {
       prompt: params.prompt,
       negative_prompt: params.negativePrompt,
@@ -166,8 +166,8 @@ export function AppContent() {
       denoise: params.denoise,
       width: params.width,
       height: params.height,
-    }, user?.email || undefined);
-  }, [startGeneration, clearError, user]); // ✅ Ajouter user aux dépendances
+    });
+  }, [startGeneration, clearError]); // ✅ Enlever user des dépendances
 
   const handleGenerateFromPoster = useCallback(async (_posterParams: PosterParams, genParams: GenerationParams) => {
     const currentWorkflow = workflowToUseRef.current; // ✅ Utiliser la ref pour avoir la valeur ACTUELLE
@@ -191,8 +191,8 @@ export function AppContent() {
       denoise: genParams.denoise,
       width: genParams.width,
       height: genParams.height,
-    }, user?.email || undefined);
-  }, [startGeneration, clearError, user]); // ✅ Ajouter user aux dépendances
+    });
+  }, [startGeneration, clearError]); // ✅ Enlever user des dépendances
 
   const handleGenerateFromCameraAngles = useCallback(async (cameraAnglesParams: CameraAnglesParams) => {
     const cameraWorkflow = 'multiple-angles.json'; // Nom avec tiret comme sur le backend
