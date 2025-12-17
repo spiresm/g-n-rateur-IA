@@ -1,59 +1,47 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useImageGeneration } from '../hooks/useImageGeneration'; 
 import { useAuth } from '../contexts/AuthContext';
-import { useQuotaSystemStatus } from '../hooks/useQuotaSystemStatus';
-import type { GenerationParams, PosterParams, CameraAnglesParams, GeneratedImage, WorkflowType } from '../App';
 
-// Composants UI
+// Composants
 import { Header } from './Header';
 import { WorkflowCarousel } from './WorkflowCarousel';
 import { GenerationParameters } from './GenerationParameters';
-import PosterGenerator from './PosterGenerator'; // Import par défaut (sans accolades)
+import PosterGenerator from './PosterGenerator'; 
 import { CameraAnglesGenerator } from './CameraAnglesGenerator';
 import { PreviewPanel } from './PreviewPanel';
 import { ProgressOverlay } from './ProgressOverlay';
 
+import type { GenerationParams, PosterParams, GeneratedImage, WorkflowType } from '../App';
+
 export function AppContent() {
-  const { user } = useAuth();
   const { isGenerating, progress, startGeneration, clearError, generatedImage } = useImageGeneration();
   
-  // --- ÉTATS ---
   const [workflow, setWorkflow] = useState<WorkflowType>('poster');
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [imageDimensions, setImageDimensions] = useState({ width: 1080, height: 1920 });
 
-  // Fonctions de stockage pour le bouton jaune principal
-  const [posterGenerateFn, setPosterGenerateFn] = useState<(() => void) | null>(null);
-  const [cameraGenerateFn, setCameraGenerateFn] = useState<(() => void) | null>(null);
-  const [parametersGenerateFn, setParametersGenerateFn] = useState<(() => void) | null>(null);
+  // Stockage des fonctions de déclenchement
+  const [posterGenFn, setPosterGenFn] = useState<(() => void) | null>(null);
+  const [cameraGenFn, setCameraGenFn] = useState<(() => void) | null>(null);
+  const [paramGenFn, setParamGenFn] = useState<(() => void) | null>(null);
 
-  // --- LOGIQUE DU BOUTON JAUNE ---
   const handleMainGenerate = () => {
-    console.log("🟡 Bouton Jaune - Workflow actuel:", workflow);
-    if (workflow === 'poster' && posterGenerateFn) {
-      posterGenerateFn();
-    } else if (workflow === 'camera' && cameraGenerateFn) {
-      cameraGenerateFn();
-    } else if (workflow === 'parameters' && parametersGenerateFn) {
-      parametersGenerateFn();
-    }
+    console.log("🟡 Clic Bouton Jaune - Workflow:", workflow);
+    if (workflow === 'poster' && posterGenFn) posterGenFn();
+    if (workflow === 'camera' && cameraGenFn) cameraGenFn();
+    if (workflow === 'parameters' && paramGenFn) paramGenFn();
   };
 
-  // --- HANDLERS DE GÉNÉRATION ---
-  const handleGenerateFromPoster = useCallback(async (p: PosterParams, g: GenerationParams) => {
-    if (clearError) clearError();
-    await startGeneration('affiche.json', { 
-      ...g, 
-      user_menu_prompt: g.prompt 
-    });
-  }, [startGeneration, clearError]);
-
-  const handleGenerateFromCamera = useCallback(async (params: any) => {
-    if (clearError) clearError();
-    // Ici, startGeneration doit gérer le FormData si params contient un fichier
-    await startGeneration('camera.json', params);
-  }, [startGeneration, clearError]);
+  // Wrapper sécurisé pour startGeneration (évite l'erreur "f is not a function")
+  const safeStart = async (file: string, params: any) => {
+    try {
+      if (typeof clearError === 'function') clearError(); 
+      await startGeneration(file, params);
+    } catch (e) {
+      console.error("Erreur génération:", e);
+    }
+  };
 
   return (
     <div className="bg-[#0f1117] min-h-screen text-white">
@@ -61,63 +49,61 @@ export function AppContent() {
       <Header />
       
       <main className="pt-24">
-        <WorkflowCarousel 
-          selectedWorkflow={workflow} 
-          onSelectWorkflow={(w) => setWorkflow(w as WorkflowType)} 
-        />
+        <WorkflowCarousel selectedWorkflow={workflow} onSelectWorkflow={(w) => setWorkflow(w as WorkflowType)} />
         
         <div className="flex flex-col lg:flex-row border-t border-gray-800">
-          {/* Panneau Gauche : Menus Dynamiques */}
-          <div className="w-full lg:w-1/2 border-r border-gray-800">
+          {/* ZONE DES MENUS (PANNEAU GAUCHE) */}
+          <div className="w-full lg:w-1/2 border-r border-gray-800 min-h-[500px]">
             
+            {/* WORKFLOW 1 : AFFICHE */}
             {workflow === 'poster' && (
               <PosterGenerator 
-                onGenerate={handleGenerateFromPoster}
+                onGenerate={(p, g) => safeStart('affiche.json', { ...g, user_menu_prompt: g.prompt })}
                 isGenerating={isGenerating}
                 onPromptGenerated={setGeneratedPrompt}
                 generatedPrompt={generatedPrompt}
                 imageDimensions={imageDimensions}
-                onGetGenerateFunction={(fn) => setPosterGenerateFn(() => fn)}
+                onGetGenerateFunction={(fn) => setPosterGenFn(() => fn)}
               />
             )}
 
+            {/* WORKFLOW 2 : CAMERA (Auparavant masqué ou buggé) */}
             {workflow === 'camera' && (
               <CameraAnglesGenerator 
-                onGenerate={handleGenerateFromCamera}
+                onGenerate={(p) => safeStart('camera-angles.json', p)}
                 isGenerating={isGenerating}
-                onGetGenerateFunction={(fn) => setCameraGenerateFn(() => fn)}
+                onGetGenerateFunction={(fn) => setCameraGenFn(() => fn)}
               />
             )}
 
+            {/* WORKFLOW 3 : PARAMETRES */}
             {workflow === 'parameters' && (
               <GenerationParameters 
-                onGenerate={(g) => startGeneration('workflow.json', g)}
+                onGenerate={(g) => safeStart('workflow.json', g)}
                 isGenerating={isGenerating}
-                onGetGenerateFunction={(fn) => setParametersGenerateFn(() => fn)}
+                onGetGenerateFunction={(fn) => setParamGenFn(() => fn)}
               />
             )}
           </div>
 
-          {/* Panneau Droit : Preview & Bouton */}
+          {/* PANNEAU DROIT (BOUTON & PREVIEW) */}
           <div className="w-full lg:w-1/2 bg-[#0a0c10] p-8">
             <div className="max-w-md mx-auto space-y-8">
               <button 
                 onClick={handleMainGenerate}
                 disabled={isGenerating}
-                className="w-full bg-gradient-to-b from-[#FFEA00] to-[#FFB200] text-black font-black py-6 rounded-2xl text-2xl uppercase shadow-2xl active:scale-95 transition-all disabled:opacity-30 disabled:grayscale"
+                className="w-full bg-gradient-to-b from-[#FFEA00] to-[#FFB200] text-black font-black py-6 rounded-2xl text-2xl uppercase shadow-2xl active:scale-95 transition-all"
               >
                 {isGenerating ? 'Génération...' : 'Lancer la création'}
               </button>
 
               <PreviewPanel 
                 currentImage={currentImage || generatedImage} 
-                savedGallery={[]}
                 isGenerating={isGenerating}
                 onSelectImage={setCurrentImage}
-                onCopyParameters={() => {}}
-                onSaveToGallery={() => {}}
                 generatedPrompt={generatedPrompt}
                 onFormatChange={(w, h) => setImageDimensions({ width: w, height: h })}
+                savedGallery={[]} onCopyParameters={() => {}} onSaveToGallery={() => {}}
               />
             </div>
           </div>
