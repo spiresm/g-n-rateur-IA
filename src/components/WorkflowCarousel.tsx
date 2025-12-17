@@ -13,7 +13,7 @@ interface WorkflowOption {
 const mainWorkflows: WorkflowOption[] = [
   { id: 'poster', name: "Générateur d'Affiches", imageUrl: '/vignettes/vignette_affiche.png' },
   { id: 'cameraAngles', name: 'Angles de Caméra', imageUrl: '/vignettes/vignette_camera.png' },
-  { id: 'parameters', name: 'Image', imageUrl: '/vignettes/vignette_image.png' }, // Corrigé ici
+  { id: 'parameters', name: 'Image', imageUrl: '/vignettes/vignette_image.png' },
   { id: 'future2', name: 'Batch', imageUrl: '/vignettes/vignette_batch.png', comingSoon: true },
 ];
 
@@ -114,6 +114,14 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                       </div>
                     )}
                     
+                    {/* Macaron VERSION BETA (Seal of Quality) - Uniquement pour Poster */}
+                    {workflow.id === 'poster' && (
+                      <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm border border-amber-500/50 px-2 py-1 rounded-md z-40 flex items-center gap-1 shadow-lg">
+                        <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+                        <span className="text-[8px] sm:text-[9px] font-bold text-amber-500 tracking-wider">VERSION BETA</span>
+                      </div>
+                    )}
+
                     {isSelected && !workflow.comingSoon && (
                       <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-black tracking-widest shadow-lg z-40">
                         HD ACTIVE
