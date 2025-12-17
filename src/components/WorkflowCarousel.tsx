@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsDown, Image as ImageIcon } from 'lucide-react';
 import { useState, memo, useRef } from 'react';
 
 export type WorkflowType = 'poster' | 'parameters' | 'cameraAngles' | 'future2' | string;
@@ -61,18 +61,27 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
 
   return (
     <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
-      <div className="max-w-full mx-auto pt-12 pb-14">
+      <div className="max-w-full mx-auto pt-12 pb-20">
         
-        {/* Header STUDIO */}
-        <div className="flex items-center justify-between mb-10 px-8">
+        {/* Header STUDIO - Z-50 pour passer DEVANT les cartes qui montent */}
+        <div className="flex items-center justify-between mb-10 px-8 relative z-50">
           <div>
             <h2 className="text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
           </div>
+          {/* Les flèches sont ici, sécurisées par le z-50 */}
           <div className="flex gap-4">
-            <button onClick={() => navigate('prev')} className="p-4 bg-gray-800 hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
+            <button 
+              onClick={() => navigate('prev')} 
+              className="p-4 bg-gray-800/80 backdrop-blur-md hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90 shadow-2xl"
+              aria-label="Précédent"
+            >
               <ChevronLeft className="w-6 h-6 text-gray-400" />
             </button>
-            <button onClick={() => navigate('next')} className="p-4 bg-gray-800 hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
+            <button 
+              onClick={() => navigate('next')} 
+              className="p-4 bg-gray-800/80 backdrop-blur-md hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90 shadow-2xl"
+              aria-label="Suivant"
+            >
               <ChevronRight className="w-6 h-6 text-gray-400" />
             </button>
           </div>
@@ -82,62 +91,70 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-20 -my-20 px-[calc(50vw-140px)] snap-x snap-mandatory"
+          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-24 -my-24 px-[calc(50vw-140px)] snap-x snap-mandatory relative z-10"
         >
           {allWorkflows.map((workflow) => {
             const isSelected = selectedWorkflow === workflow.id;
             
             return (
-              <button
-                key={workflow.id}
-                onClick={() => {
-                  onSelectWorkflow(workflow.id);
-                  scrollToIndex(allWorkflows.indexOf(workflow));
-                }}
-                className={`
-                  group relative flex-shrink-0 w-[280px] rounded-[32px] border-2 transition-all duration-500 snap-center overflow-hidden transform-gpu will-change-[transform,filter,opacity]
-                  ${isSelected 
-                    ? 'bg-gray-800 border-purple-500 shadow-[0_40px_80px_rgba(0,0,0,0.9)] -translate-y-8 scale-110 z-50 blur-none opacity-100' 
-                    : 'bg-gray-900/60 border-gray-800 opacity-40 z-10 blur-[3px] scale-90 grayscale'
-                  }
-                `}
-              >
-                {/* Image Area - Sans dégradé parasite */}
-                <div className="relative h-64 w-full bg-gray-850">
-                  {workflow.imageUrl ? (
-                    <img 
-                      src={workflow.imageUrl} 
-                      alt={workflow.name} 
-                      className="w-full h-full object-cover object-top transition-all duration-700 transform-gpu"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-900/50">
-                      <ImageIcon className="w-12 h-12 text-gray-800 opacity-20" />
-                    </div>
-                  )}
-                  
-                  {isSelected && !workflow.comingSoon && (
-                    <div className="absolute top-5 right-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest shadow-lg z-30">
-                      HD ACTIVE
-                    </div>
-                  )}
-                </div>
+              <div key={workflow.id} className="relative flex-shrink-0 snap-center">
+                <button
+                  onClick={() => {
+                    onSelectWorkflow(workflow.id);
+                    scrollToIndex(allWorkflows.indexOf(workflow));
+                  }}
+                  className={`
+                    group relative w-[280px] rounded-[32px] border-2 transition-all duration-500 overflow-hidden transform-gpu will-change-[transform,filter,opacity]
+                    ${isSelected 
+                      ? 'bg-gray-800 border-purple-500 shadow-[0_40px_80px_rgba(0,0,0,0.9)] -translate-y-8 scale-110 z-30 blur-none opacity-100' 
+                      : 'bg-gray-900/60 border-gray-800 opacity-40 z-10 blur-[3px] scale-90 grayscale'
+                    }
+                  `}
+                >
+                  {/* Image Area */}
+                  <div className="relative h-64 w-full bg-gray-850">
+                    {workflow.imageUrl ? (
+                      <img 
+                        src={workflow.imageUrl} 
+                        alt={workflow.name} 
+                        className="w-full h-full object-cover object-top transition-all duration-700 transform-gpu"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-900/50">
+                        <ImageIcon className="w-12 h-12 text-gray-800 opacity-20" />
+                      </div>
+                    )}
+                    
+                    {isSelected && !workflow.comingSoon && (
+                      <div className="absolute top-5 right-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest shadow-lg z-40">
+                        HD ACTIVE
+                      </div>
+                    )}
+                  </div>
 
-                {/* Text Area - MAJUSCULES PERMANENTES */}
-                <div className="h-32 p-6 bg-gray-800 flex flex-col items-center justify-center">
-                  <h3 className={`
-                    text-white font-black tracking-tight text-center transition-all duration-500 w-full uppercase
-                    ${isSelected ? 'text-2xl italic leading-tight' : 'text-lg leading-snug'}
-                  `}>
-                    {workflow.name}
-                  </h3>
-                  {workflow.comingSoon && (
-                    <span className="text-[10px] text-yellow-500/60 mt-2 tracking-[0.2em] font-bold">
-                      COMING SOON
-                    </span>
-                  )}
-                </div>
-              </button>
+                  {/* Text Area */}
+                  <div className="h-32 p-6 bg-gray-800 flex flex-col items-center justify-center relative">
+                    <h3 className={`
+                      text-white font-black tracking-tight text-center transition-all duration-500 w-full uppercase
+                      ${isSelected ? 'text-2xl italic leading-tight' : 'text-lg leading-snug'}
+                    `}>
+                      {workflow.name}
+                    </h3>
+                    {workflow.comingSoon && (
+                      <span className="text-[10px] text-yellow-500/60 mt-2 tracking-[0.2em] font-bold">
+                        COMING SOON
+                      </span>
+                    )}
+                  </div>
+                </button>
+
+                {/* DOUBLE FLÈCHE ANIMÉE (Apparaît sous la carte sélectionnée) */}
+                {isSelected && !workflow.comingSoon && (
+                  <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce z-50">
+                    <ChevronsDown className="w-8 h-8 text-purple-500 opacity-80" />
+                  </div>
+                )}
+              </div>
             );
           })}
           
