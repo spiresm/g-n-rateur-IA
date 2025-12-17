@@ -31,7 +31,6 @@
 
   "41": {
     "inputs": {
-      // ✅ CORRECTION CONFIRMÉE : Utilisation de {{width}} et {{height}} en minuscule pour l'injection des dimensions
       "width": "{{width}}",
       "height": "{{height}}",
       "batch_size": 1
@@ -84,8 +83,8 @@
 
   "45": {
     "inputs": {
-      // ✅ CORRECTION CONFIRMÉE : Utilisation de {{prompt}} pour injecter le prompt du formulaire
-      "text": "{{prompt}}",
+      // 🚨 CORRECTION : Le prompt de base complet + le nouveau placeholder d'injection
+      "text": "Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects. NO TEXT MODE: The poster must contain ZERO text, letters, symbols or numbers. Do not invent any title, subtitle or tagline. Avoid any shapes that resemble typography. {{user_menu_prompt}} Visual elements: epic cinematic scene Extra details: cinematic particles, depth fog, volumetric light Image style: Premium poster design, professional layout, ultra high resolution, visually striking.",
       "clip": ["39", 0]
     },
     "class_type": "CLIPTextEncode",
