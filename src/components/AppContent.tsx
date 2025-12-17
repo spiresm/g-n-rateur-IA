@@ -28,9 +28,9 @@ export function AppContent() {
   const [workflowToUse, setWorkflowToUse] = useState<string | null>(null); // ✅ Sera défini par l'API au chargement
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
   
-  // 🚨 CORRECTION DÉBUT : Définit les dimensions par défaut à Portrait (1080x1920)
+  // 🚨 Correction pour le format par défaut
   const [imageDimensions, setImageDimensions] = useState({ width: 1080, height: 1920 });
-  // 🚨 CORRECTION FIN
+  // 🚨 Correction fin
   
   // ✅ REF pour capturer la valeur ACTUELLE de workflowToUse (évite problème de closure)
   const workflowToUseRef = useRef<string | null>(null);
@@ -183,10 +183,10 @@ export function AppContent() {
     
     clearError();
     console.log(`[APP_CONTENT] 🚀 Génération affiche avec workflow: ${currentWorkflow}`);
-    // Adapter les noms de paramètres pour l'API (workflow affiche.json)
+    
+    // 🚨 CORRECTION MAJEURE : Utiliser la nouvelle clé 'user_menu_prompt' pour injecter le contenu du menu
     await startGeneration(currentWorkflow, {
-      // ✅ Assurez-vous que genParams.prompt contient le prompt complet du formulaire
-      prompt: genParams.prompt, 
+      user_menu_prompt: genParams.prompt, // <- Le prompt généré par le formulaire
       negative_prompt: genParams.negativePrompt,
       steps: genParams.steps,
       cfg_scale: genParams.cfg,
@@ -206,8 +206,6 @@ export function AppContent() {
     clearError();
     console.log(`[APP_CONTENT] 🎥 Génération angles caméra avec workflow: ${cameraWorkflow}`);
     console.log('[APP_CONTENT] 📸 Params:', cameraAnglesParams);
-    console.log('[APP_CONTENT] 📁 Image file:', cameraAnglesParams.imageFile);
-    console.log('[APP_CONTENT] 📐 Selected angle:', cameraAnglesParams.selectedAngle);
     
     // Adapter les paramètres pour l'API du workflow multiple-angles
     await startGeneration(cameraWorkflow, {
@@ -278,7 +276,7 @@ export function AppContent() {
             onClick={clearError}
             className="hover:bg-red-700 px-2 py-1 rounded"
           >
-            ✕
+              ✕
           </button>
         </div>
       )}
