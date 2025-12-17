@@ -22,30 +22,25 @@ export function useImageGeneration() {
 
       const result = await api.generateImage(formData);
 
-      if (result && (result.prompt_id || result.status === 'started')) {
-        const pId = result.prompt_id;
-        const wsUrl = `wss://g-n-rateur-backend-1.onrender.com/ws/progress/${pId}`;
+      if (result && result.prompt_id) {
+        const wsUrl = `wss://g-n-rateur-backend-1.onrender.com/ws/progress/${result.prompt_id}`;
         const socket = new WebSocket(wsUrl);
 
         socket.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            if (data.type === 'progress') setProgress(Math.round(data.value * 100));
-            if (data.type === 'executed' && data.output?.images) {
-              setGeneratedImage(data.output.images[0]);
-              setIsGenerating(false);
-              socket.close();
-            }
-          } catch (e) {}
+          const data = JSON.parse(event.data);
+          if (data.type === 'progress') setProgress(Math.round(data.value * 100));
+          if (data.type === 'executed' && data.output?.images) {
+            setGeneratedImage(data.output.images[0]);
+            setIsGenerating(false);
+            socket.close();
+          }
         };
       } else {
-        // Extraction du message d'erreur pour éviter [object Object]
-        const errContent = result.error || result.detail || result;
-        throw new Error(typeof errContent === 'object' ? JSON.stringify(errContent) : errContent);
+        const detail = result.error || result.detail || JSON.stringify(result);
+        throw new Error(detail);
       }
     } catch (err: any) {
-      console.error('[GENERATE] ❌ Détail:', err);
-      setError(err.message || "Erreur lors de la génération");
+      setError(err.message || "Erreur inconnue");
       setIsGenerating(false);
     }
   }, []);
