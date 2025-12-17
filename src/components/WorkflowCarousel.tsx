@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, ChevronsDown, Image as ImageIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsDown, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { useState, memo, useRef } from 'react';
 
 export type WorkflowType = 'poster' | 'parameters' | 'cameraAngles' | 'future2' | string;
@@ -63,10 +63,34 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
     <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
       <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-24">
         
-        {/* Header STUDIO */}
-        <div className="flex items-center justify-between mb-6 sm:mb-10 px-8 relative z-50">
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
-          <div className="flex gap-3 sm:gap-4">
+        {/* HEADER : STUDIO + DESCRIPTION DYNAMIQUE */}
+        <div className="flex flex-col lg:flex-row items-start justify-between mb-6 sm:mb-10 px-8 gap-6 relative z-50">
+          
+          <div className="flex flex-col gap-4 max-w-md">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
+            
+            {/* BLOC DESCRIPTION DISCRET (S'affiche uniquement pour Poster) */}
+            {selectedWorkflow === 'poster' && (
+              <div className="bg-white/[0.03] backdrop-blur-md border border-white/10 p-5 rounded-2xl animate-in fade-in slide-in-from-left-4 duration-700">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <h3 className="text-amber-500 font-black text-[10px] tracking-[0.2em]">MODE AFFICHE</h3>
+                </div>
+                <p className="text-xs text-gray-400 normal-case leading-relaxed font-medium">
+                  Ce mode permet d'intégrer un <span className="text-white">titre</span>, un <span className="text-white">sous-titre</span> et une <span className="text-white font-bold italic underline decoration-amber-500/30">baseline</span> directement dans le visuel.
+                </p>
+                <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
+                  <AlertCircle className="w-3 h-3 text-amber-500/50 shrink-0" />
+                  <p className="text-[10px] text-gray-500 normal-case italic leading-tight">
+                    L'orthographe générée par l'IA peut présenter des anomalies, un phénomène inhérent à cette technologie.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Arrows */}
+          <div className="flex gap-3 sm:gap-4 self-end lg:self-start">
             <button onClick={() => navigate('prev')} className="p-3 sm:p-4 bg-gray-800/90 backdrop-blur-md hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
             </button>
@@ -76,7 +100,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
           </div>
         </div>
 
-        {/* Carousel */}
+        {/* Carousel Content */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
@@ -100,7 +124,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                     }
                   `}
                 >
-                  {/* Image Area */}
                   <div className="relative h-56 sm:h-64 w-full bg-gray-850 rounded-t-[30px] overflow-hidden">
                     {workflow.imageUrl ? (
                       <img 
@@ -114,7 +137,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                       </div>
                     )}
                     
-                    {/* MACARON VERSION BETA - STYLE SEAL OF QUALITY */}
                     {workflow.id === 'poster' && (
                       <div className="absolute bottom-4 left-4 z-40 transform -rotate-12 transition-transform group-hover:rotate-0 duration-500">
                         <div className="w-16 h-16 sm:w-20 sm:h-20 bg-amber-500 rounded-full flex items-center justify-center p-1 shadow-[0_0_20px_rgba(245,158,11,0.4)] border-4 border-double border-amber-600 ring-2 ring-amber-400">
@@ -135,7 +157,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                     )}
                   </div>
 
-                  {/* Text Area */}
                   <div className="h-28 sm:h-32 p-6 bg-gray-800 flex flex-col items-center justify-center rounded-b-[30px] relative">
                     <h3 className={`
                       text-white font-black tracking-tight text-center transition-all duration-500 w-full uppercase
@@ -149,7 +170,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                       </span>
                     )}
 
-                    {/* Flèche centrée mathématiquement */}
                     {isSelected && !workflow.comingSoon && (
                       <div className="absolute -bottom-10 left-0 right-0 flex justify-center animate-bounce pointer-events-none">
                         <ChevronsDown className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
