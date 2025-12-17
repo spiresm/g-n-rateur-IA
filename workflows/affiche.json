@@ -10,6 +10,7 @@
       "output_node": true
     }
   },
+
   "39": {
     "inputs": {
       "clip_name": "qwen_3_4b.safetensors",
@@ -19,6 +20,7 @@
     "class_type": "CLIPLoader",
     "_meta": { "title": "CLIP Loader" }
   },
+
   "40": {
     "inputs": {
       "vae_name": "ae.safetensors"
@@ -26,8 +28,10 @@
     "class_type": "VAELoader",
     "_meta": { "title": "VAELoader" }
   },
+
   "41": {
     "inputs": {
+      // ✅ CORRECTION CONFIRMÉE : Utilisation de {{width}} et {{height}} en minuscule pour l'injection des dimensions
       "width": "{{width}}",
       "height": "{{height}}",
       "batch_size": 1
@@ -37,6 +41,17 @@
       "title": "Empty SD3 Latent Image"
     }
   },
+
+  "42": {
+    "inputs": {
+      "conditioning": ["45", 0]
+    },
+    "class_type": "ConditioningZeroOut",
+    "_meta": {
+      "title": "ConditioningZeroOut"
+    }
+  },
+
   "43": {
     "inputs": {
       "samples": ["44", 0],
@@ -47,6 +62,7 @@
       "title": "VAE Decode"
     }
   },
+
   "44": {
     "inputs": {
       "seed": 123456,
@@ -57,7 +73,7 @@
       "denoise": 1,
       "model": ["47", 0],
       "positive": ["45", 0],
-      "negative": ["48", 0],
+      "negative": ["42", 0],
       "latent_image": ["41", 0]
     },
     "class_type": "KSampler",
@@ -65,16 +81,19 @@
       "title": "KSampler"
     }
   },
+
   "45": {
     "inputs": {
+      // ✅ CORRECTION CONFIRMÉE : Utilisation de {{prompt}} pour injecter le prompt du formulaire
       "text": "{{prompt}}",
       "clip": ["39", 0]
     },
     "class_type": "CLIPTextEncode",
     "_meta": {
-      "title": "CLIP Text Encode (Positive)"
+      "title": "CLIP Text Encode"
     }
   },
+
   "46": {
     "inputs": {
       "unet_name": "z_image_turbo_bf16.safetensors",
@@ -85,6 +104,7 @@
       "title": "UNET Loader"
     }
   },
+
   "47": {
     "inputs": {
       "shift": 3,
@@ -93,16 +113,6 @@
     "class_type": "ModelSamplingAuraFlow",
     "_meta": {
       "title": "ModelSamplingAuraFlow"
-    }
-  },
-  "48": {
-    "inputs": {
-      "text": "{{negative_prompt}}",
-      "clip": ["39", 0]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP Text Encode (Negative)"
     }
   }
 }
