@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useImageGeneration } from '../hooks/useImageGeneration';
+import useImageGeneration from '../hooks/useImageGeneration';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuotaSystemStatus } from '../hooks/useQuotaSystemStatus';
 import { api } from '../services/api';
