@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Check, Image as ImageIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { useState, memo, useRef } from 'react';
 
 export type WorkflowType = 'poster' | 'parameters' | 'cameraAngles' | 'future2' | string;
@@ -30,6 +30,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
   const scrollRef = useRef<HTMLDivElement>(null);
   const isInternalScroll = useRef(false);
 
+  // Détection de la carte au centre pour la sélection
   const handleScroll = () => {
     if (!scrollRef.current || isInternalScroll.current) return;
     const container = scrollRef.current;
@@ -37,7 +38,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
     const index = Math.round(container.scrollLeft / cardWidth);
     
     const targetWorkflow = allWorkflows[index];
-    if (targetWorkflow && targetWorkflow.id !== selectedWorkflow && !targetWorkflow.comingSoon) {
+    if (targetWorkflow && targetWorkflow.id !== selectedWorkflow) {
       onSelectWorkflow(targetWorkflow.id);
     }
   };
@@ -47,11 +48,8 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
     let nextIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
     nextIndex = Math.max(0, Math.min(nextIndex, allWorkflows.length - 1));
     
-    const nextWorkflow = allWorkflows[nextIndex];
-    if (!nextWorkflow.comingSoon) {
-      onSelectWorkflow(nextWorkflow.id);
-      scrollToIndex(nextIndex);
-    }
+    onSelectWorkflow(allWorkflows[nextIndex].id);
+    scrollToIndex(nextIndex);
   };
 
   const scrollToIndex = (index: number) => {
@@ -64,83 +62,88 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
 
   return (
     <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden">
-      <div className="max-w-full mx-auto pt-8 pb-10">
+      <div className="max-w-full mx-auto pt-12 pb-14">
         
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8 px-8">
+        {/* Navigation Header */}
+        <div className="flex items-center justify-between mb-10 px-8">
           <div className="flex flex-col">
-            <h2 className="text-white text-2xl font-black tracking-tighter uppercase italic">Workflows</h2>
-            <p className="text-gray-500 text-sm font-medium">Sélectionnez votre moteur de création</p>
+            <h2 className="text-white text-3xl font-black tracking-tighter uppercase italic leading-none">Moteurs IA</h2>
+            <p className="text-gray-500 text-sm mt-2 font-medium">Faites défiler pour choisir votre workflow</p>
           </div>
-          <div className="flex gap-3">
-            <button onClick={() => navigate('prev')} className="p-3 bg-gray-800 hover:bg-gray-700 rounded-xl border border-gray-700 transition-all active:scale-95">
+          <div className="flex gap-4">
+            <button onClick={() => navigate('prev')} className="p-4 bg-gray-800 hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
               <ChevronLeft className="w-6 h-6 text-gray-400" />
             </button>
-            <button onClick={() => navigate('next')} className="p-3 bg-gray-800 hover:bg-gray-700 rounded-xl border border-gray-700 transition-all active:scale-95">
+            <button onClick={() => navigate('next')} className="p-4 bg-gray-800 hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
               <ChevronRight className="w-6 h-6 text-gray-400" />
             </button>
           </div>
         </div>
 
-        {/* Carousel */}
+        {/* Carousel Container */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-12 -my-12 px-[calc(50vw-140px)] snap-x snap-mandatory"
+          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-16 -my-16 px-[calc(50vw-140px)] snap-x snap-mandatory"
         >
           {allWorkflows.map((workflow) => {
             const isSelected = selectedWorkflow === workflow.id;
+            
             return (
               <button
                 key={workflow.id}
                 onClick={() => {
-                  if (!workflow.comingSoon) {
-                    onSelectWorkflow(workflow.id);
-                    scrollToIndex(allWorkflows.indexOf(workflow));
-                  }
+                  onSelectWorkflow(workflow.id);
+                  scrollToIndex(allWorkflows.indexOf(workflow));
                 }}
                 className={`
-                  group relative flex-shrink-0 w-[280px] rounded-3xl border-2 transition-all duration-700 snap-center overflow-hidden
-                  ${isSelected && !workflow.comingSoon
-                    ? 'bg-gray-800 border-purple-500 shadow-[0_30px_60px_rgba(0,0,0,0.8)] -translate-y-6 scale-110 z-50 blur-none' 
-                    : 'bg-gray-900/40 border-gray-800 opacity-60 z-10 blur-[2px] scale-95'
+                  group relative flex-shrink-0 w-[280px] rounded-[32px] border-2 transition-all duration-700 snap-center overflow-hidden
+                  ${isSelected 
+                    ? 'bg-gray-800 border-purple-500 shadow-[0_40px_80px_rgba(0,0,0,0.9)] -translate-y-8 scale-110 z-50 blur-none opacity-100' 
+                    : 'bg-gray-900/60 border-gray-800 opacity-40 z-10 blur-[4px] scale-90 grayscale'
                   }
                 `}
               >
-                {/* Image Justifiée Haut */}
-                <div className="relative h-56 w-full bg-gray-850">
+                {/* Image Area - Justifiée en haut */}
+                <div className="relative h-64 w-full bg-gray-850">
                   {workflow.imageUrl ? (
                     <img 
                       src={workflow.imageUrl} 
                       alt={workflow.name} 
                       className={`
                         w-full h-full object-cover object-top transition-all duration-1000
-                        ${isSelected ? 'scale-110' : 'grayscale opacity-50'}
+                        ${isSelected ? 'scale-110' : 'scale-100'}
                       `}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-900/50">
-                      <ImageIcon className="w-10 h-10 text-gray-800" />
+                      <ImageIcon className="w-12 h-12 text-gray-800 opacity-20" />
                     </div>
                   )}
                   
+                  {/* Badge HD minimaliste */}
                   {isSelected && !workflow.comingSoon && (
-                    <div className="absolute top-4 right-4 bg-purple-600 text-white px-3 py-1 rounded-full text-[10px] font-black shadow-2xl animate-in fade-in zoom-in duration-500">
-                      HD ACTIVE
+                    <div className="absolute top-5 right-5 bg-white/10 backdrop-blur-md text-white border border-white/20 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
+                      HD active
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-800 via-transparent to-transparent opacity-80" />
+                  
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-800 via-transparent to-transparent opacity-90" />
                 </div>
 
-                {/* Titre large sans icône */}
-                <div className="p-6 bg-gray-800 flex justify-center">
+                {/* Text Area Area - Titre Large */}
+                <div className="p-8 bg-gray-800 flex flex-col items-center justify-center min-h-[100px]">
                   <h3 className={`
                     text-white font-black tracking-tight text-center leading-tight transition-all duration-500
-                    ${isSelected ? 'text-xl uppercase italic' : 'text-lg opacity-50'}
+                    ${isSelected ? 'text-2xl uppercase italic' : 'text-lg'}
                   `}>
                     {workflow.name}
-                    {workflow.comingSoon && <span className="block text-[10px] text-yellow-500/50 mt-1 italic font-normal">Coming Soon</span>}
                   </h3>
+                  {workflow.comingSoon && (
+                    <span className="text-[10px] text-yellow-500/60 mt-2 uppercase tracking-[0.2em] font-bold">
+                      Coming Soon
+                    </span>
+                  )}
                 </div>
               </button>
             );
