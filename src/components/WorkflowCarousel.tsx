@@ -114,11 +114,17 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                       </div>
                     )}
                     
-                    {/* Macaron VERSION BETA (Seal of Quality) - Uniquement pour Poster */}
+                    {/* MACARON VERSION BETA - STYLE SEAL OF QUALITY */}
                     {workflow.id === 'poster' && (
-                      <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm border border-amber-500/50 px-2 py-1 rounded-md z-40 flex items-center gap-1 shadow-lg">
-                        <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
-                        <span className="text-[8px] sm:text-[9px] font-bold text-amber-500 tracking-wider">VERSION BETA</span>
+                      <div className="absolute bottom-4 left-4 z-40 transform -rotate-12 transition-transform group-hover:rotate-0 duration-500">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-amber-500 rounded-full flex items-center justify-center p-1 shadow-[0_0_20px_rgba(245,158,11,0.4)] border-4 border-double border-amber-600 ring-2 ring-amber-400">
+                          <div className="text-center">
+                            <p className="text-[7px] sm:text-[8px] font-black text-amber-950 leading-none">VERSION</p>
+                            <p className="text-[10px] sm:text-[12px] font-black text-amber-900 leading-none mt-0.5">BETA</p>
+                            <div className="w-6 h-px bg-amber-900/30 mx-auto my-1" />
+                            <p className="text-[5px] sm:text-[6px] font-bold text-amber-950/60 leading-none uppercase">Studio</p>
+                          </div>
+                        </div>
                       </div>
                     )}
 
