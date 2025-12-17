@@ -16,77 +16,47 @@ export function useImageGeneration() {
     setGeneratedImage(null);
 
     try {
-      console.log(`[GENERATE] 🚀 Envoi du workflow: ${workflowName}`, params);
-
       const formData = new FormData();
       formData.append('workflow_name', workflowName);
       formData.append('user_menu_prompt', params.user_menu_prompt || params.prompt || '');
-      
-      if (params.width) formData.append('width', params.width.toString());
-      if (params.height) formData.append('height', params.height.toString());
+      formData.append('width', (params.width || 1024).toString());
+      formData.append('height', (params.height || 1024).toString());
 
       const result = await api.generateImage(formData);
 
-      // Vérification de la réponse du serveur Render
-      if (result && result.status === 'started' && result.prompt_id) {
-        console.log('[GENERATE] ✅ ID de session:', result.prompt_id);
-        
-        const wsUrl = `wss://g-n-rateur-backend-1.onrender.com/ws/progress/${result.prompt_id}`;
+      if (result && (result.prompt_id || result.status === 'started')) {
+        const pId = result.prompt_id;
+        const wsUrl = `wss://g-n-rateur-backend-1.onrender.com/ws/progress/${pId}`;
         const socket = new WebSocket(wsUrl);
 
         socket.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
-            if (data.type === 'progress') {
-              setProgress(Math.round(data.value * 100));
-            }
+            if (data.type === 'progress') setProgress(Math.round(data.value * 100));
             if (data.type === 'executed' && data.output?.images) {
-              const imageUrl = data.output.images[0]; 
-              setGeneratedImage(imageUrl);
+              setGeneratedImage(data.output.images[0]);
               setIsGenerating(false);
               socket.close();
             }
-          } catch (e) {
-            // Message non JSON
-          }
+          } catch (e) {}
         };
 
         socket.onerror = () => {
-          setError("La connexion avec le serveur a été interrompue.");
+          setError("Lien WebSocket interrompu.");
           setIsGenerating(false);
         };
       } else {
-        // ✅ GESTION DE L'ERREUR DE VALIDATION (L'erreur que tu as reçue)
-        const rawError = result?.error || result?.detail || result;
-        
-        let message = "Le serveur n'a pas pu valider la demande.";
-        
-        if (typeof rawError === 'object') {
-          if (rawError.type === 'prompt_outputs_failed_validation') {
-            message = "Erreur ComfyUI : Les IDs des nœuds (44 ou 45) ne correspondent pas dans affiche.json";
-          } else {
-            message = JSON.stringify(rawError);
-          }
-        } else if (typeof rawError === 'string') {
-          message = rawError;
-        }
-
-        throw new Error(message);
+        // Décodage de l'erreur pour éviter [object Object]
+        const rawError = result.error || result.detail || result;
+        const msg = typeof rawError === 'object' ? JSON.stringify(rawError) : rawError;
+        throw new Error(msg);
       }
-
     } catch (err: any) {
-      console.error('[GENERATE] ❌ Erreur attrapée:', err);
-      setError(err.message || "Une erreur critique est survenue.");
+      console.error('[GENERATE] ❌ Erreur:', err);
+      setError(err.message || "Erreur de génération");
       setIsGenerating(false);
     }
   }, []);
 
-  return {
-    isGenerating,
-    progress,
-    error,
-    generatedImage,
-    startGeneration,
-    clearError
-  };
+  return { isGenerating, progress, error, generatedImage, startGeneration, clearError };
 }
