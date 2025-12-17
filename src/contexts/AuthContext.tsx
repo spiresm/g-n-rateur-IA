@@ -2,8 +2,9 @@ import { createContext, useContext, useState, useEffect, ReactNode, useMemo, use
 
 interface User {
   name?: string;
-  given_name?: string;
+  full_name?: string;
   picture?: string;
+  avatar_url?: string;
   email: string;
 }
 
@@ -20,6 +21,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Utilise l'URL Render en production (image_bf7cb6)
 const BACKEND_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) 
   ? import.meta.env.VITE_BACKEND_URL 
   : 'https://g-n-rateur-backend-1.onrender.com';
@@ -34,27 +36,28 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
-function decodeGoogleToken(token: string): User | null {
+function decodeJWTPayload(token: string): User | null {
   if (!token) return null;
-
   try {
     const base64Url = token.split(".")[1];
-    if (!base64Url) return null;
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    const payload = JSON.parse(jsonPayload);
 
-    const base64 = base64Url
-      .replace(/-/g, "+")
-      .replace(/_/g, "/")
-      .padEnd(base64Url.length + (4 - (base64Url.length % 4)) % 4, "=");
-
-    const payload = JSON.parse(atob(base64));
+    // Supabase stocke les infos dans user_metadata (image_bf12dc)
+    const metadata = payload.user_metadata || {};
     return {
-      email: payload.email,
-      name: payload.name,
-      given_name: payload.given_name,
-      picture: payload.picture,
+      email: payload.email || metadata.email,
+      name: metadata.full_name || metadata.name || payload.email,
+      picture: metadata.avatar_url || metadata.picture,
     };
   } catch (e) {
-    console.error("❌ Erreur décodage token Google", e);
+    console.error("❌ [AUTH] Erreur décodage:", e);
     return null;
   }
 }
@@ -65,82 +68,78 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('[AUTH] 🚀 Initialisation...');
-    
     const initAuth = async () => {
+      console.log('[AUTH] 🚀 Initialisation...');
       try {
-        const params = new URLSearchParams(window.location.search);
-        const urlToken = params.get("token");
+        const hash = window.location.hash;
+        const searchParams = new URLSearchParams(window.location.search);
+        let urlToken = null;
+
+        // 1. Extraction du token Supabase (après le #) - Crucial pour image_be8c77
+        if (hash && hash.includes("access_token")) {
+          const params = new URLSearchParams(hash.substring(1));
+          urlToken = params.get("access_token");
+          console.log('[AUTH] ✅ Token détecté dans le fragment URL');
+        } 
+        // 2. Extraction du token Backend classique (après le ?)
+        else if (searchParams.get("token")) {
+          urlToken = searchParams.get("token");
+          console.log('[AUTH] ✅ Token détecté dans les paramètres URL');
+        }
 
         if (urlToken) {
-          console.log('[AUTH] Token trouvé dans l\'URL');
           localStorage.setItem("google_id_token", urlToken);
           setToken(urlToken);
-          const decoded = decodeGoogleToken(urlToken);
-          console.log('[AUTH] Token décodé:', decoded);
-          setUser(decoded);
-          
-          const url = new URL(window.location.href);
-          url.searchParams.delete("token");
-          window.history.replaceState({}, document.title, url.toString());
+          setUser(decodeJWTPayload(urlToken));
+
+          // Nettoyage de l'URL pour enlever le token visible
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
         } else {
           const storedToken = localStorage.getItem("google_id_token");
-          
-          if (storedToken) {
-            console.log('[AUTH] Token trouvé dans localStorage');
-            
-            if (!isTokenExpired(storedToken)) {
-              console.log('[AUTH] Token valide');
-              setToken(storedToken);
-              const decoded = decodeGoogleToken(storedToken);
-              console.log('[AUTH] Token décodé:', decoded);
-              setUser(decoded);
-            } else {
-              console.log('[AUTH] Token expiré');
-              localStorage.removeItem("google_id_token");
-            }
+          if (storedToken && !isTokenExpired(storedToken)) {
+            setToken(storedToken);
+            setUser(decodeJWTPayload(storedToken));
           } else {
-            console.log('[AUTH] Aucun token trouvé');
+            localStorage.removeItem("google_id_token");
           }
         }
       } catch (error) {
-        console.error('[AUTH] ❌ Erreur lors de l\'initialisation:', error);
-        localStorage.removeItem("google_id_token");
+        console.error('[AUTH] ❌ Erreur init:', error);
       } finally {
-        console.log('[AUTH] ✅ Chargement terminé');
         setIsLoading(false);
+        console.log('[AUTH] 🏁 Chargement terminé');
       }
     };
-    
+
     initAuth();
   }, []);
 
   const login = useCallback((newToken: string) => {
     localStorage.setItem("google_id_token", newToken);
     setToken(newToken);
-    const decoded = decodeGoogleToken(newToken);
-    setUser(decoded);
+    setUser(decodeJWTPayload(newToken));
   }, []);
 
   const logout = useCallback(() => {
-    console.log('[AUTH] Déconnexion');
     localStorage.removeItem("google_id_token");
     setToken(null);
     setUser(null);
-    window.location.href = `${BACKEND_URL}/auth/google`;
+    window.location.href = '/';
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
-    console.log('[AUTH] Connexion avec Google');
+    console.log('[AUTH] Redirection vers Render...');
+    // Redirige vers la route auth de votre backend Render (image_bf7cb6)
     window.location.href = `${BACKEND_URL}/auth/google`;
   }, []);
 
   const isAuthenticated = useMemo(() => !!token && !!user, [token, user]);
 
   const contextValue = useMemo(() => ({
-    user, 
-    token, 
-    login, 
+    user,
+    token,
+    login,
     logout,
     signOut: logout,
     signInWithGoogle,
