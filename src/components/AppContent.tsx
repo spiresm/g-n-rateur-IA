@@ -34,7 +34,7 @@ export function AppContent() {
 
   const { isGenerating, progress, error, generatedImage, startGeneration, clearError } = useImageGeneration();
 
-  // CHARGEMENT WORKFLOWS
+  // Initialisation des Workflows
   useEffect(() => {
     const loadInitialData = async () => {
       if (!isAuthenticated || !user?.email || !token) return;
@@ -54,7 +54,7 @@ export function AppContent() {
     loadInitialData();
   }, [isAuthenticated, user, token]);
 
-  // CAPTURE IMAGE
+  // Capture Image
   useEffect(() => {
     if (generatedImage && !isGenerating) {
       const newImage: GeneratedImage = {
@@ -78,7 +78,6 @@ export function AppContent() {
     else if (workflow === 'cameraAngles') cameraAnglesGenerateFn?.();
   };
 
-  // HANDLERS
   const handleGenerateFromPoster = useCallback(async (_posterParams: PosterParams, genParams: GenerationParams) => {
     if (!workflowToUseRef.current) return;
     clearError();
@@ -91,42 +90,63 @@ export function AppContent() {
     await startGeneration(workflowToUseRef.current, params);
   }, [startGeneration, clearError]);
 
+  const handleGenerateFromCameraAngles = useCallback(async (cameraAnglesParams: CameraAnglesParams) => {
+    clearError();
+    await startGeneration('multiple-angles.json', cameraAnglesParams);
+  }, [startGeneration, clearError]);
+
   return (
     <div className="bg-[#0f1117] min-h-screen text-white">
       <Header />
-      <ProgressOverlay isVisible={isGenerating} progress={progress} label="Création de votre chef-d'œuvre..." />
+      <ProgressOverlay isVisible={isGenerating} progress={progress} label="Création en cours..." />
 
       <div className="pt-24 sm:pt-32">
         <WorkflowCarousel selectedWorkflow={workflow} onSelectWorkflow={(w) => setWorkflow(w as WorkflowType)} />
         
         <div className="flex flex-col lg:flex-row border-t border-gray-800 bg-[#0c0e14]">
-          {/* GAUCHE */}
+          
+          {/* COLONNE GAUCHE : RÉGLAGES (SANS TITRES LUDIQUES) */}
           <div className="w-full lg:w-1/2 bg-gray-900/10 lg:border-r border-gray-800">
-            {workflow === 'poster' && <PosterGenerator onGenerate={handleGenerateFromPoster} isGenerating={isGenerating} onPromptGenerated={setGeneratedPrompt} generatedPrompt={generatedPrompt} imageDimensions={imageDimensions} onGetGenerateFunction={(fn) => setPosterGenerateFn(() => fn)} />}
-            {workflow === 'parameters' && <GenerationParameters onGenerate={handleGenerateFromParameters} isGenerating={isGenerating} imageDimensions={imageDimensions} onGetGenerateFunction={(fn) => setParametersGenerateFn(() => fn)} />}
+            {workflow === 'poster' && (
+              <PosterGenerator 
+                onGenerate={handleGenerateFromPoster} 
+                isGenerating={isGenerating} 
+                onPromptGenerated={setGeneratedPrompt} 
+                generatedPrompt={generatedPrompt} 
+                imageDimensions={imageDimensions} 
+                onGetGenerateFunction={(fn) => setPosterGenerateFn(() => fn)} 
+              />
+            )}
+            {workflow === 'parameters' && (
+              <GenerationParameters 
+                onGenerate={handleGenerateFromParameters} 
+                isGenerating={isGenerating} 
+                imageDimensions={imageDimensions} 
+                onGetGenerateFunction={(fn) => setParametersGenerateFn(() => fn)} 
+              />
+            )}
+            {/* RÉINTÉGRATION DE L'UPLOAD VIA CAMERA ANGLES */}
+            {workflow === 'cameraAngles' && (
+              <CameraAnglesGenerator 
+                onGenerate={handleGenerateFromCameraAngles} 
+                isGenerating={isGenerating} 
+                onGetGenerateFunction={(fn) => setCameraAnglesGenerateFn(() => fn)} 
+              />
+            )}
           </div>
 
-          {/* DROITE */}
+          {/* COLONNE DROITE : LE STUDIO PREMIUM */}
           <div className="w-full lg:w-1/2 flex flex-col bg-[#0a0c10]">
             
-            {/* PANNEAU DE COMMANDE AVEC DESIGN FORMATS AMÉLIORÉ */}
-            <div className="p-8 border-b border-gray-800 bg-gray-900/60 backdrop-blur-xl sticky top-0 z-10 shadow-2xl">
-              <div className="max-w-xl mx-auto flex flex-col gap-8">
+            <div className="p-8 border-b border-gray-800 bg-[#0c0e14]/80 backdrop-blur-2xl sticky top-0 z-10">
+              <div className="max-w-xl mx-auto flex flex-col gap-10">
                 
-                <button 
-                  onClick={handleMainGenerate}
-                  disabled={isGenerating || !workflowsLoaded}
-                  className="w-full bg-[#FFD700] hover:bg-[#FFC400] text-black font-black py-5 rounded-2xl text-2xl uppercase tracking-tighter transition-all active:scale-[0.98] disabled:opacity-30 shadow-[0_15px_45px_rgba(255,215,0,0.2)]"
-                >
-                  {isGenerating ? 'Génération...' : "Lancer la création"}
-                </button>
-
-                {/* SÉLECTEURS DE FORMATS DESIGNÉS */}
-                <div className="flex justify-between items-center px-4">
+                {/* 1. SÉLECTEURS DE FORMATS (EN HAUT, SANS VOILE GRIS) */}
+                <div className="flex justify-around items-center px-4">
                   {[
-                    { id: 'square', label: 'Carré', w: 1024, h: 1024, style: 'w-10 h-10 rounded-lg' },
-                    { id: 'landscape', label: 'Paysage', w: 1216, h: 832, style: 'w-14 h-9 rounded-md' },
-                    { id: 'portrait', label: 'Portrait', w: 832, h: 1216, style: 'w-9 h-14 rounded-md' }
+                    { id: 'square', label: 'Carré', w: 1024, h: 1024, style: 'w-10 h-10 rounded-xl' },
+                    { id: 'landscape', label: 'Paysage', w: 1216, h: 832, style: 'w-14 h-9 rounded-lg' },
+                    { id: 'portrait', label: 'Portrait', w: 832, h: 1216, style: 'w-9 h-14 rounded-lg' }
                   ].map((f) => {
                     const isActive = imageDimensions.width === f.w;
                     return (
@@ -136,34 +156,59 @@ export function AppContent() {
                         className={`group flex flex-col items-center gap-3 transition-all duration-300 ${isActive ? 'scale-110' : 'opacity-40 hover:opacity-100'}`}
                       >
                         <div className={`
-                          ${f.style} border-2 transition-all duration-500 flex items-center justify-center
+                          ${f.style} border-2 transition-all duration-500
                           ${isActive 
-                            ? 'bg-purple-600/30 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)] rotate-0' 
-                            : 'bg-transparent border-gray-600 rotate-3 group-hover:rotate-0'}
-                        `}>
-                           {isActive && <div className="w-2 h-2 bg-white rounded-full animate-pulse" />}
-                        </div>
-                        <span className={`text-[10px] font-black tracking-[0.2em] uppercase ${isActive ? 'text-purple-400' : 'text-gray-500'}`}>
+                            ? 'bg-purple-600 border-purple-400 shadow-[0_0_30px_rgba(168,85,247,0.6)]' 
+                            : 'bg-gray-800 border-gray-600 group-hover:border-purple-500'}
+                        `} />
+                        <span className={`text-[11px] font-black tracking-[0.2em] uppercase ${isActive ? 'text-white' : 'text-gray-500'}`}>
                           {f.label}
                         </span>
                       </button>
                     );
                   })}
                 </div>
+
+                {/* 2. LE BOUTON JAUNE ULTRA-PREMIUM */}
+                <button 
+                  onClick={handleMainGenerate}
+                  disabled={isGenerating || !workflowsLoaded}
+                  className={`
+                    relative overflow-hidden w-full group
+                    bg-gradient-to-b from-[#FFEA00] to-[#FFB200]
+                    text-black font-[900] py-6 rounded-2xl text-2xl uppercase tracking-tighter transition-all 
+                    active:scale-[0.97] disabled:opacity-30 shadow-[0_20px_50px_rgba(255,215,0,0.3)]
+                    hover:shadow-[0_25px_60px_rgba(255,215,0,0.4)]
+                  `}
+                >
+                  {/* Effet de reflet brillant qui passe sur le bouton */}
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+                  
+                  <span className="relative z-10 flex items-center justify-center gap-3">
+                    {isGenerating ? 'CRÉATION EN COURS...' : "Lancer la création"}
+                  </span>
+                </button>
               </div>
             </div>
 
             <div className="flex-1">
-              <PreviewPanel currentImage={currentImage} savedGallery={savedGallery} isGenerating={isGenerating} onSelectImage={setCurrentImage} onSaveToGallery={(img) => setSavedGallery([img, ...savedGallery])} generatedPrompt={generatedPrompt} />
+              <PreviewPanel 
+                currentImage={currentImage} 
+                savedGallery={savedGallery} 
+                isGenerating={isGenerating} 
+                onSelectImage={setCurrentImage} 
+                onSaveToGallery={(img) => setSavedGallery([img, ...savedGallery])} 
+                generatedPrompt={generatedPrompt} 
+              />
             </div>
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="fixed bottom-10 right-10 bg-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-[100] animate-bounce">
-          <button onClick={clearError} className="font-bold flex items-center gap-3">
-            <span>{error}</span> <span className="bg-black/20 p-1 rounded">✕</span>
+        <div className="fixed bottom-10 right-10 bg-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-[100] border border-white/20">
+          <button onClick={clearError} className="font-bold flex items-center gap-3 uppercase text-xs tracking-widest">
+            <span>{error}</span> <span className="bg-black/20 p-2 rounded-lg">✕</span>
           </button>
         </div>
       )}
