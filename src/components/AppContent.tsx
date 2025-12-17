@@ -135,8 +135,8 @@ export function AppContent() {
           sampler: 'euler',
           scheduler: 'normal',
           denoise: 1.0,
-          width: 1024,
-          height: 1024,
+          width: imageDimensions.width, // Utilise la dimension actuelle du state
+          height: imageDimensions.height, // Utilise la dimension actuelle du state
         },
         timestamp: new Date(),
       };
@@ -144,7 +144,7 @@ export function AppContent() {
       setCurrentImage(newImage);
       setImageGallery((prev) => [newImage, ...prev]);
     }
-  }, [generatedImage, isGenerating, generatedPrompt]);
+  }, [generatedImage, isGenerating, generatedPrompt, imageDimensions]); // Ajouté imageDimensions aux dépendances pour être précis
 
   const handleGenerateFromParameters = useCallback(async (params: GenerationParams) => {
     const currentWorkflow = workflowToUseRef.current; // ✅ Utiliser la ref pour avoir la valeur ACTUELLE
@@ -169,7 +169,7 @@ export function AppContent() {
       width: params.width,
       height: params.height,
     });
-  }, [startGeneration, clearError]); // ✅ Enlever user des dépendances
+  }, [startGeneration, clearError]);
 
   const handleGenerateFromPoster = useCallback(async (_posterParams: PosterParams, genParams: GenerationParams) => {
     const currentWorkflow = workflowToUseRef.current; // ✅ Utiliser la ref pour avoir la valeur ACTUELLE
@@ -194,7 +194,7 @@ export function AppContent() {
       width: genParams.width,
       height: genParams.height,
     });
-  }, [startGeneration, clearError]); // ✅ Enlever user des dépendances
+  }, [startGeneration, clearError]);
 
   const handleGenerateFromCameraAngles = useCallback(async (cameraAnglesParams: CameraAnglesParams) => {
     const cameraWorkflow = 'multiple-angles.json'; // Nom avec tiret comme sur le backend
