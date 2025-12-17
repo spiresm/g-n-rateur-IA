@@ -90,13 +90,13 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                 }
               `}
             >
-              {/* Image centrée */}
-              <div className="relative h-48 w-full rounded-t-[14px] overflow-hidden bg-gray-700 flex items-center justify-center">
+              {/* Image justifiée en haut */}
+              <div className="relative h-48 w-full rounded-t-[14px] overflow-hidden bg-gray-700">
                 <img 
                   src={workflow.imageUrl} 
                   alt={workflow.name} 
                   className={`
-                    w-full h-full object-cover object-center transition-transform duration-500
+                    w-full h-full object-cover object-top transition-transform duration-500
                     ${selectedWorkflow === workflow.id ? 'scale-110' : 'group-hover:scale-110'}
                     ${workflow.comingSoon ? 'grayscale' : 'grayscale-0'}
                   `}
@@ -108,11 +108,10 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                     HD
                   </div>
                 )}
-                {/* Overlay pour la transition douce */}
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-800 via-transparent to-transparent opacity-60" />
               </div>
 
-              {/* Zone Grise épurée (Pas de barre horizontale ici) */}
+              {/* Zone Grise épurée (Titre uniquement) */}
               <div className="p-4 flex items-center gap-3 bg-gray-800 rounded-b-[14px]">
                 <div className={`p-2 rounded-lg ${selectedWorkflow === workflow.id ? 'bg-purple-500/20 text-purple-400' : 'bg-gray-700 text-gray-400'}`}>
                   {workflow.icon}
