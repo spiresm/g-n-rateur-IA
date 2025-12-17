@@ -28,8 +28,9 @@ export function AppContent() {
   const [workflowToUse, setWorkflowToUse] = useState<string | null>(null); // ✅ Sera défini par l'API au chargement
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
   
-  // 🚨 CORRECTION : Définit les dimensions par défaut à Portrait (1080x1920)
+  // 🚨 CORRECTION DÉBUT : Définit les dimensions par défaut à Portrait (1080x1920)
   const [imageDimensions, setImageDimensions] = useState({ width: 1080, height: 1920 });
+  // 🚨 CORRECTION FIN
   
   // ✅ REF pour capturer la valeur ACTUELLE de workflowToUse (évite problème de closure)
   const workflowToUseRef = useRef<string | null>(null);
@@ -135,8 +136,9 @@ export function AppContent() {
           sampler: 'euler',
           scheduler: 'normal',
           denoise: 1.0,
-          width: imageDimensions.width, // Utilise la dimension actuelle du state
-          height: imageDimensions.height, // Utilise la dimension actuelle du state
+          // ✅ Utilise la dimension actuelle du state
+          width: imageDimensions.width, 
+          height: imageDimensions.height, // ✅ Utilise la dimension actuelle du state
         },
         timestamp: new Date(),
       };
@@ -183,7 +185,8 @@ export function AppContent() {
     console.log(`[APP_CONTENT] 🚀 Génération affiche avec workflow: ${currentWorkflow}`);
     // Adapter les noms de paramètres pour l'API (workflow affiche.json)
     await startGeneration(currentWorkflow, {
-      prompt: genParams.prompt,
+      // ✅ Assurez-vous que genParams.prompt contient le prompt complet du formulaire
+      prompt: genParams.prompt, 
       negative_prompt: genParams.negativePrompt,
       steps: genParams.steps,
       cfg_scale: genParams.cfg,
@@ -191,7 +194,8 @@ export function AppContent() {
       sampler_name: genParams.sampler,
       scheduler: genParams.scheduler,
       denoise: genParams.denoise,
-      width: genParams.width,
+      // ✅ Envoi des dimensions sélectionnées par l'utilisateur
+      width: genParams.width, 
       height: genParams.height,
     });
   }, [startGeneration, clearError]);
@@ -344,6 +348,7 @@ export function AppContent() {
                     )
                   : undefined
               }
+              // ✅ Enregistre le format sélectionné dans AppContent
               onFormatChange={(width: number, height: number) => {
                 console.log('[APP_CONTENT] 📐 Format changé:', width, 'x', height);
                 setImageDimensions({ width, height });
