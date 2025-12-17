@@ -7,8 +7,6 @@ export function useImageGeneration() {
   const [error, setError] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
 
-  const clearError = useCallback(() => setError(null), []);
-
   const startGeneration = useCallback(async (workflowName: string, params: any) => {
     setIsGenerating(true);
     setProgress(0);
@@ -40,23 +38,17 @@ export function useImageGeneration() {
             }
           } catch (e) {}
         };
-
-        socket.onerror = () => {
-          setError("Lien WebSocket interrompu.");
-          setIsGenerating(false);
-        };
       } else {
-        // Décodage de l'erreur pour éviter [object Object]
-        const rawError = result.error || result.detail || result;
-        const msg = typeof rawError === 'object' ? JSON.stringify(rawError) : rawError;
-        throw new Error(msg);
+        // Extraction du message d'erreur pour éviter [object Object]
+        const errContent = result.error || result.detail || result;
+        throw new Error(typeof errContent === 'object' ? JSON.stringify(errContent) : errContent);
       }
     } catch (err: any) {
-      console.error('[GENERATE] ❌ Erreur:', err);
-      setError(err.message || "Erreur de génération");
+      console.error('[GENERATE] ❌ Détail:', err);
+      setError(err.message || "Erreur lors de la génération");
       setIsGenerating(false);
     }
   }, []);
 
-  return { isGenerating, progress, error, generatedImage, startGeneration, clearError };
+  return { isGenerating, progress, error, generatedImage, startGeneration, clearError: () => setError(null) };
 }
