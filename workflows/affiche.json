@@ -1,19 +1,10 @@
 {
-  "9": {
-    "inputs": {
-      "filename_prefix": "z-image",
-      "images": ["43", 0]
-    },
-    "class_type": "SaveImage"
-  },
   "39": {
     "inputs": {
-      "unet_name": "z_image_turbo_bf16.safetensors",
-      "clip_name": "qwen_image_edit_2509_fp8_e4m3fn.safetensors",
-      "vae_name": "ae.safetensors"
+      "ckpt_name": "z_image_turbo_bf16.safetensors"
     },
-    "class_type": "DualCFG_ModelLoader_Z",
-    "_meta": { "note": "Si ce nœud n'existe pas, utilisez CheckpointLoaderSimple" }
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": { "title": "Chargeur Principal" }
   },
   "41": {
     "inputs": {
@@ -23,32 +14,15 @@
     },
     "class_type": "EmptyLatentImage"
   },
-  "42": {
-    "inputs": {
-      "conditioning": ["45", 0]
-    },
-    "class_type": "ConditioningZeroOut"
-  },
-  "43": {
-    "inputs": {
-      "samples": ["44", 0],
-      "vae": ["40", 0]
-    },
-    "class_type": "VAEDecode"
-  },
-  "40": {
-    "inputs": { "vae_name": "ae.safetensors" },
-    "class_type": "VAELoader"
-  },
   "44": {
     "inputs": {
       "seed": {{seed}},
       "steps": 9,
       "cfg": 1,
-      "sampler_name": "res_multistep",
+      "sampler_name": "euler",
       "scheduler": "simple",
       "denoise": 1,
-      "model": ["46", 0],
+      "model": ["39", 0],
       "positive": ["45", 0],
       "negative": ["42", 0],
       "latent_image": ["41", 0]
@@ -58,15 +32,21 @@
   "45": {
     "inputs": {
       "text": "Ultra detailed cinematic poster... {{user_menu_prompt}}",
-      "clip": ["46", 1]
+      "clip": ["39", 1]
     },
     "class_type": "CLIPTextEncode"
   },
-  "46": {
-    "inputs": {
-      // 🚨 CETTE LIGNE EST CRUCIALE : On force le nom exact vu sur votre image
-      "ckpt_name": "z_image_turbo_bf16.safetensors"
-    },
-    "class_type": "CheckpointLoaderSimple"
+  "42": {
+    "inputs": { "conditioning": ["45", 0] },
+    "class_type": "ConditioningZeroOut"
+  },
+  "43": {
+    "inputs": { "samples": ["44", 0], "vae": ["39", 2] },
+    "class_type": "VAEDecode"
+  },
+  "9": {
+    "inputs": { "filename_prefix": "z-image", "images": ["43", 0] },
+    "class_type": "SaveImage",
+    "_meta": { "output_node": true }
   }
 }
