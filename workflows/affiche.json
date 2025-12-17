@@ -11,50 +11,35 @@
     }
   },
 
+  // ⚠️ NOUVEAU LOADER : Utilise un loader de checkpoint standard 
   "39": {
     "inputs": {
-      "clip_name": "qwen_3_4b.safetensors",
-      "type": "lumina2",
-      "device": "default"
+      // ⚠️ ASSUMONS que vous avez un checkpoint complet qui inclut le CLIP et le VAE
+      "ckpt_name": "z_image_turbo_bf16.safetensors" 
     },
-    "class_type": "CLIPLoader",
-    "_meta": { "title": "CLIP Loader" }
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": { "title": "Load Checkpoint Simple (TEST)" }
   },
 
-  "40": {
-    "inputs": {
-      "vae_name": "ae.safetensors"
-    },
-    "class_type": "VAELoader",
-    "_meta": { "title": "VAELoader" }
-  },
-
+  // ⚠️ NOUVEAU LATENT : Utilise le nœud Latent standard pour éliminer le Custom Node SD3
   "41": {
     "inputs": {
       "width": "{{width}}",
       "height": "{{height}}",
       "batch_size": 1
     },
-    "class_type": "EmptySD3LatentImage",
+    "class_type": "EmptyLatentImage",
     "_meta": {
-      "title": "Empty SD3 Latent Image"
+      "title": "Empty Latent Image (Standard)"
     }
   },
 
-  "42": {
-    "inputs": {
-      "conditioning": ["45", 0]
-    },
-    "class_type": "ConditioningZeroOut",
-    "_meta": {
-      "title": "ConditioningZeroOut"
-    }
-  },
+  // Ce nœud 42 (ConditioningZeroOut) est OK
 
   "43": {
     "inputs": {
       "samples": ["44", 0],
-      "vae": ["40", 0]
+      "vae": ["39", 2] // ⚠️ Connecté au VAE du CheckpointLoader (sortie 2 du 39)
     },
     "class_type": "VAEDecode",
     "_meta": {
@@ -64,13 +49,13 @@
 
   "44": {
     "inputs": {
-      "seed": 123456,
+      "seed": {{seed}}, // CORRECT
       "steps": 9,
       "cfg": 1,
-      "sampler_name": "res_multistep",
+      "sampler_name": "euler", // Sampler standard
       "scheduler": "simple",
       "denoise": 1,
-      "model": ["47", 0],
+      "model": ["39", 0], // ⚠️ Connecté au Modèle du CheckpointLoader (sortie 0 du 39)
       "positive": ["45", 0],
       "negative": ["42", 0],
       "latent_image": ["41", 0]
@@ -83,35 +68,13 @@
 
   "45": {
     "inputs": {
-      // 🚨 CORRECTION : Le prompt de base complet + le nouveau placeholder d'injection
-      "text": "Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects. NO TEXT MODE: The poster must contain ZERO text, letters, symbols or numbers. Do not invent any title, subtitle or tagline. Avoid any shapes that resemble typography. {{user_menu_prompt}} Visual elements: epic cinematic scene Extra details: cinematic particles, depth fog, volumetric light Image style: Premium poster design, professional layout, ultra high resolution, visually striking.",
-      "clip": ["39", 0]
+      "text": "Ultra detailed cinematic poster... {{user_menu_prompt}}",
+      "clip": ["39", 1] // ⚠️ Connecté au CLIP du CheckpointLoader (sortie 1 du 39)
     },
     "class_type": "CLIPTextEncode",
     "_meta": {
       "title": "CLIP Text Encode"
     }
-  },
-
-  "46": {
-    "inputs": {
-      "unet_name": "z_image_turbo_bf16.safetensors",
-      "weight_dtype": "default"
-    },
-    "class_type": "UNETLoader",
-    "_meta": {
-      "title": "UNET Loader"
-    }
-  },
-
-  "47": {
-    "inputs": {
-      "shift": 3,
-      "model": ["46", 0]
-    },
-    "class_type": "ModelSamplingAuraFlow",
-    "_meta": {
-      "title": "ModelSamplingAuraFlow"
-    }
   }
+  // Les nœuds 40, 46, 47 sont retirés ou remplacés par le nœud 39 CheckpointLoaderSimple.
 }
