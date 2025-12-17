@@ -60,13 +60,13 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
   };
 
   return (
-    <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden">
+    <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
       <div className="max-w-full mx-auto pt-12 pb-14">
         
         {/* Header STUDIO */}
         <div className="flex items-center justify-between mb-10 px-8">
           <div>
-            <h2 className="text-white text-4xl font-black tracking-tighter uppercase italic leading-none">STUDIO</h2>
+            <h2 className="text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
           </div>
           <div className="flex gap-4">
             <button onClick={() => navigate('prev')} className="p-4 bg-gray-800 hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
@@ -102,7 +102,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                   }
                 `}
               >
-                {/* Image Area - Sans dégradé */}
+                {/* Image Area - Sans dégradé parasite */}
                 <div className="relative h-64 w-full bg-gray-850">
                   {workflow.imageUrl ? (
                     <img 
@@ -117,23 +117,23 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                   )}
                   
                   {isSelected && !workflow.comingSoon && (
-                    <div className="absolute top-5 right-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase shadow-lg z-30">
+                    <div className="absolute top-5 right-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest shadow-lg z-30">
                       HD ACTIVE
                     </div>
                   )}
                 </div>
 
-                {/* Text Area - FIGÉ EN HAUTEUR */}
+                {/* Text Area - MAJUSCULES PERMANENTES */}
                 <div className="h-32 p-6 bg-gray-800 flex flex-col items-center justify-center">
                   <h3 className={`
-                    text-white font-black tracking-tight text-center transition-all duration-500 w-full
-                    ${isSelected ? 'text-2xl uppercase italic leading-tight' : 'text-lg leading-snug'}
+                    text-white font-black tracking-tight text-center transition-all duration-500 w-full uppercase
+                    ${isSelected ? 'text-2xl italic leading-tight' : 'text-lg leading-snug'}
                   `}>
                     {workflow.name}
                   </h3>
                   {workflow.comingSoon && (
-                    <span className="text-[10px] text-yellow-500/60 mt-2 uppercase tracking-[0.2em] font-bold">
-                      Coming Soon
+                    <span className="text-[10px] text-yellow-500/60 mt-2 tracking-[0.2em] font-bold">
+                      COMING SOON
                     </span>
                   )}
                 </div>
