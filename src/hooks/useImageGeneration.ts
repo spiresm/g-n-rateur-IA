@@ -17,13 +17,14 @@ const randomData = {
   environnements: ["sous la pleine lune", "dans une tempête de neige", "au sommet d'une montagne", "au fond de l'océan", "dans le désert"]
 };
 
+// CORRECTION ICI : Ajout de Partial et de la valeur par défaut = {} pour éviter le crash
 export function useImageGeneration({
   onGenerate,
   isGenerating,
   onPromptGenerated,
   imageDimensions = { width: 1080, height: 1920 },
   onGetGenerateFunction
-}: PosterGeneratorProps) {
+}: Partial<PosterGeneratorProps> = {}) {
   // --- ÉTATS DES MENUS ---
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');
@@ -63,12 +64,15 @@ ${posterStyle}, ${lighting} lighting, ${composition} composition, Premium poster
     };
 
     const genParams: GenerationParams = {
-      prompt: finalPrompt, // C'est ici que l'injection se fait pour le backend
-      width: imageDimensions.width,
-      height: imageDimensions.height
+      prompt: finalPrompt,
+      width: imageDimensions?.width || 1080,
+      height: imageDimensions?.height || 1920
     };
 
-    onGenerate(posterParams, genParams);
+    // Vérification de sécurité avant appel
+    if (onGenerate) {
+      onGenerate(posterParams, genParams);
+    }
   };
 
   // On expose la fonction au parent pour le bouton jaune
@@ -157,4 +161,4 @@ ${posterStyle}, ${lighting} lighting, ${composition} composition, Premium poster
       </div>
     </div>
   );
-} // <--- C'est cette accolade qui manquait !
+}
