@@ -11,7 +11,7 @@ interface WorkflowOption {
 }
 
 const mainWorkflows: WorkflowOption[] = [
-  { id: 'poster', name: "Générateur d'Affiches", imageUrl: '/vignettes/vignette_affiche.png' },
+  { id: 'poster', name: "Affiches", imageUrl: '/vignettes/vignette_affiche.png' },
   { id: 'cameraAngles', name: 'Angles de Caméra', imageUrl: '/vignettes/vignette_camera.png' },
   { id: 'parameters', name: 'Image', imageUrl: '/vignettes/vignette_image.png' },
   { id: 'future2', name: 'Batch', imageUrl: '/vignettes/vignette_batch.png', comingSoon: true },
