@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, ChevronsDown, Image as ImageIcon, AlertCircle, Camera, Layout, Settings2 } from 'lucide-react';
-import { memo, useRef, useMemo } from 'react';
+import { memo, useRef, useMemo, useEffect } from 'react';
 
 export type WorkflowType = 'poster' | 'parameters' | 'cameraAngles' | 'future2' | string;
 
@@ -62,6 +62,28 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
     [selectedWorkflow]
   );
 
+  // Fonction de scroll vers un index spécifique
+  const scrollToIndex = (index: number, behavior: ScrollBehavior = 'smooth') => {
+    if (!scrollRef.current) return;
+    const cardWidth = 280 + 24; // w-72 (280px) + gap-6 (24px)
+    isInternalScroll.current = true;
+    
+    scrollRef.current.scrollTo({ 
+      left: index * cardWidth, 
+      behavior 
+    });
+
+    setTimeout(() => { isInternalScroll.current = false; }, 500);
+  };
+
+  // FORCE LE CENTRAGE À L'OUVERTURE
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      scrollToIndex(selectedIndex, 'auto');
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleScroll = () => {
     if (!scrollRef.current || isInternalScroll.current) return;
     const container = scrollRef.current;
@@ -78,26 +100,16 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
     let nextIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
     nextIndex = Math.max(0, Math.min(nextIndex, allWorkflows.length - 1));
     onSelectWorkflow(allWorkflows[nextIndex].id);
-    scrollToIndex(nextIndex);
-  };
-
-  const scrollToIndex = (index: number) => {
-    if (!scrollRef.current) return;
-    const cardWidth = 280 + 24;
-    isInternalScroll.current = true;
-    scrollRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
-    setTimeout(() => { isInternalScroll.current = false; }, 500);
+    scrollToIndex(nextIndex, 'smooth');
   };
 
   return (
-    /* CORRECTION : z-10 (inférieur au header) et mt-32 pour laisser la place au header */
     <div className="bg-gray-900 border-b border-gray-800 relative z-10 overflow-hidden text-white uppercase mt-24 sm:mt-32">
-      <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-24 relative">
+      <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-32 relative">
         
         {/* Header STUDIO */}
         <div className="flex items-center justify-between mb-6 sm:mb-10 px-8 relative z-50">
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
-          
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none text-white">STUDIO</h2>
           <div className="flex gap-3 sm:gap-4">
             <button onClick={() => navigate('prev')} className="p-3 sm:p-4 bg-gray-800/90 backdrop-blur-md hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
@@ -162,7 +174,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
                 <button
                   onClick={() => {
                     onSelectWorkflow(workflow.id);
-                    scrollToIndex(index);
+                    scrollToIndex(index, 'smooth');
                   }}
                   className={`
                     group relative w-full rounded-[32px] border-2 transition-all duration-700 overflow-visible transform-gpu
@@ -173,6 +185,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
                     }
                   `}
                 >
+                  {/* Vignette Image */}
                   <div className="relative h-56 sm:h-64 w-full bg-gray-850 rounded-t-[30px] overflow-hidden">
                     {workflow.imageUrl ? (
                       <img src={workflow.imageUrl} alt={workflow.name} className="w-full h-full object-cover object-top" />
@@ -183,11 +196,13 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
                     )}
                   </div>
 
+                  {/* Zone Texte Bas de Carte */}
                   <div className="h-28 sm:h-32 p-6 bg-gray-800 flex flex-col items-center justify-center rounded-b-[30px] relative">
                     <h3 className={`text-white font-black tracking-tight text-center transition-all duration-500 w-full uppercase ${isSelected ? 'text-2xl italic' : 'text-lg'}`}>
                       {workflow.name}
                     </h3>
 
+                    {/* Flèche focus */}
                     {isSelected && !workflow.comingSoon && (
                       <div className="absolute -bottom-14 left-0 right-0 flex justify-center animate-bounce pointer-events-none">
                         <ChevronsDown className="w-12 h-12 text-purple-500 drop-shadow-[0_0_15px_rgba(168,85,247,0.6)]" />
