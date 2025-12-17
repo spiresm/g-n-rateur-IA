@@ -83,7 +83,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          // Optimisation du scroll : suppression des calculs inutiles pendant le scroll
           className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-16 -my-16 px-[calc(50vw-140px)] snap-x snap-mandatory"
         >
           {allWorkflows.map((workflow) => {
@@ -96,7 +95,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                   onSelectWorkflow(workflow.id);
                   scrollToIndex(allWorkflows.indexOf(workflow));
                 }}
-                // AJOUT : transform-gpu et will-change pour booster les perfs
                 className={`
                   group relative flex-shrink-0 w-[280px] rounded-[32px] border-2 transition-all duration-500 snap-center overflow-hidden transform-gpu will-change-[transform,filter,opacity]
                   ${isSelected 
@@ -111,7 +109,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                     <img 
                       src={workflow.imageUrl} 
                       alt={workflow.name} 
-                      // transform-gpu ici aussi pour l'animation de scale de l'image
                       className={`
                         w-full h-full object-cover object-top transition-all duration-700 transform-gpu
                         ${isSelected ? 'scale-110' : 'scale-100'}
@@ -150,7 +147,8 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
             );
           })}
           
-          <div className="flex-shrink-0 w-1" aria-hidden=\"true\"></div>
+          {/* La correction est ici : aria-hidden="true" sans backslash */}
+          <div className="flex-shrink-0 w-1" aria-hidden="true"></div>
         </div>
       </div>
     </div>
