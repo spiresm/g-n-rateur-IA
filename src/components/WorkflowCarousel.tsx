@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, ChevronsDown, Image as ImageIcon, AlertCircle, Camera, Layout, Settings2 } from 'lucide-react';
-import { useState, memo, useRef, useMemo } from 'react';
+import { memo, useRef, useMemo } from 'react';
 
 export type WorkflowType = 'poster' | 'parameters' | 'cameraAngles' | 'future2' | string;
 
@@ -36,7 +36,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const isInternalScroll = useRef(false);
 
-  // Textes explicatifs optimisés
+  // Configuration des textes explicatifs
   const workflowDetails: Record<string, { title: string, desc: string, icon: any, note?: string }> = {
     poster: {
       title: "MODE AFFICHE",
@@ -94,22 +94,10 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
     <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
       <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-24 relative">
         
-        {/* HEADER : STUDIO + QUOTA 10/10 */}
+        {/* Header STUDIO (Navigation seule, le quota est géré dans ton Header global) */}
         <div className="flex items-center justify-between mb-6 sm:mb-10 px-8 relative z-50">
-          <div className="flex items-center gap-6">
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
-            
-            {/* Nouveau Quota stylisé */}
-            <div className="flex items-center gap-3 px-4 py-2 bg-black/40 border border-white/10 rounded-2xl backdrop-blur-md">
-              <div className="flex flex-col">
-                <span className="text-[8px] text-gray-500 font-bold tracking-[0.2em] leading-none mb-1">QUOTA</span>
-                <span className="text-xs font-black tracking-widest text-purple-400 leading-none">10/10</span>
-              </div>
-              <div className="w-[1px] h-6 bg-white/10 mx-1" />
-              <div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)] animate-pulse" />
-            </div>
-          </div>
-
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
+          
           <div className="flex gap-3 sm:gap-4">
             <button onClick={() => navigate('prev')} className="p-3 sm:p-4 bg-gray-800/90 backdrop-blur-md hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
@@ -120,7 +108,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
           </div>
         </div>
 
-        {/* PANNEAU EXPLICATIF */}
+        {/* PANNEAU EXPLICATIF (Version intégrée) */}
         {currentDetail && (
           <div className="absolute left-8 top-32 z-[60] w-72 hidden lg:block animate-in fade-in slide-in-from-left-4 duration-700 pointer-events-none">
             <div className="bg-gray-950/40 backdrop-blur-xl border border-white/5 p-6 rounded-[32px] shadow-2xl">
@@ -143,7 +131,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
           </div>
         )}
 
-        {/* CAROUSEL AVEC PROFONDEUR DE CHAMP */}
+        {/* CAROUSEL AVEC PROFONDEUR DE CHAMP (Focus Radial) */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
@@ -153,6 +141,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
             const isSelected = selectedWorkflow === workflow.id;
             const distance = Math.abs(index - selectedIndex);
 
+            // Logique d'effacement progressif demandée
             let opacity = "opacity-100";
             let blur = "blur-none";
             let scale = "scale-100";
@@ -163,7 +152,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
                 blur = "blur-[2px]";
                 scale = "scale-95";
               } else {
-                opacity = "opacity-5"; // Encore plus transparent pour les lointaines
+                opacity = "opacity-5"; // Très effacé pour laisser lire le panneau
                 blur = "blur-[8px]";
                 scale = "scale-75";
               }
@@ -200,7 +189,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
                       {workflow.name}
                     </h3>
 
-                    {/* GRANDE FLÈCHE DE FOCUS */}
+                    {/* GRANDE FLÈCHE DE FOCUS SOUS LA CARTE */}
                     {isSelected && !workflow.comingSoon && (
                       <div className="absolute -bottom-14 left-0 right-0 flex justify-center animate-bounce pointer-events-none">
                         <ChevronsDown className="w-12 h-12 text-purple-500 drop-shadow-[0_0_15px_rgba(168,85,247,0.6)]" />
