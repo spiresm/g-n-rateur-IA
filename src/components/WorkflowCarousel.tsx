@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, ChevronsDown, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsDown, Image as ImageIcon, AlertCircle, Camera, Layout, Settings2 } from 'lucide-react';
 import { useState, memo, useRef } from 'react';
 
 export type WorkflowType = 'poster' | 'parameters' | 'cameraAngles' | 'future2' | string;
@@ -30,12 +30,33 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
   const scrollRef = useRef<HTMLDivElement>(null);
   const isInternalScroll = useRef(false);
 
+  // Configuration des textes par Workflow
+  const workflowDetails: Record<string, { title: string, desc: string, icon: any, note?: string }> = {
+    poster: {
+      title: "PROJET AFFICHE",
+      desc: "Conception graphique avancée. Permet l'injection dynamique d'un titre impactant, d'un sous-titre descriptif et d'une baseline structurelle.",
+      icon: Layout,
+      note: "L'orthographe générée par l'IA reste expérimentale et peut présenter des anomalies."
+    },
+    cameraAngles: {
+      title: "CONTRÔLE OPTIQUE",
+      desc: "Ré-imagination spatiale. Importez votre image source et redéfinissez l'angle de vue (plongée, contre-plongée, profil) avec une précision cinématographique.",
+      icon: Camera,
+    },
+    parameters: {
+      title: "STUDIO CRÉATIF",
+      desc: "Génération brute haute fidélité. Maîtrisez le rendu via des prompts positifs/négatifs et ajustez les paramètres d'échantillonnage pour un résultat sur-mesure.",
+      icon: Settings2,
+    }
+  };
+
+  const currentDetail = workflowDetails[selectedWorkflow];
+
   const handleScroll = () => {
     if (!scrollRef.current || isInternalScroll.current) return;
     const container = scrollRef.current;
     const cardWidth = 280 + 24; 
     const index = Math.round(container.scrollLeft / cardWidth);
-    
     const targetWorkflow = allWorkflows[index];
     if (targetWorkflow && targetWorkflow.id !== selectedWorkflow) {
       onSelectWorkflow(targetWorkflow.id);
@@ -46,7 +67,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
     const currentIndex = allWorkflows.findIndex(w => w.id === selectedWorkflow);
     let nextIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
     nextIndex = Math.max(0, Math.min(nextIndex, allWorkflows.length - 1));
-    
     onSelectWorkflow(allWorkflows[nextIndex].id);
     scrollToIndex(nextIndex);
   };
@@ -60,10 +80,10 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
   };
 
   return (
-    <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
+    <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase font-sans">
       <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-24 relative">
         
-        {/* Header STUDIO (Design original intact) */}
+        {/* Header STUDIO */}
         <div className="flex items-center justify-between mb-6 sm:mb-10 px-8 relative z-50">
           <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
           <div className="flex gap-3 sm:gap-4">
@@ -76,28 +96,34 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
           </div>
         </div>
 
-        {/* BLOC TEXTE EN POSITION ABSOLUE (Ne pousse rien, n'affecte pas le centrage) */}
-        {selectedWorkflow === 'poster' && (
-          <div className="absolute left-8 top-24 sm:top-32 z-[60] w-64 hidden lg:block animate-in fade-in slide-in-from-left-2 duration-500">
-            <div className="bg-gray-800/40 backdrop-blur-xl border border-white/5 p-4 rounded-2xl shadow-2xl">
-              <h3 className="text-amber-500 font-black text-[9px] tracking-[0.2em] mb-2 flex items-center gap-2">
-                <div className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
-                DÉTAILS WORKFLOW
-              </h3>
-              <p className="text-[11px] text-gray-300 normal-case leading-relaxed">
-                Permet d'ajouter un <span className="text-white font-bold">titre</span>, <span className="text-white font-bold">sous-titre</span> et <span className="text-white font-bold">baseline</span>.
-              </p>
-              <div className="mt-3 pt-3 border-t border-white/5 flex gap-2">
-                <AlertCircle className="w-3 h-3 text-amber-500/40 shrink-0 mt-0.5" />
-                <p className="text-[9px] text-gray-500 normal-case italic leading-tight">
-                  L'orthographe peut varier via l'IA.
-                </p>
+        {/* BLOC DESCRIPTION DYNAMIQUE (Version PC) */}
+        {currentDetail && (
+          <div className="absolute left-8 top-36 z-[60] w-72 hidden lg:block animate-in fade-in zoom-in-95 duration-500 pointer-events-none">
+            <div className="bg-black/40 backdrop-blur-2xl border border-white/10 p-6 rounded-[24px] shadow-2xl ring-1 ring-white/5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-yellow-500/10 rounded-lg">
+                  <currentDetail.icon className="w-4 h-4 text-yellow-500" />
+                </div>
+                <h3 className="text-yellow-500 font-black text-[10px] tracking-[0.25em]">{currentDetail.title}</h3>
               </div>
+              
+              <p className="text-[12px] text-gray-300 normal-case leading-relaxed font-medium mb-4">
+                {currentDetail.desc}
+              </p>
+              
+              {currentDetail.note && (
+                <div className="pt-4 border-t border-white/5 flex gap-3">
+                  <AlertCircle className="w-3.5 h-3.5 text-yellow-500/40 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-gray-500 normal-case italic leading-tight">
+                    {currentDetail.note}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Carousel (Code original conservé, centrage garanti) */}
+        {/* Carousel */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
@@ -105,7 +131,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
         >
           {allWorkflows.map((workflow) => {
             const isSelected = selectedWorkflow === workflow.id;
-            
             return (
               <div key={workflow.id} className="relative flex-shrink-0 w-[280px] snap-center flex justify-center">
                 <button
@@ -114,21 +139,16 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                     scrollToIndex(allWorkflows.indexOf(workflow));
                   }}
                   className={`
-                    group relative w-full rounded-[32px] border-2 transition-all duration-500 overflow-visible transform-gpu will-change-[transform,filter,opacity]
+                    group relative w-full rounded-[32px] border-2 transition-all duration-500 overflow-visible transform-gpu
                     ${isSelected 
-                      ? 'bg-gray-800 border-purple-500 shadow-[0_40px_80px_rgba(0,0,0,0.9)] -translate-y-8 scale-105 sm:scale-110 z-30 blur-none opacity-100' 
-                      : 'bg-gray-900/60 border-gray-800 opacity-40 z-10 blur-[3px] scale-90 grayscale'
+                      ? 'bg-gray-800 border-purple-500 shadow-[0_40px_80px_rgba(0,0,0,0.9)] -translate-y-8 scale-110 z-30 opacity-100' 
+                      : 'bg-gray-900/60 border-gray-800 opacity-40 z-10 blur-[2px] scale-90 grayscale'
                     }
                   `}
                 >
-                  {/* Image Area */}
                   <div className="relative h-56 sm:h-64 w-full bg-gray-850 rounded-t-[30px] overflow-hidden">
                     {workflow.imageUrl ? (
-                      <img 
-                        src={workflow.imageUrl} 
-                        alt={workflow.name} 
-                        className="w-full h-full object-cover object-top transition-all duration-700 transform-gpu"
-                      />
+                      <img src={workflow.imageUrl} alt={workflow.name} className="w-full h-full object-cover object-top" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-900/50">
                         <ImageIcon className="w-12 h-12 text-gray-800 opacity-20" />
@@ -136,42 +156,26 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                     )}
                     
                     {workflow.id === 'poster' && (
-                      <div className="absolute bottom-4 left-4 z-40 transform -rotate-12 transition-transform group-hover:rotate-0 duration-500">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-amber-500 rounded-full flex items-center justify-center p-1 shadow-[0_0_20px_rgba(245,158,11,0.4)] border-4 border-double border-amber-600 ring-2 ring-amber-400">
+                      <div className="absolute bottom-4 left-4 z-40 transform -rotate-12">
+                        <div className="w-20 h-20 bg-amber-500 rounded-full flex items-center justify-center p-1 shadow-lg border-4 border-double border-amber-600 ring-2 ring-amber-400">
                           <div className="text-center">
-                            <p className="text-[7px] sm:text-[8px] font-black text-amber-950 leading-none">VERSION</p>
-                            <p className="text-[10px] sm:text-[12px] font-black text-amber-900 leading-none mt-0.5">BETA</p>
+                            <p className="text-[8px] font-black text-amber-950 leading-none">VERSION</p>
+                            <p className="text-[12px] font-black text-amber-900 leading-none mt-0.5">BETA</p>
                             <div className="w-6 h-px bg-amber-900/30 mx-auto my-1" />
-                            <p className="text-[5px] sm:text-[6px] font-bold text-amber-950/60 leading-none uppercase">Studio</p>
+                            <p className="text-[6px] font-bold text-amber-950/60 leading-none uppercase">Studio</p>
                           </div>
                         </div>
                       </div>
                     )}
-
-                    {isSelected && !workflow.comingSoon && (
-                      <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-black tracking-widest shadow-lg z-40">
-                        HD ACTIVE
-                      </div>
-                    )}
                   </div>
 
-                  {/* Text Area */}
-                  <div className="h-28 sm:h-32 p-6 bg-gray-800 flex flex-col items-center justify-center rounded-b-[30px] relative">
-                    <h3 className={`
-                      text-white font-black tracking-tight text-center transition-all duration-500 w-full uppercase
-                      ${isSelected ? 'text-xl sm:text-2xl italic leading-tight' : 'text-base sm:text-lg leading-snug'}
-                    `}>
+                  <div className="h-28 sm:h-32 p-6 bg-gray-800 flex flex-col items-center justify-center rounded-b-[30px]">
+                    <h3 className={`text-white font-black tracking-tight text-center transition-all duration-500 w-full uppercase ${isSelected ? 'text-2xl italic' : 'text-lg'}`}>
                       {workflow.name}
                     </h3>
-                    {workflow.comingSoon && (
-                      <span className="text-[9px] sm:text-[10px] text-yellow-500/60 mt-1 sm:mt-2 tracking-[0.2em] font-bold">
-                        COMING SOON
-                      </span>
-                    )}
-
                     {isSelected && !workflow.comingSoon && (
-                      <div className="absolute -bottom-10 left-0 right-0 flex justify-center animate-bounce pointer-events-none">
-                        <ChevronsDown className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
+                      <div className="absolute -bottom-10 left-0 right-0 flex justify-center animate-bounce">
+                        <ChevronsDown className="w-8 h-8 text-purple-500" />
                       </div>
                     )}
                   </div>
