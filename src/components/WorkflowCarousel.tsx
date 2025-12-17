@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, ChevronsDown, Image as ImageIcon, AlertCircle, Camera, Layout, Settings2 } from 'lucide-react';
 import { memo, useRef, useMemo } from 'react';
 
-export type WorkflowType = 'poster' | 'parameters' | 'cameraAngles' | 'future2' | string;
+export type WorkflowType = 'poster' | 'cameraAngles' | 'parameters' | 'future2' | string;
 
 interface WorkflowOption {
   id: WorkflowType;
@@ -36,7 +36,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const isInternalScroll = useRef(false);
 
-  // Configuration des textes explicatifs
   const workflowDetails: Record<string, { title: string, desc: string, icon: any, note?: string }> = {
     poster: {
       title: "MODE AFFICHE",
@@ -91,7 +90,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
   };
 
   return (
-    <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
+    <div className="bg-[#0f1117] border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
       <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-24 relative">
         
         {/* Header STUDIO */}
@@ -119,19 +118,11 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
               <p className="text-[12px] text-gray-300 normal-case leading-relaxed font-medium">
                 {currentDetail.desc}
               </p>
-              {currentDetail.note && (
-                <div className="mt-4 pt-4 border-t border-white/5 flex gap-2">
-                  <AlertCircle className="w-3.5 h-3.5 text-gray-600 shrink-0 mt-0.5" />
-                  <p className="text-[9px] text-gray-600 normal-case italic leading-tight">
-                    {currentDetail.note}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         )}
 
-        {/* CAROUSEL AVEC PROFONDEUR DE CHAMP */}
+        {/* CAROUSEL - CORRIGÉ POUR LA VISIBILITÉ */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
@@ -141,19 +132,20 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
             const isSelected = selectedWorkflow === workflow.id;
             const distance = Math.abs(index - selectedIndex);
 
+            // LOGIQUE DE VISIBILITÉ AJUSTÉE
             let opacity = "opacity-100";
             let blur = "blur-none";
             let scale = "scale-100";
 
             if (!isSelected) {
               if (distance === 1) {
-                opacity = "opacity-40";
-                blur = "blur-[2px]";
+                opacity = "opacity-60"; // Augmenté (était 40)
+                blur = "blur-[1px]";    // Réduit (était 2px)
                 scale = "scale-95";
               } else {
-                opacity = "opacity-5"; 
-                blur = "blur-[8px]";
-                scale = "scale-75";
+                opacity = "opacity-30"; // Augmenté massivement (était 5)
+                blur = "blur-[3px]";    // Réduit massivement (était 8px)
+                scale = "scale-85";     // Augmenté (était 75)
               }
             }
 
@@ -168,8 +160,8 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
                     group relative w-full rounded-[32px] border-2 transition-all duration-700 overflow-visible transform-gpu
                     ${opacity} ${blur} ${scale}
                     ${isSelected 
-                      ? 'bg-gray-800 border-purple-500 shadow-[0_40px_80px_rgba(0,0,0,0.9)] -translate-y-8 scale-110 z-30' 
-                      : 'bg-gray-900/60 border-gray-800 z-10 grayscale'
+                      ? 'bg-gray-800 border-purple-500 shadow-[0_40px_80px_rgba(0,0,0,0.8)] -translate-y-8 scale-110 z-30' 
+                      : 'bg-gray-900/40 border-gray-800 z-10 grayscale-[50%]'
                     }
                   `}
                 >
@@ -177,8 +169,9 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
                     {workflow.imageUrl ? (
                       <img src={workflow.imageUrl} alt={workflow.name} className="w-full h-full object-cover object-top" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-full h-full flex items-center justify-center bg-gray-800">
                         <ImageIcon className="w-12 h-12 text-white/5" />
+                        <span className="absolute bottom-4 text-[8px] tracking-widest text-gray-500">COMING SOON</span>
                       </div>
                     )}
                   </div>
@@ -190,7 +183,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
 
                     {isSelected && !workflow.comingSoon && (
                       <div className="absolute -bottom-14 left-0 right-0 flex justify-center animate-bounce pointer-events-none">
-                        <ChevronsDown className="w-12 h-12 text-purple-500 drop-shadow-[0_0_15px_rgba(168,85,247,0.6)]" />
+                        <ChevronsDown className="w-10 h-10 text-purple-500 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
                       </div>
                     )}
                   </div>
