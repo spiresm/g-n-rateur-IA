@@ -63,7 +63,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
     <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden">
       <div className="max-w-full mx-auto pt-12 pb-14">
         
-        {/* Navigation Header avec le nouveau titre "STUDIO" */}
+        {/* Header STUDIO */}
         <div className="flex items-center justify-between mb-10 px-8">
           <div>
             <h2 className="text-white text-4xl font-black tracking-tighter uppercase italic leading-none">STUDIO</h2>
@@ -78,11 +78,11 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
           </div>
         </div>
 
-        {/* Carousel Container */}
+        {/* Carousel */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-16 -my-16 px-[calc(50vw-140px)] snap-x snap-mandatory"
+          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-20 -my-20 px-[calc(50vw-140px)] snap-x snap-mandatory"
         >
           {allWorkflows.map((workflow) => {
             const isSelected = selectedWorkflow === workflow.id;
@@ -108,10 +108,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                     <img 
                       src={workflow.imageUrl} 
                       alt={workflow.name} 
-                      className={`
-                        w-full h-full object-cover object-top transition-all duration-700 transform-gpu
-                        ${isSelected ? 'scale-110' : 'scale-100'}
-                      `}
+                      className="w-full h-full object-cover object-top transition-all duration-700 transform-gpu"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-900/50">
@@ -119,21 +116,18 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                     </div>
                   )}
                   
-                  {/* Badge HD coloré en violet/rose */}
                   {isSelected && !workflow.comingSoon && (
-                    <div className="absolute top-5 right-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase shadow-lg">
+                    <div className="absolute top-5 right-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase shadow-lg z-30">
                       HD ACTIVE
                     </div>
                   )}
-                  
-                  {/* SUPPRESSION DU DÉGRADÉ ICI */}
                 </div>
 
-                {/* Text Area */}
-                <div className="p-8 bg-gray-800 flex flex-col items-center justify-center min-h-[100px]">
+                {/* Text Area - FIGÉ EN HAUTEUR */}
+                <div className="h-32 p-6 bg-gray-800 flex flex-col items-center justify-center">
                   <h3 className={`
-                    text-white font-black tracking-tight text-center leading-tight transition-all duration-500
-                    ${isSelected ? 'text-2xl uppercase italic' : 'text-lg'}
+                    text-white font-black tracking-tight text-center transition-all duration-500 w-full
+                    ${isSelected ? 'text-2xl uppercase italic leading-tight' : 'text-lg leading-snug'}
                   `}>
                     {workflow.name}
                   </h3>
