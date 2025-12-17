@@ -4,77 +4,69 @@
       "filename_prefix": "z-image",
       "images": ["43", 0]
     },
-    "class_type": "SaveImage",
-    "_meta": {
-      "title": "Enregistrer Image",
-      "output_node": true
-    }
+    "class_type": "SaveImage"
   },
-
-  // ⚠️ NOUVEAU LOADER : Utilise un loader de checkpoint standard 
   "39": {
     "inputs": {
-      // ⚠️ ASSUMONS que vous avez un checkpoint complet qui inclut le CLIP et le VAE
-      "ckpt_name": "z_image_turbo_bf16.safetensors" 
+      "unet_name": "z_image_turbo_bf16.safetensors",
+      "clip_name": "qwen_image_edit_2509_fp8_e4m3fn.safetensors",
+      "vae_name": "ae.safetensors"
     },
-    "class_type": "CheckpointLoaderSimple",
-    "_meta": { "title": "Load Checkpoint Simple (TEST)" }
+    "class_type": "DualCFG_ModelLoader_Z",
+    "_meta": { "note": "Si ce nœud n'existe pas, utilisez CheckpointLoaderSimple" }
   },
-
-  // ⚠️ NOUVEAU LATENT : Utilise le nœud Latent standard pour éliminer le Custom Node SD3
   "41": {
     "inputs": {
-      "width": "{{width}}",
-      "height": "{{height}}",
+      "width": {{width}},
+      "height": {{height}},
       "batch_size": 1
     },
-    "class_type": "EmptyLatentImage",
-    "_meta": {
-      "title": "Empty Latent Image (Standard)"
-    }
+    "class_type": "EmptyLatentImage"
   },
-
-  // Ce nœud 42 (ConditioningZeroOut) est OK
-
+  "42": {
+    "inputs": {
+      "conditioning": ["45", 0]
+    },
+    "class_type": "ConditioningZeroOut"
+  },
   "43": {
     "inputs": {
       "samples": ["44", 0],
-      "vae": ["39", 2] // ⚠️ Connecté au VAE du CheckpointLoader (sortie 2 du 39)
+      "vae": ["40", 0]
     },
-    "class_type": "VAEDecode",
-    "_meta": {
-      "title": "VAE Decode"
-    }
+    "class_type": "VAEDecode"
   },
-
+  "40": {
+    "inputs": { "vae_name": "ae.safetensors" },
+    "class_type": "VAELoader"
+  },
   "44": {
     "inputs": {
-      "seed": {{seed}}, // CORRECT
+      "seed": {{seed}},
       "steps": 9,
       "cfg": 1,
-      "sampler_name": "euler", // Sampler standard
+      "sampler_name": "res_multistep",
       "scheduler": "simple",
       "denoise": 1,
-      "model": ["39", 0], // ⚠️ Connecté au Modèle du CheckpointLoader (sortie 0 du 39)
+      "model": ["46", 0],
       "positive": ["45", 0],
       "negative": ["42", 0],
       "latent_image": ["41", 0]
     },
-    "class_type": "KSampler",
-    "_meta": {
-      "title": "KSampler"
-    }
+    "class_type": "KSampler"
   },
-
   "45": {
     "inputs": {
       "text": "Ultra detailed cinematic poster... {{user_menu_prompt}}",
-      "clip": ["39", 1] // ⚠️ Connecté au CLIP du CheckpointLoader (sortie 1 du 39)
+      "clip": ["46", 1]
     },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP Text Encode"
-    }
+    "class_type": "CLIPTextEncode"
+  },
+  "46": {
+    "inputs": {
+      // 🚨 CETTE LIGNE EST CRUCIALE : On force le nom exact vu sur votre image
+      "ckpt_name": "z_image_turbo_bf16.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple"
   }
-  // Les nœuds 40, 46, 47 sont retirés ou remplacés par le nœud 39 CheckpointLoaderSimple.
 }
