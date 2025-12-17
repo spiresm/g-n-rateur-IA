@@ -1,7 +1,7 @@
 import { Sparkles, Sliders, Image as ImageIcon, Camera, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useState, memo } from 'react';
 
-export type WorkflowType = 'poster' | 'parameters' | 'cameraAngles' | 'future2';
+export type WorkflowType = 'poster' | 'parameters' | 'cameraAngles' | 'future2' | string;
 
 interface WorkflowOption {
   id: WorkflowType;
@@ -11,7 +11,8 @@ interface WorkflowOption {
   comingSoon?: boolean;
 }
 
-const workflows: WorkflowOption[] = [
+// 1. Définition des workflows principaux
+const mainWorkflows: WorkflowOption[] = [
   {
     id: 'poster',
     name: 'Générateur d\'Affiches',
@@ -26,7 +27,7 @@ const workflows: WorkflowOption[] = [
   },
   {
     id: 'parameters',
-    name: 'Paramètres',
+    name: 'Image', // ✅ Renommé de "Paramètres" à "Image"
     icon: <Sliders className="w-5 h-5" />,
     imageUrl: '/vignettes/vignette_parametres.png',
   },
@@ -38,6 +39,17 @@ const workflows: WorkflowOption[] = [
     comingSoon: true,
   },
 ];
+
+// 2. Génération des 10 vignettes vides (Coming Soon)
+const emptyWorkflows: WorkflowOption[] = Array.from({ length: 10 }, (_, i) => ({
+  id: `empty-${i + 1}`,
+  name: `Workflow ${i + 4}`,
+  icon: <ImageIcon className="w-5 h-5" />,
+  imageUrl: '', // Vide
+  comingSoon: true,
+}));
+
+const workflows = [...mainWorkflows, ...emptyWorkflows];
 
 export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflow, onSelectWorkflow }: { selectedWorkflow: WorkflowType; onSelectWorkflow: (w: WorkflowType) => void }) {
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -92,16 +104,22 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
             >
               {/* Image justifiée en haut */}
               <div className="relative h-48 w-full rounded-t-[14px] overflow-hidden bg-gray-700">
-                <img 
-                  src={workflow.imageUrl} 
-                  alt={workflow.name} 
-                  className={`
-                    w-full h-full object-cover object-top transition-transform duration-500
-                    ${selectedWorkflow === workflow.id ? 'scale-110' : 'group-hover:scale-110'}
-                    ${workflow.comingSoon ? 'grayscale' : 'grayscale-0'}
-                  `}
-                  onError={(e) => { e.currentTarget.src = "https://placehold.co/600x400/1f2937/4b5563?text=Vignette"; }}
-                />
+                {workflow.imageUrl ? (
+                  <img 
+                    src={workflow.imageUrl} 
+                    alt={workflow.name} 
+                    className={`
+                      w-full h-full object-cover object-top transition-transform duration-500
+                      ${selectedWorkflow === workflow.id ? 'scale-110' : 'group-hover:scale-110'}
+                      ${workflow.comingSoon ? 'grayscale' : 'grayscale-0'}
+                    `}
+                    onError={(e) => { e.currentTarget.src = "https://placehold.co/600x400/1f2937/4b5563?text=Vignette"; }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-850">
+                    <ImageIcon className="w-12 h-12 text-gray-700" />
+                  </div>
+                )}
                 
                 {!workflow.comingSoon && (
                   <div className="absolute top-3 right-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-2.5 py-1 rounded-full text-[9px] font-black shadow-xl z-30 border border-white/10">
@@ -111,7 +129,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-800 via-transparent to-transparent opacity-60" />
               </div>
 
-              {/* Zone Grise épurée (Titre uniquement) */}
+              {/* Zone Titre (Sans barre violette parasite) */}
               <div className="p-4 flex items-center gap-3 bg-gray-800 rounded-b-[14px]">
                 <div className={`p-2 rounded-lg ${selectedWorkflow === workflow.id ? 'bg-purple-500/20 text-purple-400' : 'bg-gray-700 text-gray-400'}`}>
                   {workflow.icon}
@@ -124,7 +142,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
             </button>
           ))}
           
-          <div className="flex-shrink-0 w-4" aria-hidden="true"></div>
+          <div className="flex-shrink-0 w-8" aria-hidden="true"></div>
         </div>
       </div>
     </div>
