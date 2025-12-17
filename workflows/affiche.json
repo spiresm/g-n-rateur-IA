@@ -1,21 +1,29 @@
 {
   "3": {
-    "class_type": "KSampler",
     "inputs": {
-      "seed": "{{seed}}",
+      "seed": {{seed}},
       "steps": 25,
       "cfg": 7,
       "sampler_name": "euler",
       "scheduler": "normal",
       "denoise": 1,
-      "model": ["4", 0], "positive": ["6", 0], "negative": ["7", 0], "latent_image": ["5", 0]
-    }
+      "model": ["4", 0],
+      "positive": ["6", 0],
+      "negative": ["7", 0],
+      "latent_image": ["5", 0]
+    },
+    "class_type": "KSampler"
   },
   "6": {
-    "class_type": "CLIPTextEncode",
     "inputs": {
       "text": "{{user_menu_prompt}}",
       "clip": ["4", 1]
-    }
-  }
+    },
+    "class_type": "CLIPTextEncode"
+  },
+  "4": { "inputs": { "ckpt_name": "v1-5-pruned-emaonly.ckpt" }, "class_type": "CheckpointLoaderSimple" },
+  "5": { "inputs": { "width": 512, "height": 768, "batch_size": 1 }, "class_type": "EmptyLatentImage" },
+  "7": { "inputs": { "text": "text, watermark", "clip": ["4", 1] }, "class_type": "CLIPTextEncode" },
+  "8": { "inputs": { "samples": ["3", 0], "vae": ["4", 2] }, "class_type": "VAEDecode" },
+  "9": { "inputs": { "filename_prefix": "ComfyUI", "images": ["8", 0] }, "class_type": "SaveImage" }
 }
