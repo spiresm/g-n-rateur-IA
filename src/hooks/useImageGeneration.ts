@@ -15,10 +15,11 @@ export function useImageGeneration() {
 
     try {
       const formData = new FormData();
-      formData.append('workflow_name', workflowName);
-      formData.append('user_menu_prompt', params.user_menu_prompt || params.prompt || '');
-      formData.append('width', (params.width || 1024).toString());
-      formData.append('height', (params.height || 1024).toString());
+formData.append('workflow_name', workflowName);
+// On force l'utilisation de params.prompt qui contient le texte généré par PosterGenerator
+formData.append('user_menu_prompt', params.prompt || ''); 
+formData.append('width', (params.width || 1024).toString());
+formData.append('height', (params.height || 1024).toString());
 
       const result = await api.generateImage(formData);
 
