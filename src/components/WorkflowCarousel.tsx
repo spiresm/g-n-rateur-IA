@@ -56,7 +56,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
   return (
     <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden">
       <div className="max-w-full mx-auto pt-8 pb-10">
-        {/* En-tête avec titre et boutons */}
         <div className="flex items-center justify-between mb-6 px-8">
           <div className="flex flex-col">
             <h2 className="text-white text-xl font-bold tracking-tight">Sélectionnez un Workflow</h2>
@@ -72,11 +71,8 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
           </div>
         </div>
 
-        {/* Conteneur de défilement */}
         <div
           id="workflow-carousel"
-          // px-8 assure que la première et dernière carte ne touchent pas le bord
-          // py-6 -my-6 permet au scale-105 de ne pas être coupé en hauteur
           className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-6 -my-6 px-8"
         >
           {workflows.map((workflow) => (
@@ -94,13 +90,13 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                 }
               `}
             >
-              {/* Image d'illustration */}
-              <div className="relative h-48 w-full rounded-t-[14px] overflow-hidden bg-gray-700">
+              {/* Image centrée */}
+              <div className="relative h-48 w-full rounded-t-[14px] overflow-hidden bg-gray-700 flex items-center justify-center">
                 <img 
                   src={workflow.imageUrl} 
                   alt={workflow.name} 
                   className={`
-                    w-full h-full object-cover transition-transform duration-500
+                    w-full h-full object-cover object-center transition-transform duration-500
                     ${selectedWorkflow === workflow.id ? 'scale-110' : 'group-hover:scale-110'}
                     ${workflow.comingSoon ? 'grayscale' : 'grayscale-0'}
                   `}
@@ -112,10 +108,11 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                     HD
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-800 via-transparent to-transparent" />
+                {/* Overlay pour la transition douce */}
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-800 via-transparent to-transparent opacity-60" />
               </div>
 
-              {/* Zone Grise Réduite (Titre uniquement) */}
+              {/* Zone Grise épurée (Pas de barre horizontale ici) */}
               <div className="p-4 flex items-center gap-3 bg-gray-800 rounded-b-[14px]">
                 <div className={`p-2 rounded-lg ${selectedWorkflow === workflow.id ? 'bg-purple-500/20 text-purple-400' : 'bg-gray-700 text-gray-400'}`}>
                   {workflow.icon}
@@ -125,15 +122,9 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                   {workflow.comingSoon && <span className="ml-2 text-[8px] text-yellow-500 uppercase font-black">Soon</span>}
                 </h3>
               </div>
-
-              {/* Barre active */}
-              {selectedWorkflow === workflow.id && !workflow.comingSoon && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-b-full" />
-              )}
             </button>
           ))}
           
-          {/* Spacer invisible à la fin pour garantir le padding à droite sur certains navigateurs */}
           <div className="flex-shrink-0 w-4" aria-hidden="true"></div>
         </div>
       </div>
