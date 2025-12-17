@@ -17,7 +17,7 @@ const randomData = {
   environnements: ["sous la pleine lune", "dans une tempête de neige", "au sommet d'une montagne", "au fond de l'océan", "dans le désert"]
 };
 
-export default function PosterGenerator({
+export function useImageGeneration({
   onGenerate,
   isGenerating,
   onPromptGenerated,
