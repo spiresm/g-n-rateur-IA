@@ -95,6 +95,7 @@ ${posterStyle}, ${lighting} lighting, ${composition} composition, Premium poster
           </div>
           <button
             onClick={handleRandomize}
+            type="button"
             className="flex items-center gap-2 px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 rounded-lg transition-colors text-sm border border-purple-600/30"
             disabled={isGenerating}
           >
@@ -156,4 +157,4 @@ ${posterStyle}, ${lighting} lighting, ${composition} composition, Premium poster
       </div>
     </div>
   );
-}
+} // <--- C'est cette accolade qui manquait !
