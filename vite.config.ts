@@ -1,16 +1,14 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // --- CE BLOC RÈGLE TON ERREUR NETLIFY ---
+  // On ajuste ici pour ne cibler QUE les fichiers .ts qui contiennent du JSX
   esbuild: {
     loader: 'tsx',
-    include: /src\/.*\.ts$/, 
+    include: /src\/.*\.[tj]sx?$/, // Accepte .ts, .tsx, .js, .jsx
     exclude: [],
   },
-  // ----------------------------------------
   server: {
     port: 5173,
     host: true,
