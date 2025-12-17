@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, ChevronsDown, Image as ImageIcon, AlertCircle, Camera, Layout, Settings2 } from 'lucide-react';
-import { useState, memo, useRef } from 'react';
+import { useState, memo, useRef, useMemo } from 'react';
 
 export type WorkflowType = 'poster' | 'parameters' | 'cameraAngles' | 'future2' | string;
 
@@ -30,7 +30,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
   const scrollRef = useRef<HTMLDivElement>(null);
   const isInternalScroll = useRef(false);
 
-  // Configuration des textes (Ton pro, design intégré)
   const workflowDetails: Record<string, { title: string, desc: string, icon: any, note?: string }> = {
     poster: {
       title: "MODE AFFICHE",
@@ -51,6 +50,12 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
   };
 
   const currentDetail = workflowDetails[selectedWorkflow];
+
+  // Index de la carte sélectionnée pour le calcul de distance
+  const selectedIndex = useMemo(() => 
+    allWorkflows.findIndex(w => w.id === selectedWorkflow), 
+    [selectedWorkflow]
+  );
 
   const handleScroll = () => {
     if (!scrollRef.current || isInternalScroll.current) return;
@@ -83,7 +88,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
     <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
       <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-24 relative">
         
-        {/* Header STUDIO (Original) */}
+        {/* Header STUDIO */}
         <div className="flex items-center justify-between mb-6 sm:mb-10 px-8 relative z-50">
           <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
           <div className="flex gap-3 sm:gap-4">
@@ -96,12 +101,12 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
           </div>
         </div>
 
-        {/* PANNEAU EXPLICATIF (Mieux intégré) */}
+        {/* PANNEAU EXPLICATIF */}
         {currentDetail && (
           <div className="absolute left-8 top-32 z-[60] w-72 hidden lg:block animate-in fade-in slide-in-from-left-4 duration-700 pointer-events-none">
-            <div className="bg-gray-950/80 backdrop-blur-xl border border-white/10 p-5 rounded-[24px] shadow-2xl">
+            <div className="bg-gray-950/40 backdrop-blur-xl border border-white/5 p-6 rounded-[32px] shadow-2xl">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                <div className="w-2 h-2 rounded-full bg-yellow-500" />
                 <h3 className="text-yellow-500 font-black text-[10px] tracking-[0.2em]">{currentDetail.title}</h3>
               </div>
               <p className="text-[12px] text-gray-300 normal-case leading-relaxed font-medium">
@@ -109,8 +114,8 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
               </p>
               {currentDetail.note && (
                 <div className="mt-4 pt-4 border-t border-white/5 flex gap-2">
-                  <AlertCircle className="w-3.5 h-3.5 text-gray-500 shrink-0 mt-0.5" />
-                  <p className="text-[9px] text-gray-500 normal-case italic leading-tight">
+                  <AlertCircle className="w-3.5 h-3.5 text-gray-600 shrink-0 mt-0.5" />
+                  <p className="text-[9px] text-gray-600 normal-case italic leading-tight">
                     {currentDetail.note}
                   </p>
                 </div>
@@ -123,41 +128,57 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-20 -my-20 px-[calc(50vw-140px)] snap-x snap-mandatory relative z-10"
+          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-20 -my-20 px-[calc(50vw-140px)] snap-x snap-mandatory relative z-10 items-center"
         >
           {allWorkflows.map((workflow, index) => {
             const isSelected = selectedWorkflow === workflow.id;
-            // On baisse l'opacité des 2 premières cartes pour laisser respirer le panneau à gauche
-            const isUnderPanel = index < 2;
+            const distance = Math.abs(index - selectedIndex);
+
+            // Logique de focus progressif
+            let opacity = "opacity-100";
+            let blur = "blur-none";
+            let scale = "scale-100";
+
+            if (!isSelected) {
+              if (distance === 1) {
+                opacity = "opacity-40";
+                blur = "blur-[2px]";
+                scale = "scale-90";
+              } else {
+                opacity = "opacity-10";
+                blur = "blur-[6px]";
+                scale = "scale-75";
+              }
+            }
 
             return (
               <div key={workflow.id} className="relative flex-shrink-0 w-[280px] snap-center flex justify-center">
                 <button
                   onClick={() => {
                     onSelectWorkflow(workflow.id);
-                    scrollToIndex(allWorkflows.indexOf(workflow));
+                    scrollToIndex(index);
                   }}
                   className={`
-                    group relative w-full rounded-[32px] border-2 transition-all duration-500 overflow-visible transform-gpu
+                    group relative w-full rounded-[32px] border-2 transition-all duration-700 overflow-visible transform-gpu
+                    ${opacity} ${blur} ${scale}
                     ${isSelected 
-                      ? 'bg-gray-800 border-purple-500 shadow-[0_40px_80px_rgba(0,0,0,0.9)] -translate-y-8 scale-105 sm:scale-110 z-30 blur-none opacity-100' 
-                      : `bg-gray-900/60 border-gray-800 z-10 blur-[3px] scale-90 grayscale ${isUnderPanel ? 'opacity-10' : 'opacity-40'}`
+                      ? 'bg-gray-800 border-purple-500 shadow-[0_40px_80px_rgba(0,0,0,0.9)] -translate-y-8 scale-110 z-30' 
+                      : 'bg-gray-900/60 border-gray-800 z-10 grayscale'
                     }
                   `}
                 >
-                  {/* Le reste du contenu de la carte reste identique */}
                   <div className="relative h-56 sm:h-64 w-full bg-gray-850 rounded-t-[30px] overflow-hidden">
                     {workflow.imageUrl ? (
                       <img src={workflow.imageUrl} alt={workflow.name} className="w-full h-full object-cover object-top" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-900/50">
-                        <ImageIcon className="w-12 h-12 text-gray-800 opacity-20" />
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ImageIcon className="w-12 h-12 text-white/5" />
                       </div>
                     )}
                   </div>
 
                   <div className="h-28 sm:h-32 p-6 bg-gray-800 flex flex-col items-center justify-center rounded-b-[30px] relative">
-                    <h3 className={`text-white font-black tracking-tight text-center transition-all duration-500 w-full uppercase ${isSelected ? 'text-xl sm:text-2xl italic leading-tight' : 'text-base sm:text-lg leading-snug'}`}>
+                    <h3 className={`text-white font-black tracking-tight text-center transition-all duration-500 w-full uppercase ${isSelected ? 'text-2xl italic' : 'text-lg'}`}>
                       {workflow.name}
                     </h3>
                   </div>
