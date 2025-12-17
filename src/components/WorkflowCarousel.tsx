@@ -11,15 +11,15 @@ interface WorkflowOption {
 }
 
 const mainWorkflows: WorkflowOption[] = [
-  { id: 'poster', name: "Générateur d'Affiches", imageUrl: '/vignettes/vignette_affiche.png' },
-  { id: 'cameraAngles', name: 'Angles de Caméra', imageUrl: '/vignettes/vignette_camera.png' },
-  { id: 'parameters', name: 'Image', imageUrl: '/vignettes/vignette_image.png' },
-  { id: 'future2', name: 'Batch', imageUrl: '/vignettes/vignette_batch.png', comingSoon: true },
+  { id: 'poster', name: "GÉNÉRATEUR D'AFFICHES", imageUrl: '/vignettes/vignette_affiche.png' },
+  { id: 'cameraAngles', name: 'ANGLES DE CAMÉRA', imageUrl: '/vignettes/vignette_camera.png' },
+  { id: 'parameters', name: 'CRÉATION LIBRE', imageUrl: '/vignettes/vignette_image.png' },
+  { id: 'future2', name: 'BATCH', imageUrl: '/vignettes/vignette_batch.png', comingSoon: true },
 ];
 
-const emptyWorkflows: WorkflowOption[] = Array.from({ length: 10 }, (_, i) => ({
+const emptyWorkflows: WorkflowOption[] = Array.from({ length: 6 }, (_, i) => ({
   id: `empty-${i + 1}`,
-  name: `Workflow ${i + 5}`,
+  name: `WORKFLOW ${i + 5}`,
   imageUrl: '',
   comingSoon: true,
 }));
@@ -62,12 +62,14 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
     [selectedWorkflow]
   );
 
-  // Fonction de scroll vers un index spécifique
+  // Fonction de centrage parfaite
   const scrollToIndex = (index: number, behavior: ScrollBehavior = 'smooth') => {
     if (!scrollRef.current) return;
     const cardWidth = 280 + 24; // w-72 (280px) + gap-6 (24px)
     isInternalScroll.current = true;
     
+    // On scroll pour que l'index soit au début du conteneur
+    // Le padding px-[calc(50vw-140px)] fera le reste pour centrer
     scrollRef.current.scrollTo({ 
       left: index * cardWidth, 
       behavior 
@@ -76,11 +78,9 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
     setTimeout(() => { isInternalScroll.current = false; }, 500);
   };
 
-  // FORCE LE CENTRAGE À L'OUVERTURE
+  // Centrage immédiat au chargement
   useEffect(() => {
-    const timer = setTimeout(() => {
-      scrollToIndex(selectedIndex, 'auto');
-    }, 100);
+    const timer = setTimeout(() => scrollToIndex(selectedIndex, 'auto'), 50);
     return () => clearTimeout(timer);
   }, []);
 
@@ -104,115 +104,100 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
   };
 
   return (
-    <div className="bg-gray-900 border-b border-gray-800 relative z-10 overflow-hidden text-white uppercase mt-24 sm:mt-32">
-      <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-32 relative">
+    <div className="bg-[#0f1117] border-b border-gray-800 relative z-10 overflow-hidden text-white uppercase mt-24 sm:mt-32">
+      <div className="max-w-full mx-auto pt-8 pb-32 relative">
         
-        {/* Header STUDIO */}
-        <div className="flex items-center justify-between mb-6 sm:mb-10 px-8 relative z-50">
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none text-white">STUDIO</h2>
-          <div className="flex gap-3 sm:gap-4">
-            <button onClick={() => navigate('prev')} className="p-3 sm:p-4 bg-gray-800/90 backdrop-blur-md hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
-              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
+        {/* Titre Studio & Flèches */}
+        <div className="flex items-center justify-between mb-2 px-12 relative z-50">
+          <h2 className="text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
+          <div className="flex gap-4">
+            <button onClick={() => navigate('prev')} className="p-3 bg-gray-800/50 hover:bg-gray-700 rounded-xl border border-gray-700 transition-all">
+              <ChevronLeft className="w-6 h-6 text-gray-400" />
             </button>
-            <button onClick={() => navigate('next')} className="p-3 sm:p-4 bg-gray-800/90 backdrop-blur-md hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
-              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
+            <button onClick={() => navigate('next')} className="p-3 bg-gray-800/50 hover:bg-gray-700 rounded-xl border border-gray-700 transition-all">
+              <ChevronRight className="w-6 h-6 text-gray-400" />
             </button>
           </div>
         </div>
 
-        {/* PANNEAU EXPLICATIF */}
-        {currentDetail && (
-          <div className="absolute left-8 top-32 z-[60] w-72 hidden lg:block animate-in fade-in slide-in-from-left-4 duration-700 pointer-events-none">
-            <div className="bg-gray-950/40 backdrop-blur-xl border border-white/5 p-6 rounded-[32px] shadow-2xl">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                <h3 className="text-yellow-500 font-black text-[10px] tracking-[0.2em]">{currentDetail.title}</h3>
-              </div>
-              <p className="text-[12px] text-gray-300 normal-case leading-relaxed font-medium">
-                {currentDetail.desc}
-              </p>
-              {currentDetail.note && (
-                <div className="mt-4 pt-4 border-t border-white/5 flex gap-2">
-                  <AlertCircle className="w-3.5 h-3.5 text-gray-600 shrink-0 mt-0.5" />
-                  <p className="text-[9px] text-gray-600 normal-case italic leading-tight">
-                    {currentDetail.note}
-                  </p>
+        <div className="relative flex items-center h-[500px]">
+          {/* Panneau latéral gauche */}
+          {currentDetail && (
+            <div className="absolute left-12 top-1/2 -translate-y-1/2 z-[60] w-72 hidden lg:block animate-in fade-in slide-in-from-left-8 duration-1000">
+              <div className="bg-gray-900/40 backdrop-blur-xl border border-white/5 p-8 rounded-[40px] shadow-2xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_8px_#eab308]" />
+                  <h3 className="text-yellow-500 font-black text-xs tracking-[0.3em]">{currentDetail.title}</h3>
                 </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* CAROUSEL */}
-        <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-20 -my-20 px-[calc(50vw-140px)] snap-x snap-mandatory relative z-10 items-center"
-        >
-          {allWorkflows.map((workflow, index) => {
-            const isSelected = selectedWorkflow === workflow.id;
-            const distance = Math.abs(index - selectedIndex);
-
-            let opacity = "opacity-100";
-            let blur = "blur-none";
-            let scale = "scale-100";
-
-            if (!isSelected) {
-              if (distance === 1) {
-                opacity = "opacity-40";
-                blur = "blur-[2px]";
-                scale = "scale-95";
-              } else {
-                opacity = "opacity-5"; 
-                blur = "blur-[8px]";
-                scale = "scale-75";
-              }
-            }
-
-            return (
-              <div key={workflow.id} className="relative flex-shrink-0 w-[280px] snap-center flex justify-center">
-                <button
-                  onClick={() => {
-                    onSelectWorkflow(workflow.id);
-                    scrollToIndex(index, 'smooth');
-                  }}
-                  className={`
-                    group relative w-full rounded-[32px] border-2 transition-all duration-700 overflow-visible transform-gpu
-                    ${opacity} ${blur} ${scale}
-                    ${isSelected 
-                      ? 'bg-gray-800 border-purple-500 shadow-[0_40px_80px_rgba(0,0,0,0.9)] -translate-y-8 scale-110 z-30' 
-                      : 'bg-gray-900/60 border-gray-800 z-10 grayscale'
-                    }
-                  `}
-                >
-                  {/* Vignette Image */}
-                  <div className="relative h-56 sm:h-64 w-full bg-gray-850 rounded-t-[30px] overflow-hidden">
-                    {workflow.imageUrl ? (
-                      <img src={workflow.imageUrl} alt={workflow.name} className="w-full h-full object-cover object-top" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ImageIcon className="w-12 h-12 text-white/5" />
-                      </div>
-                    )}
+                <p className="text-[13px] text-gray-300 normal-case leading-relaxed font-medium mb-4">
+                  {currentDetail.desc}
+                </p>
+                {currentDetail.note && (
+                  <div className="flex gap-2 opacity-50 italic">
+                    <AlertCircle className="w-3 h-3 shrink-0" />
+                    <p className="text-[10px] normal-case">{currentDetail.note}</p>
                   </div>
-
-                  {/* Zone Texte Bas de Carte */}
-                  <div className="h-28 sm:h-32 p-6 bg-gray-800 flex flex-col items-center justify-center rounded-b-[30px] relative">
-                    <h3 className={`text-white font-black tracking-tight text-center transition-all duration-500 w-full uppercase ${isSelected ? 'text-2xl italic' : 'text-lg'}`}>
-                      {workflow.name}
-                    </h3>
-
-                    {/* Flèche focus */}
-                    {isSelected && !workflow.comingSoon && (
-                      <div className="absolute -bottom-14 left-0 right-0 flex justify-center animate-bounce pointer-events-none">
-                        <ChevronsDown className="w-12 h-12 text-purple-500 drop-shadow-[0_0_15px_rgba(168,85,247,0.6)]" />
-                      </div>
-                    )}
-                  </div>
-                </button>
+                )}
               </div>
-            );
-          })}
+            </div>
+          )}
+
+          {/* Carousel */}
+          <div
+            ref={scrollRef}
+            onScroll={handleScroll}
+            className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-24 px-[calc(50vw-140px)] snap-x snap-mandatory relative z-10 items-center w-full"
+          >
+            {allWorkflows.map((workflow, index) => {
+              const isSelected = selectedWorkflow === workflow.id;
+              const distance = Math.abs(index - selectedIndex);
+              
+              const opacity = isSelected ? "opacity-100" : (distance === 1 ? "opacity-30" : "opacity-0");
+              const blur = isSelected ? "blur-none" : "blur-md";
+              const scale = isSelected ? "scale-110" : "scale-90";
+
+              return (
+                <div key={workflow.id} className="relative flex-shrink-0 w-[280px] snap-center flex justify-center py-10">
+                  <button
+                    onClick={() => {
+                      onSelectWorkflow(workflow.id);
+                      scrollToIndex(index, 'smooth');
+                    }}
+                    className={`
+                      group relative w-full rounded-[40px] border-2 transition-all duration-700 transform-gpu
+                      ${opacity} ${blur} ${scale}
+                      ${isSelected 
+                        ? 'bg-gray-800 border-purple-500 shadow-[0_0_60px_rgba(168,85,247,0.25)] -translate-y-4 z-30' 
+                        : 'bg-gray-900/40 border-gray-800 z-10 grayscale'
+                      }
+                    `}
+                  >
+                    <div className="relative h-64 w-full bg-gray-900 rounded-t-[38px] overflow-hidden">
+                      {workflow.imageUrl ? (
+                        <img src={workflow.imageUrl} className="w-full h-full object-cover" alt="" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-800/50">
+                          <ImageIcon className="w-12 h-12 text-white/5" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="h-28 p-6 flex flex-col items-center justify-center rounded-b-[38px] relative">
+                      <h3 className={`text-white font-black tracking-tighter text-center transition-all duration-500 ${isSelected ? 'text-2xl italic' : 'text-lg'}`}>
+                        {workflow.name}
+                      </h3>
+                      
+                      {isSelected && (
+                        <div className="absolute -bottom-16 flex justify-center animate-bounce">
+                          <ChevronsDown className="w-10 h-10 text-purple-500 opacity-80" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
