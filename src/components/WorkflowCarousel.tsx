@@ -13,7 +13,7 @@ interface WorkflowOption {
 const mainWorkflows: WorkflowOption[] = [
   { id: 'poster', name: "Générateur d'Affiches", imageUrl: '/vignettes/vignette_affiche.png' },
   { id: 'cameraAngles', name: 'Angles de Caméra', imageUrl: '/vignettes/vignette_camera.png' },
-  { id: 'parameters', name: 'Image', imageUrl: '/vignettes/vignette_parametres.png' },
+  { id: 'parameters', name: 'Image', imageUrl: '/vignettes/vignette_image.png' }, // Corrigé ici
   { id: 'future2', name: 'Batch', imageUrl: '/vignettes/vignette_batch.png', comingSoon: true },
 ];
 
@@ -61,7 +61,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
 
   return (
     <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
-      {/* Réduction du padding haut pour remonter le carrousel sur mobile */}
       <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-24">
         
         {/* Header STUDIO */}
@@ -136,7 +135,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                       </span>
                     )}
 
-                    {/* LA FLÈCHE : Placée ici, elle est mathématiquement centrée au bouton */}
+                    {/* Flèche centrée mathématiquement */}
                     {isSelected && !workflow.comingSoon && (
                       <div className="absolute -bottom-10 left-0 right-0 flex justify-center animate-bounce pointer-events-none">
                         <ChevronsDown className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
