@@ -36,7 +36,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const isInternalScroll = useRef(false);
 
-  // Configuration des textes explicatifs
   const workflowDetails: Record<string, { title: string, desc: string, icon: any, note?: string }> = {
     poster: {
       title: "MODE AFFICHE",
@@ -91,10 +90,11 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
   };
 
   return (
-    <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
+    /* CORRECTION : z-10 (inférieur au header) et mt-32 pour laisser la place au header */
+    <div className="bg-gray-900 border-b border-gray-800 relative z-10 overflow-hidden text-white uppercase mt-24 sm:mt-32">
       <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-24 relative">
         
-        {/* Header STUDIO (Navigation seule, le quota est géré dans ton Header global) */}
+        {/* Header STUDIO */}
         <div className="flex items-center justify-between mb-6 sm:mb-10 px-8 relative z-50">
           <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
           
@@ -108,7 +108,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
           </div>
         </div>
 
-        {/* PANNEAU EXPLICATIF (Version intégrée) */}
+        {/* PANNEAU EXPLICATIF */}
         {currentDetail && (
           <div className="absolute left-8 top-32 z-[60] w-72 hidden lg:block animate-in fade-in slide-in-from-left-4 duration-700 pointer-events-none">
             <div className="bg-gray-950/40 backdrop-blur-xl border border-white/5 p-6 rounded-[32px] shadow-2xl">
@@ -131,7 +131,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
           </div>
         )}
 
-        {/* CAROUSEL AVEC PROFONDEUR DE CHAMP (Focus Radial) */}
+        {/* CAROUSEL */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
@@ -141,7 +141,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
             const isSelected = selectedWorkflow === workflow.id;
             const distance = Math.abs(index - selectedIndex);
 
-            // Logique d'effacement progressif demandée
             let opacity = "opacity-100";
             let blur = "blur-none";
             let scale = "scale-100";
@@ -152,7 +151,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
                 blur = "blur-[2px]";
                 scale = "scale-95";
               } else {
-                opacity = "opacity-5"; // Très effacé pour laisser lire le panneau
+                opacity = "opacity-5"; 
                 blur = "blur-[8px]";
                 scale = "scale-75";
               }
@@ -189,7 +188,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
                       {workflow.name}
                     </h3>
 
-                    {/* GRANDE FLÈCHE DE FOCUS SOUS LA CARTE */}
                     {isSelected && !workflow.comingSoon && (
                       <div className="absolute -bottom-14 left-0 right-0 flex justify-center animate-bounce pointer-events-none">
                         <ChevronsDown className="w-12 h-12 text-purple-500 drop-shadow-[0_0_15px_rgba(168,85,247,0.6)]" />
