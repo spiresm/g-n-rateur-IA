@@ -13,7 +13,7 @@ interface WorkflowOption {
 const mainWorkflows: WorkflowOption[] = [
   { id: 'poster', name: "Générateur d'Affiches", imageUrl: '/vignettes/vignette_affiche.png' },
   { id: 'cameraAngles', name: 'Angles de Caméra', imageUrl: '/vignettes/vignette_camera.png' },
-  { id: 'parameters', name: 'Image', imageUrl: '/vignettes/vignette_image.png' },
+  { id: 'parameters', name: 'Image', imageUrl: '/vignettes/vignette_parametres.png' },
   { id: 'future2', name: 'Batch', imageUrl: '/vignettes/vignette_batch.png', comingSoon: true },
 ];
 
@@ -61,25 +61,17 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
 
   return (
     <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
-      {/* Container principal avec padding réduit sur mobile pour "remonter" le contenu */}
-      <div className="max-w-full mx-auto pt-6 sm:pt-12 pb-16 sm:pb-24">
+      {/* Réduction du padding haut pour remonter le carrousel sur mobile */}
+      <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-24">
         
-        {/* Header STUDIO - Z-50 fixe */}
+        {/* Header STUDIO */}
         <div className="flex items-center justify-between mb-6 sm:mb-10 px-8 relative z-50">
-          <div>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
-          </div>
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
           <div className="flex gap-3 sm:gap-4">
-            <button 
-              onClick={() => navigate('prev')} 
-              className="p-3 sm:p-4 bg-gray-800/90 backdrop-blur-md hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90"
-            >
+            <button onClick={() => navigate('prev')} className="p-3 sm:p-4 bg-gray-800/90 backdrop-blur-md hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
             </button>
-            <button 
-              onClick={() => navigate('next')} 
-              className="p-3 sm:p-4 bg-gray-800/90 backdrop-blur-md hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90"
-            >
+            <button onClick={() => navigate('next')} className="p-3 sm:p-4 bg-gray-800/90 backdrop-blur-md hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
             </button>
           </div>
@@ -95,14 +87,14 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
             const isSelected = selectedWorkflow === workflow.id;
             
             return (
-              <div key={workflow.id} className="relative flex-shrink-0 w-[280px] snap-center">
+              <div key={workflow.id} className="relative flex-shrink-0 w-[280px] snap-center flex justify-center">
                 <button
                   onClick={() => {
                     onSelectWorkflow(workflow.id);
                     scrollToIndex(allWorkflows.indexOf(workflow));
                   }}
                   className={`
-                    group relative w-full rounded-[32px] border-2 transition-all duration-500 overflow-hidden transform-gpu will-change-[transform,filter,opacity]
+                    group relative w-full rounded-[32px] border-2 transition-all duration-500 overflow-visible transform-gpu will-change-[transform,filter,opacity]
                     ${isSelected 
                       ? 'bg-gray-800 border-purple-500 shadow-[0_40px_80px_rgba(0,0,0,0.9)] -translate-y-8 scale-105 sm:scale-110 z-30 blur-none opacity-100' 
                       : 'bg-gray-900/60 border-gray-800 opacity-40 z-10 blur-[3px] scale-90 grayscale'
@@ -110,7 +102,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                   `}
                 >
                   {/* Image Area */}
-                  <div className="relative h-56 sm:h-64 w-full bg-gray-850">
+                  <div className="relative h-56 sm:h-64 w-full bg-gray-850 rounded-t-[30px] overflow-hidden">
                     {workflow.imageUrl ? (
                       <img 
                         src={workflow.imageUrl} 
@@ -131,7 +123,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                   </div>
 
                   {/* Text Area */}
-                  <div className="h-28 sm:h-32 p-6 bg-gray-800 flex flex-col items-center justify-center">
+                  <div className="h-28 sm:h-32 p-6 bg-gray-800 flex flex-col items-center justify-center rounded-b-[30px] relative">
                     <h3 className={`
                       text-white font-black tracking-tight text-center transition-all duration-500 w-full uppercase
                       ${isSelected ? 'text-xl sm:text-2xl italic leading-tight' : 'text-base sm:text-lg leading-snug'}
@@ -143,15 +135,15 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                         COMING SOON
                       </span>
                     )}
+
+                    {/* LA FLÈCHE : Placée ici, elle est mathématiquement centrée au bouton */}
+                    {isSelected && !workflow.comingSoon && (
+                      <div className="absolute -bottom-10 left-0 right-0 flex justify-center animate-bounce pointer-events-none">
+                        <ChevronsDown className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
+                      </div>
+                    )}
                   </div>
                 </button>
-
-                {/* DOUBLE FLÈCHE - Centrée et remontée pour le mobile */}
-                {isSelected && !workflow.comingSoon && (
-                  <div className="absolute -bottom-8 sm:-bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce z-50 pointer-events-none">
-                    <ChevronsDown className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
-                  </div>
-                )}
               </div>
             );
           })}
