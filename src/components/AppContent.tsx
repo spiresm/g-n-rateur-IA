@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import useImageGeneration from '../hooks/useImageGeneration';
+// 🔥 CORRECTION : Ajout des accolades car c'est un export nommé
+import { useImageGeneration } from '../hooks/useImageGeneration'; 
 import { useAuth } from '../contexts/AuthContext';
 import { useQuotaSystemStatus } from '../hooks/useQuotaSystemStatus';
 import { api } from '../services/api';
@@ -7,13 +8,16 @@ import type { GenerationParams, PosterParams, CameraAnglesParams, GeneratedImage
 import { Header } from './Header';
 import { WorkflowCarousel } from './WorkflowCarousel';
 import { GenerationParameters } from './GenerationParameters';
-import { PosterGenerator } from './PosterGenerator';
+// Attention : vérifie si PosterGenerator est bien exporté de useImageGeneration ou si c'est un autre fichier
+import { PosterGenerator } from './PosterGenerator'; 
 import { CameraAnglesGenerator } from './CameraAnglesGenerator';
 import { PreviewPanel } from './PreviewPanel';
 import { ProgressOverlay } from './ProgressOverlay';
 
 export function AppContent() {
   const { user } = useAuth();
+  
+  // Cette ligne va maintenant fonctionner car l'import possède les { }
   const { isGenerating, progress, startGeneration, clearError, generatedImage } = useImageGeneration();
   
   const [workflow, setWorkflow] = useState<WorkflowType>('poster');
@@ -21,11 +25,9 @@ export function AppContent() {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [imageDimensions, setImageDimensions] = useState({ width: 1080, height: 1920 });
 
-  // Fonctions de génération stockées
   const [posterGenerateFn, setPosterGenerateFn] = useState<(() => void) | null>(null);
   const [parametersGenerateFn, setParametersGenerateFn] = useState<(() => void) | null>(null);
 
-  // Le déclencheur du bouton jaune
   const handleMainGenerate = () => {
     console.log("🟡 Bouton Jaune - Workflow actuel:", workflow);
     if (workflow === 'poster' && posterGenerateFn) {
@@ -35,13 +37,14 @@ export function AppContent() {
     }
   };
 
-  // Envoi effectif vers le backend Render
   const handleGenerateFromPoster = useCallback(async (p: PosterParams, g: GenerationParams) => {
-    clearError();
+    if (clearError) clearError();
     console.log("🚀 Envoi vers ComfyUI via Render...");
+    
+    // On utilise startGeneration du hook useImageGeneration
     await startGeneration('affiche.json', { 
       ...g, 
-      user_menu_prompt: g.prompt // On s'assure que le champ attendu par main.py est présent
+      user_menu_prompt: g.prompt // Alignement avec ton FastAPI (main.py)
     });
   }, [startGeneration, clearError]);
 
@@ -54,9 +57,11 @@ export function AppContent() {
         <WorkflowCarousel selectedWorkflow={workflow} onSelectWorkflow={(w) => setWorkflow(w as WorkflowType)} />
         
         <div className="flex flex-col lg:flex-row border-t border-gray-800">
-          {/* Panneau Gauche : Formulaires */}
           <div className="w-full lg:w-1/2 border-r border-gray-800">
             {workflow === 'poster' ? (
+              /* NOTE : Si PosterGenerator est le même fichier que useImageGeneration, 
+                 assure-toi que tu n'as pas de conflit de nom. 
+              */
               <PosterGenerator 
                 onGenerate={handleGenerateFromPoster}
                 isGenerating={isGenerating}
@@ -74,7 +79,6 @@ export function AppContent() {
             )}
           </div>
 
-          {/* Panneau Droit : Preview et Bouton de Lancement */}
           <div className="w-full lg:w-1/2 bg-[#0a0c10] p-8">
             <div className="max-w-md mx-auto space-y-8">
               <button 
@@ -86,7 +90,7 @@ export function AppContent() {
               </button>
 
               <PreviewPanel 
-                currentImage={currentImage}
+                currentImage={currentImage || generatedImage} 
                 savedGallery={[]}
                 isGenerating={isGenerating}
                 onSelectImage={setCurrentImage}
