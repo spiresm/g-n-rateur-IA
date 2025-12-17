@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { api } from '../services/api'; // Vérifiez bien ce chemin
+import { api } from '../services/api';
 
 export function useImageGeneration() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -16,59 +16,82 @@ export function useImageGeneration() {
     setGeneratedImage(null);
 
     try {
-      console.log(`[GENERATE] 🚀 Démarrage: ${workflowName}`, params);
+      console.log(`[GENERATE] 🚀 Tentative d'envoi: ${workflowName}`, params);
 
-      // Préparation des données pour le backend Render
+      // Préparation des données pour le backend
       const formData = new FormData();
       formData.append('workflow_name', workflowName);
-      formData.append('user_menu_prompt', params.user_menu_prompt || params.prompt || '');
       
-      // Ajout des autres paramètres si nécessaire
+      // On s'assure que user_menu_prompt contient toujours une chaîne
+      const promptValue = params.user_menu_prompt || params.prompt || '';
+      formData.append('user_menu_prompt', promptValue);
+      
       if (params.width) formData.append('width', params.width.toString());
       if (params.height) formData.append('height', params.height.toString());
 
-      // ✅ CORRECTION ICI : On utilise api.generateImage (et non api.generate)
       const result = await api.generateImage(formData);
 
-      if (result.status === 'started' && result.prompt_id) {
-        console.log('[GENERATE] ✅ ID de session:', result.prompt_id);
+      // Vérification de la réponse
+      if (result && result.status === 'started' && result.prompt_id) {
+        console.log('[GENERATE] ✅ ID de session reçu:', result.prompt_id);
         
-        // Connexion WebSocket pour la progression
         const wsUrl = `wss://g-n-rateur-backend-1.onrender.com/ws/progress/${result.prompt_id}`;
         const socket = new WebSocket(wsUrl);
 
         socket.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
+            
             if (data.type === 'progress') {
               setProgress(Math.round(data.value * 100));
             }
+            
             if (data.type === 'executed' && data.output?.images) {
-              // Une fois l'image reçue de ComfyUI via le proxy
               const imageUrl = data.output.images[0]; 
+              console.log('[GENERATE] 🖼️ Image générée avec succès');
               setGeneratedImage(imageUrl);
               setIsGenerating(false);
               socket.close();
             }
           } catch (e) {
-            // Message non JSON ou format différent
+            // Message non-JSON ou format inattendu
           }
         };
 
-        socket.onerror = () => {
-          setError("Erreur de connexion au suivi en temps réel.");
+        socket.onerror = (err) => {
+          console.error('[WS] Erreur WebSocket:', err);
+          setError("Perte de connexion avec le serveur de suivi.");
           setIsGenerating(false);
+          socket.close();
         };
+
+        socket.onclose = () => {
+          console.log('[WS] Connexion fermée');
+        };
+
       } else {
-        throw new Error(result.error || "Le serveur n'a pas pu démarrer la génération.");
+        // GESTION DE L'ERREUR SERVEUR (évite le [object Object])
+        const rawError = result?.error || result?.detail || "Réponse invalide du serveur";
+        const errorMessage = typeof rawError === 'object' ? JSON.stringify(rawError) : rawError;
+        throw new Error(errorMessage);
       }
 
     } catch (err: any) {
-      console.error('[GENERATE] ❌ Erreur:', err);
-      setError(err.message || "Une erreur est survenue lors de la génération.");
+      console.error('[GENERATE] ❌ Erreur attrapée:', err);
+      
+      // Extraction du message d'erreur
+      let finalMessage = "Une erreur est survenue lors de la génération.";
+      
+      if (err instanceof Error) {
+        finalMessage = err.message;
+      } else if (typeof err === 'string') {
+        finalMessage = err;
+      }
+
+      setError(finalMessage);
       setIsGenerating(false);
     }
-  }, [clearError]);
+  }, []); // Pas besoin de clearError en dépendance ici si défini dans le même scope
 
   return {
     isGenerating,
