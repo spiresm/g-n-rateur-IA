@@ -1,54 +1,88 @@
-import { useState, useCallback } from 'react';
-import { api } from '../services/api';
+import { useState, useRef } from "react";
+
+interface GeneratePayload {
+  workflowName: string;
+  prompt: string;
+  width: number;
+  height: number;
+}
 
 export function useImageGeneration() {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
 
-  const startGeneration = useCallback(async (workflowName: string, params: any) => {
+  const startGeneration = async (payload: GeneratePayload) => {
     setIsGenerating(true);
     setProgress(0);
-    setError(null);
-    setGeneratedImage(null);
 
-    try {
-      const formData = new FormData();
-      formData.append('workflow_name', workflowName);
-      formData.append('user_menu_prompt', params.prompt || '');
-      formData.append('width', (params.width || 1024).toString());
-      formData.append('height', (params.height || 1024).toString());
+    console.log("🚀 Envoi de la requête de génération...", payload);
 
-      const result = await api.generateImage(formData);
-
-      if (result && result.client_id) {
-        // CONNEXION AU TUNNEL DE PROGRESSION
-        const wsUrl = `wss://g-n-rateur-backend-1.onrender.com/ws/progress/${result.client_id}`;
-        const socket = new WebSocket(wsUrl);
-
-        socket.onmessage = (event) => {
-          const data = JSON.parse(event.data);
-          if (data.type === 'progress') {
-            setProgress(Math.round(data.value * 100));
-          }
-          if (data.type === 'executed' && data.output?.images) {
-            setGeneratedImage(data.output.images[0].filename);
-            setIsGenerating(false);
-            socket.close();
-          }
-        };
-        
-        socket.onerror = () => {
-            setError("Erreur de connexion au suivi de progression.");
-            setIsGenerating(false);
-        };
+    const res = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/generate`,
+      {
+        method: "POST",
+        credentials: "include",
+        body: new URLSearchParams({
+          workflow_name: payload.workflowName,
+          user_menu_prompt: payload.prompt,
+          width: String(payload.width),
+          height: String(payload.height)
+        })
       }
-    } catch (err: any) {
-      setError(err.message || "Erreur lors de la génération.");
-      setIsGenerating(false);
-    }
-  }, []);
+    );
 
-  return { isGenerating, progress, error, generatedImage, startGeneration };
+    const data = await res.json();
+    const clientId = data.client_id;
+
+    if (!clientId) {
+      throw new Error("client_id manquant");
+    }
+
+    // --- WEBSOCKET COMFYUI ---
+    const ws = new WebSocket(
+      `${import.meta.env.VITE_BACKEND_URL.replace(
+        "https",
+        "wss"
+      )}/ws/progress/${clientId}`
+    );
+
+    wsRef.current = ws;
+
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+
+      if (msg.type === "progress" && typeof msg.value === "number") {
+        setProgress(Math.round(msg.value * 100));
+      }
+
+      if (msg.type === "executing") {
+        setIsGenerating(true);
+      }
+
+      if (msg.type === "completed") {
+        setProgress(100);
+        setIsGenerating(false);
+        ws.close();
+      }
+    };
+
+    ws.onerror = () => {
+      console.error("❌ WebSocket error");
+      setIsGenerating(false);
+    };
+  };
+
+  const cancelGeneration = () => {
+    wsRef.current?.close();
+    setIsGenerating(false);
+    setProgress(null);
+  };
+
+  return {
+    startGeneration,
+    cancelGeneration,
+    isGenerating,
+    progress
+  };
 }
