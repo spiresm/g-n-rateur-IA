@@ -28,16 +28,15 @@ const allWorkflows = [...mainWorkflows, ...emptyWorkflows];
 
 export const WorkflowCarousel = memo(function WorkflowCarousel({ 
   selectedWorkflow, 
-  onSelectWorkflow,
-  quota = 0 // Ajout du quota via props ou à définir selon ton state
+  onSelectWorkflow 
 }: { 
   selectedWorkflow: WorkflowType; 
   onSelectWorkflow: (w: WorkflowType) => void;
-  quota?: number;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isInternalScroll = useRef(false);
 
+  // Textes explicatifs optimisés
   const workflowDetails: Record<string, { title: string, desc: string, icon: any, note?: string }> = {
     poster: {
       title: "MODE AFFICHE",
@@ -95,14 +94,19 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
     <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
       <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-24 relative">
         
-        {/* Header STUDIO + QUOTA */}
+        {/* HEADER : STUDIO + QUOTA 10/10 */}
         <div className="flex items-center justify-between mb-6 sm:mb-10 px-8 relative z-50">
-          <div className="flex items-baseline gap-6">
+          <div className="flex items-center gap-6">
             <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
-            {/* Quota Réintégré */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
-              <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
-              <span className="text-[10px] font-bold tracking-widest text-gray-400">CREDITS: {quota}</span>
+            
+            {/* Nouveau Quota stylisé */}
+            <div className="flex items-center gap-3 px-4 py-2 bg-black/40 border border-white/10 rounded-2xl backdrop-blur-md">
+              <div className="flex flex-col">
+                <span className="text-[8px] text-gray-500 font-bold tracking-[0.2em] leading-none mb-1">QUOTA</span>
+                <span className="text-xs font-black tracking-widest text-purple-400 leading-none">10/10</span>
+              </div>
+              <div className="w-[1px] h-6 bg-white/10 mx-1" />
+              <div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)] animate-pulse" />
             </div>
           </div>
 
@@ -139,7 +143,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
           </div>
         )}
 
-        {/* Carousel */}
+        {/* CAROUSEL AVEC PROFONDEUR DE CHAMP */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
@@ -157,10 +161,10 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
               if (distance === 1) {
                 opacity = "opacity-40";
                 blur = "blur-[2px]";
-                scale = "scale-90";
+                scale = "scale-95";
               } else {
-                opacity = "opacity-10";
-                blur = "blur-[6px]";
+                opacity = "opacity-5"; // Encore plus transparent pour les lointaines
+                blur = "blur-[8px]";
                 scale = "scale-75";
               }
             }
@@ -189,17 +193,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
                         <ImageIcon className="w-12 h-12 text-white/5" />
                       </div>
                     )}
-
-                    {workflow.id === 'poster' && (
-                      <div className="absolute bottom-4 left-4 z-40 transform -rotate-12">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-amber-500 rounded-full flex items-center justify-center p-1 shadow-lg border-4 border-double border-amber-600 ring-2 ring-amber-400">
-                          <div className="text-center">
-                            <p className="text-[7px] sm:text-[8px] font-black text-amber-950 leading-none">VERSION</p>
-                            <p className="text-[10px] sm:text-[12px] font-black text-amber-900 leading-none mt-0.5">BETA</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   <div className="h-28 sm:h-32 p-6 bg-gray-800 flex flex-col items-center justify-center rounded-b-[30px] relative">
@@ -207,10 +200,10 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
                       {workflow.name}
                     </h3>
 
-                    {/* Flèche agrandie sous la carte sélectionnée */}
+                    {/* GRANDE FLÈCHE DE FOCUS */}
                     {isSelected && !workflow.comingSoon && (
-                      <div className="absolute -bottom-12 left-0 right-0 flex justify-center animate-bounce pointer-events-none">
-                        <ChevronsDown className="w-10 h-10 text-purple-500 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+                      <div className="absolute -bottom-14 left-0 right-0 flex justify-center animate-bounce pointer-events-none">
+                        <ChevronsDown className="w-12 h-12 text-purple-500 drop-shadow-[0_0_15px_rgba(168,85,247,0.6)]" />
                       </div>
                     )}
                   </div>
