@@ -19,13 +19,15 @@ interface QuotaDisplayProps {
 }
 
 export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
-  const { user } = useAuth();
+  // ✅ Récupération du token depuis le contexte d'auth
+  const { user, token } = useAuth();
   const [quota, setQuota] = useState<QuotaInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [systemEnabled, setSystemEnabled] = useState(true);
 
   const fetchQuota = useCallback(async () => {
-    if (!user?.email) return;
+    // ✅ On vérifie qu'on a bien l'email ET le token
+    if (!user?.email || !token) return;
 
     try {
       setLoading(true);
@@ -34,13 +36,16 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
         {
           headers: {
             'Content-Type': 'application/json',
+            // ✅ AJOUT DU TOKEN : C'est ce qui corrige l'erreur 401
+            'Authorization': `Bearer ${token}`
           },
         }
       );
 
       if (!response.ok) {
-        // If tables don't exist yet, disable system silently
-        console.warn('⚠️ Système de quota non configuré. Voir SUPABASE_TABLES_SETUP.md');
+        if (response.status === 401) {
+          console.error('❌ Erreur 401 : Jeton d\'authentification invalide ou manquant.');
+        }
         setSystemEnabled(false);
         setLoading(false);
         return;
@@ -50,20 +55,21 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
       setQuota(data);
       setSystemEnabled(true);
     } catch (error) {
-      console.warn('⚠️ Système de quota non configuré. Voir SUPABASE_TABLES_SETUP.md');
+      console.warn('⚠️ Erreur réseau ou système de quota non configuré.');
       setSystemEnabled(false);
     } finally {
       setLoading(false);
     }
-  }, [user?.email]);
+    // ✅ Ajout de token dans les dépendances du callback
+  }, [user?.email, token]);
 
   useEffect(() => {
-    if (user?.email) {
+    if (user?.email && token) {
       fetchQuota();
     }
-  }, [user?.email, fetchQuota]);
+  }, [user?.email, token, fetchQuota]);
 
-  // Expose refresh function to parent components via window object
+  // Expose la fonction de rafraîchissement au besoin
   useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as any).refreshQuota = fetchQuota;
@@ -75,10 +81,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
     };
   }, [fetchQuota]);
 
-  // Don't render anything if system is not enabled
-  if (!systemEnabled) {
-    return null;
-  }
+  if (!systemEnabled) return null;
 
   if (loading || !quota) {
     return (
@@ -88,6 +91,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
     );
   }
 
+  // --- RENDU UI (Premium ou Standard) ---
   if (quota.is_premium) {
     return (
       <div className="flex items-center gap-2">
@@ -95,9 +99,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
           <Sparkles className="w-3 h-3 mr-1.5" />
           {quota.subscription_type.toUpperCase()}
         </Badge>
-        <div className="text-sm text-gray-400">
-          ∞ générations
-        </div>
+        <div className="text-sm text-gray-400">∞ générations</div>
       </div>
     );
   }
@@ -109,37 +111,32 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
 
   return (
     <div className="flex items-center gap-3">
-      {/* Quota Display */}
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700">
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700 shadow-sm">
         <div className="flex flex-col items-end">
-          <div className={`text-sm font-medium ${isEmpty ? 'text-red-400' : isLow ? 'text-yellow-400' : 'text-green-400'}`}>
+          <div className={`text-sm font-bold ${isEmpty ? 'text-red-400' : isLow ? 'text-yellow-400' : 'text-green-400'}`}>
             {remaining}/{quota.limit}
           </div>
-          <div className="text-xs text-gray-500">images restantes</div>
+          <div className="text-[10px] uppercase tracking-wider text-gray-500">Crédits</div>
         </div>
         
-        {/* Progress Bar */}
-        <div className="w-20 h-2 bg-gray-700 rounded-full overflow-hidden">
+        <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
           <div 
-            className={`h-full transition-all duration-300 ${
-              isEmpty ? 'bg-red-500' : 
-              isLow ? 'bg-yellow-500' : 
-              'bg-green-500'
+            className={`h-full transition-all duration-500 ${
+              isEmpty ? 'bg-red-500' : isLow ? 'bg-yellow-500' : 'bg-green-500'
             }`}
-            style={{ width: `${100 - percentUsed}%` }}
+            style={{ width: `${(remaining / quota.limit) * 100}%` }}
           />
         </div>
       </div>
 
-      {/* Upgrade Button */}
       {(isEmpty || isLow) && (
         <Button
           onClick={onUpgradeClick}
           size="sm"
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 gap-1.5"
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 h-8 gap-1.5"
         >
           <CreditCard className="w-3.5 h-3.5" />
-          {isEmpty ? 'Passer Premium' : 'Upgrade'}
+          {isEmpty ? 'Premium' : 'Upgrade'}
         </Button>
       )}
     </div>
