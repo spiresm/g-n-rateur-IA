@@ -63,34 +63,10 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
     <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
       <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-24">
         
-        {/* HEADER : STUDIO + DESCRIPTION DYNAMIQUE */}
-        <div className="flex flex-col lg:flex-row items-start justify-between mb-6 sm:mb-10 px-8 gap-6 relative z-50">
-          
-          <div className="flex flex-col gap-4 max-w-md">
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
-            
-            {/* BLOC DESCRIPTION DISCRET (S'affiche uniquement pour Poster) */}
-            {selectedWorkflow === 'poster' && (
-              <div className="bg-white/[0.03] backdrop-blur-md border border-white/10 p-5 rounded-2xl animate-in fade-in slide-in-from-left-4 duration-700">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  <h3 className="text-amber-500 font-black text-[10px] tracking-[0.2em]">MODE AFFICHE</h3>
-                </div>
-                <p className="text-xs text-gray-400 normal-case leading-relaxed font-medium">
-                  Ce mode permet d'intégrer un <span className="text-white">titre</span>, un <span className="text-white">sous-titre</span> et une <span className="text-white font-bold italic underline decoration-amber-500/30">baseline</span> directement dans le visuel.
-                </p>
-                <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
-                  <AlertCircle className="w-3 h-3 text-amber-500/50 shrink-0" />
-                  <p className="text-[10px] text-gray-500 normal-case italic leading-tight">
-                    L'orthographe générée par l'IA peut présenter des anomalies, un phénomène inhérent à cette technologie.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Navigation Arrows */}
-          <div className="flex gap-3 sm:gap-4 self-end lg:self-start">
+        {/* Header STUDIO (Design inchangé) */}
+        <div className="flex items-center justify-between mb-6 sm:mb-10 px-8 relative z-50">
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
+          <div className="flex gap-3 sm:gap-4">
             <button onClick={() => navigate('prev')} className="p-3 sm:p-4 bg-gray-800/90 backdrop-blur-md hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
             </button>
@@ -100,12 +76,33 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
           </div>
         </div>
 
-        {/* Carousel Content */}
+        {/* Carousel */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-20 -my-20 px-[calc(50vw-140px)] snap-x snap-mandatory relative z-10"
+          className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-20 -my-20 px-[calc(50vw-140px)] snap-x snap-mandatory relative z-10 items-center"
         >
+          {/* BLOC TEXTE ALIGNÉ À GAUCHE DANS LE CARROUSEL */}
+          {selectedWorkflow === 'poster' && (
+            <div className="relative flex-shrink-0 w-[280px] h-[350px] sm:h-[400px] snap-center flex items-center">
+              <div className="bg-white/[0.03] border border-white/10 p-6 rounded-[32px] backdrop-blur-md w-full">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <h3 className="text-amber-500 font-black text-[10px] tracking-[0.2em]">INFOS WORKFLOW</h3>
+                </div>
+                <p className="text-xs text-gray-400 normal-case leading-relaxed font-medium">
+                  Le mode <span className="text-white">Affiche</span> permet d'ajouter un <span className="text-white">titre</span>, un <span className="text-white">sous-titre</span> et une <span className="text-white font-bold italic underline decoration-amber-500/30">baseline</span>.
+                </p>
+                <div className="flex gap-2 mt-6 pt-6 border-t border-white/5">
+                  <AlertCircle className="w-4 h-4 text-amber-500/50 shrink-0" />
+                  <p className="text-[10px] text-gray-500 normal-case italic leading-tight">
+                    L'orthographe peut présenter des anomalies dues à l'IA. C'est une limite technique actuelle.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {allWorkflows.map((workflow) => {
             const isSelected = selectedWorkflow === workflow.id;
             
