@@ -15,33 +15,46 @@ export function useImageGeneration() {
 
     try {
       const formData = new FormData();
-formData.append('workflow_name', workflowName);
-// On force l'utilisation de params.prompt qui contient le texte généré par PosterGenerator
-formData.append('user_menu_prompt', params.prompt || ''); 
-formData.append('width', (params.width || 1024).toString());
-formData.append('height', (params.height || 1024).toString());
+      formData.append('workflow_name', workflowName);
+      // Correction ici: on envoie params.prompt qui contient le texte de PosterGenerator
+      formData.append('user_menu_prompt', params.prompt || '');
+      formData.append('width', (params.width || 1024).toString());
+      formData.append('height', (params.height || 1024).toString());
 
       const result = await api.generateImage(formData);
 
-      if (result && result.prompt_id) {
-        const wsUrl = `wss://g-n-rateur-backend-1.onrender.com/ws/progress/${result.prompt_id}`;
+      // On utilise le client_id renvoyé par le backend pour le WebSocket
+      if (result && result.client_id) {
+        const wsUrl = `wss://g-n-rateur-backend-1.onrender.com/ws/progress/${result.client_id}`;
         const socket = new WebSocket(wsUrl);
 
         socket.onmessage = (event) => {
           const data = JSON.parse(event.data);
-          if (data.type === 'progress') setProgress(Math.round(data.value * 100));
+          
+          // Mise à jour de la barre de progression
+          if (data.type === 'progress') {
+            setProgress(Math.round(data.value * 100));
+          }
+          
+          // Récupération de l'image finale
           if (data.type === 'executed' && data.output?.images) {
-            setGeneratedImage(data.output.images[0]);
+            // L'image est souvent renvoyée sous forme de nom de fichier, 
+            // assurez-vous que votre front sait comment construire l'URL finale
+            setGeneratedImage(data.output.images[0].filename); 
             setIsGenerating(false);
             socket.close();
           }
         };
+
+        socket.onerror = () => {
+          setError("Erreur de connexion WebSocket");
+          setIsGenerating(false);
+        };
       } else {
-        const detail = result.error || result.detail || JSON.stringify(result);
-        throw new Error(detail);
+        throw new Error("Impossible d'initialiser le tunnel de génération");
       }
     } catch (err: any) {
-      setError(err.message || "Erreur inconnue");
+      setError(err.message || "Erreur de génération");
       setIsGenerating(false);
     }
   }, []);
