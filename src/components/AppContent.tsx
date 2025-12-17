@@ -19,26 +19,26 @@ export function AppContent() {
   const { user, token, isAuthenticated } = useAuth();
   const { isConfigured } = useQuotaSystemStatus();
   
+  // États de l'interface
   const [workflow, setWorkflow] = useState<WorkflowType>('poster');
   const [imageDimensions, setImageDimensions] = useState({ width: 1080, height: 1920 });
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   
+  // États techniques
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
   const workflowToUseRef = useRef<string | null>(null);
   
-  // UTILISATION DE REFS POUR LES FONCTIONS (plus stable que des states)
-  const posterRef = useRef<(() => void) | null>(null);
-  const parametersRef = useRef<(() => void) | null>(null);
-  const cameraRef = useRef<(() => void) | null>(null);
+  // Refs pour lier le bouton jaune aux formulaires de gauche
+  const generateFunctionsRef = useRef<Record<string, () => void>>({});
 
   const { isGenerating, progress, error, generatedImage, startGeneration, clearError } = useImageGeneration();
 
-  // Initialisation des Workflows
+  // 1. Initialisation des Workflows
   useEffect(() => {
     const loadInitialData = async () => {
-      if (!isAuthenticated || !user?.email || !token) return;
+      if (!isAuthenticated || !token) return;
       try {
         const workflowsData = await api.getWorkflows();
         const workflowList = Array.isArray(workflowsData) ? workflowsData : (workflowsData?.workflows || []);
@@ -53,9 +53,9 @@ export function AppContent() {
       }
     };
     loadInitialData();
-  }, [isAuthenticated, user, token]);
+  }, [isAuthenticated, token]);
 
-  // Capture Image
+  // 2. Capture de l'image générée
   useEffect(() => {
     if (generatedImage && !isGenerating) {
       const newImage: GeneratedImage = {
@@ -74,15 +74,17 @@ export function AppContent() {
     }
   }, [generatedImage, isGenerating, generatedPrompt, imageDimensions]);
 
-  // LA FONCTION DU BOUTON JAUNE (CORRIGÉE)
+  // 3. Action du Bouton Jaune
   const handleMainGenerate = () => {
-    console.log("Clic sur bouton jaune, workflow actuel:", workflow);
-    if (workflow === 'poster' && posterRef.current) posterRef.current();
-    else if (workflow === 'parameters' && parametersRef.current) parametersRef.current();
-    else if (workflow === 'cameraAngles' && cameraRef.current) cameraRef.current();
-    else console.warn("Aucune fonction de génération liée pour ce workflow");
+    const activeFn = generateFunctionsRef.current[workflow];
+    if (activeFn) {
+      activeFn();
+    } else {
+      console.warn("Fonction de génération non trouvée pour :", workflow);
+    }
   };
 
+  // Handlers API
   const handleGenerateFromPoster = useCallback(async (_posterParams: PosterParams, genParams: GenerationParams) => {
     if (!workflowToUseRef.current) return;
     clearError();
@@ -110,42 +112,44 @@ export function AppContent() {
         
         <div className="flex flex-col lg:flex-row border-t border-gray-800 bg-[#0c0e14]">
           
-          {/* COLONNE GAUCHE : RÉGLAGES */}
+          {/* GAUCHE : RÉGLAGES (Contient l'upload image dans CameraAngles) */}
           <div className="w-full lg:w-1/2 bg-gray-900/10 lg:border-r border-gray-800">
-            {workflow === 'poster' && (
-              <PosterGenerator 
-                onGenerate={handleGenerateFromPoster} 
-                isGenerating={isGenerating} 
-                onPromptGenerated={setGeneratedPrompt} 
-                generatedPrompt={generatedPrompt} 
-                imageDimensions={imageDimensions} 
-                onGetGenerateFunction={(fn) => { posterRef.current = fn; }} 
-              />
-            )}
-            {workflow === 'parameters' && (
-              <GenerationParameters 
-                onGenerate={handleGenerateFromParameters} 
-                isGenerating={isGenerating} 
-                imageDimensions={imageDimensions} 
-                onGetGenerateFunction={(fn) => { parametersRef.current = fn; }} 
-              />
-            )}
-            {workflow === 'cameraAngles' && (
-              <CameraAnglesGenerator 
-                onGenerate={handleGenerateFromCameraAngles} 
-                isGenerating={isGenerating} 
-                onGetGenerateFunction={(fn) => { cameraRef.current = fn; }} 
-              />
-            )}
+            <div className="p-4 sm:p-8">
+              {workflow === 'poster' && (
+                <PosterGenerator 
+                  onGenerate={handleGenerateFromPoster} 
+                  isGenerating={isGenerating} 
+                  onPromptGenerated={setGeneratedPrompt} 
+                  generatedPrompt={generatedPrompt} 
+                  imageDimensions={imageDimensions}
+                  onGetGenerateFunction={(fn) => { generateFunctionsRef.current['poster'] = fn; }}
+                />
+              )}
+              {workflow === 'parameters' && (
+                <GenerationParameters 
+                  onGenerate={handleGenerateFromParameters} 
+                  isGenerating={isGenerating} 
+                  imageDimensions={imageDimensions}
+                  onGetGenerateFunction={(fn) => { generateFunctionsRef.current['parameters'] = fn; }}
+                />
+              )}
+              {workflow === 'cameraAngles' && (
+                <CameraAnglesGenerator 
+                  onGenerate={handleGenerateFromCameraAngles} 
+                  isGenerating={isGenerating}
+                  onGetGenerateFunction={(fn) => { generateFunctionsRef.current['cameraAngles'] = fn; }}
+                />
+              )}
+            </div>
           </div>
 
-          {/* COLONNE DROITE : LE STUDIO PREMIUM */}
+          {/* DROITE : STUDIO ACTIONS (Formats + Bouton Jaune) */}
           <div className="w-full lg:w-1/2 flex flex-col bg-[#0a0c10]">
             
-            <div className="p-8 border-b border-gray-800 bg-[#0c0e14]/80 backdrop-blur-2xl sticky top-0 z-10">
+            <div className="p-8 border-b border-gray-800 bg-[#0c0e14]/90 backdrop-blur-2xl sticky top-0 z-10 shadow-xl">
               <div className="max-w-xl mx-auto flex flex-col gap-10">
                 
-                {/* 1. SÉLECTEURS DE FORMATS */}
+                {/* 1. SÉLECTEURS DE FORMATS (NETS, SANS VOILE) */}
                 <div className="flex justify-around items-center px-4">
                   {[
                     { id: 'square', label: 'Carré', w: 1024, h: 1024, style: 'w-10 h-10 rounded-xl' },
@@ -157,15 +161,15 @@ export function AppContent() {
                       <button
                         key={f.id}
                         onClick={() => setImageDimensions({ width: f.w, height: f.h })}
-                        className={`group flex flex-col items-center gap-3 transition-all duration-300 ${isActive ? 'scale-110' : 'opacity-40 hover:opacity-100'}`}
+                        className={`group flex flex-col items-center gap-3 transition-all duration-300 ${isActive ? 'scale-110 opacity-100' : 'opacity-30 hover:opacity-60'}`}
                       >
                         <div className={`
                           ${f.style} border-2 transition-all duration-500
                           ${isActive 
-                            ? 'bg-purple-600 border-purple-400 shadow-[0_0_30px_rgba(168,85,247,0.6)]' 
+                            ? 'bg-purple-600 border-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.5)]' 
                             : 'bg-gray-800 border-gray-600'}
                         `} />
-                        <span className={`text-[11px] font-black tracking-[0.2em] uppercase ${isActive ? 'text-white' : 'text-gray-500'}`}>
+                        <span className={`text-[11px] font-black tracking-widest uppercase ${isActive ? 'text-white' : 'text-gray-400'}`}>
                           {f.label}
                         </span>
                       </button>
@@ -173,11 +177,11 @@ export function AppContent() {
                   })}
                 </div>
 
-                {/* 2. LE BOUTON JAUNE ULTRA-PREMIUM */}
+                {/* 2. LE BOUTON JAUNE PREMIUM */}
                 <button 
                   onClick={handleMainGenerate}
                   disabled={isGenerating || !workflowsLoaded}
-                  className="relative overflow-hidden w-full group bg-gradient-to-b from-[#FFEA00] to-[#FFB200] text-black font-[900] py-6 rounded-2xl text-2xl uppercase tracking-tighter transition-all active:scale-[0.97] disabled:opacity-30 shadow-[0_20px_50px_rgba(255,215,0,0.3)]"
+                  className="relative overflow-hidden w-full group bg-gradient-to-b from-[#FFEA00] to-[#FFB200] text-black font-[900] py-6 rounded-2xl text-2xl uppercase tracking-tighter transition-all active:scale-[0.97] disabled:opacity-30 shadow-[0_20px_50px_rgba(255,215,0,0.25)]"
                 >
                   <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
                   <span className="relative z-10">
@@ -187,7 +191,8 @@ export function AppContent() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            {/* PREVIEW PANEL */}
+            <div className="flex-1 overflow-y-auto min-h-[500px]">
               <PreviewPanel 
                 currentImage={currentImage} 
                 savedGallery={savedGallery} 
@@ -200,6 +205,15 @@ export function AppContent() {
           </div>
         </div>
       </div>
+
+      {error && (
+        <div className="fixed bottom-10 right-10 bg-red-600 text-white px-8 py-4 rounded-2xl shadow-2xl z-[100]">
+          <button onClick={clearError} className="font-bold flex items-center gap-3">
+            <span>{error}</span> <span className="bg-black/20 p-2 rounded-lg">✕</span>
+          </button>
+        </div>
+      )}
+      {!isConfigured && <AdminSetupNotice onDismiss={() => {}} />}
     </div>
   );
 }
