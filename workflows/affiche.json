@@ -1,52 +1,48 @@
 {
-  "39": {
+  "3": {
+    "class_type": "KSampler",
     "inputs": {
-      "ckpt_name": "z_image_turbo_bf16.safetensors"
-    },
-    "class_type": "CheckpointLoaderSimple",
-    "_meta": { "title": "Chargeur Principal" }
-  },
-  "41": {
-    "inputs": {
-      "width": {{width}},
-      "height": {{height}},
-      "batch_size": 1
-    },
-    "class_type": "EmptyLatentImage"
-  },
-  "44": {
-    "inputs": {
-      "seed": {{seed}},
-      "steps": 9,
-      "cfg": 1,
+      "seed": "{{seed}}",
+      "steps": 25,
+      "cfg": 7,
       "sampler_name": "euler",
-      "scheduler": "simple",
+      "scheduler": "normal",
       "denoise": 1,
-      "model": ["39", 0],
-      "positive": ["45", 0],
-      "negative": ["42", 0],
-      "latent_image": ["41", 0]
-    },
-    "class_type": "KSampler"
+      "model": ["4", 0],
+      "positive": ["6", 0],
+      "negative": ["7", 0],
+      "latent_image": ["5", 0]
+    }
   },
-  "45": {
+  "5": {
+    "class_type": "EmptyLatentImage",
     "inputs": {
-      "text": "Ultra detailed cinematic poster... {{user_menu_prompt}}",
-      "clip": ["39", 1]
-    },
-    "class_type": "CLIPTextEncode"
+      "width": "{{width}}",
+      "height": "{{height}}",
+      "batch_size": 1
+    }
   },
-  "42": {
-    "inputs": { "conditioning": ["45", 0] },
-    "class_type": "ConditioningZeroOut"
+  "6": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "{{user_menu_prompt}}",
+      "clip": ["4", 1]
+    }
   },
-  "43": {
-    "inputs": { "samples": ["44", 0], "vae": ["39", 2] },
-    "class_type": "VAEDecode"
+  "4": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": { "ckpt_name": "flux1-dev.safetensors" }
+  },
+  "7": {
+    "class_type": "CLIPTextEncode",
+    "inputs": { "text": "bad quality, blurry, distorted", "clip": ["4", 1] }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "inputs": { "samples": ["3", 0], "vae": ["4", 2] }
   },
   "9": {
-    "inputs": { "filename_prefix": "z-image", "images": ["43", 0] },
     "class_type": "SaveImage",
-    "_meta": { "output_node": true }
+    "inputs": { "filename_prefix": "ComfyUI", "images": ["8", 0] }
   }
 }
