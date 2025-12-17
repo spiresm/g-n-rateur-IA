@@ -9,7 +9,7 @@ import { Header } from './Header';
 import { WorkflowCarousel } from './WorkflowCarousel';
 import { GenerationParameters } from './GenerationParameters';
 // Attention : vérifie si PosterGenerator est bien exporté de useImageGeneration ou si c'est un autre fichier
-import { PosterGenerator } from './PosterGenerator'; 
+import PosterGenerator from './PosterGenerator';
 import { CameraAnglesGenerator } from './CameraAnglesGenerator';
 import { PreviewPanel } from './PreviewPanel';
 import { ProgressOverlay } from './ProgressOverlay';
