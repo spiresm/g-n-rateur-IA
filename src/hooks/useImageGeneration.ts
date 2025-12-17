@@ -16,24 +16,20 @@ export function useImageGeneration() {
     setGeneratedImage(null);
 
     try {
-      console.log(`[GENERATE] 🚀 Tentative d'envoi: ${workflowName}`, params);
+      console.log(`[GENERATE] 🚀 Envoi du workflow: ${workflowName}`, params);
 
-      // Préparation des données pour le backend
       const formData = new FormData();
       formData.append('workflow_name', workflowName);
-      
-      // On s'assure que user_menu_prompt contient toujours une chaîne
-      const promptValue = params.user_menu_prompt || params.prompt || '';
-      formData.append('user_menu_prompt', promptValue);
+      formData.append('user_menu_prompt', params.user_menu_prompt || params.prompt || '');
       
       if (params.width) formData.append('width', params.width.toString());
       if (params.height) formData.append('height', params.height.toString());
 
       const result = await api.generateImage(formData);
 
-      // Vérification de la réponse
+      // Vérification de la réponse du serveur Render
       if (result && result.status === 'started' && result.prompt_id) {
-        console.log('[GENERATE] ✅ ID de session reçu:', result.prompt_id);
+        console.log('[GENERATE] ✅ ID de session:', result.prompt_id);
         
         const wsUrl = `wss://g-n-rateur-backend-1.onrender.com/ws/progress/${result.prompt_id}`;
         const socket = new WebSocket(wsUrl);
@@ -41,57 +37,49 @@ export function useImageGeneration() {
         socket.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
-            
             if (data.type === 'progress') {
               setProgress(Math.round(data.value * 100));
             }
-            
             if (data.type === 'executed' && data.output?.images) {
               const imageUrl = data.output.images[0]; 
-              console.log('[GENERATE] 🖼️ Image générée avec succès');
               setGeneratedImage(imageUrl);
               setIsGenerating(false);
               socket.close();
             }
           } catch (e) {
-            // Message non-JSON ou format inattendu
+            // Message non JSON
           }
         };
 
-        socket.onerror = (err) => {
-          console.error('[WS] Erreur WebSocket:', err);
-          setError("Perte de connexion avec le serveur de suivi.");
+        socket.onerror = () => {
+          setError("La connexion avec le serveur a été interrompue.");
           setIsGenerating(false);
-          socket.close();
         };
-
-        socket.onclose = () => {
-          console.log('[WS] Connexion fermée');
-        };
-
       } else {
-        // GESTION DE L'ERREUR SERVEUR (évite le [object Object])
-        const rawError = result?.error || result?.detail || "Réponse invalide du serveur";
-        const errorMessage = typeof rawError === 'object' ? JSON.stringify(rawError) : rawError;
-        throw new Error(errorMessage);
+        // ✅ GESTION DE L'ERREUR DE VALIDATION (L'erreur que tu as reçue)
+        const rawError = result?.error || result?.detail || result;
+        
+        let message = "Le serveur n'a pas pu valider la demande.";
+        
+        if (typeof rawError === 'object') {
+          if (rawError.type === 'prompt_outputs_failed_validation') {
+            message = "Erreur ComfyUI : Les IDs des nœuds (44 ou 45) ne correspondent pas dans affiche.json";
+          } else {
+            message = JSON.stringify(rawError);
+          }
+        } else if (typeof rawError === 'string') {
+          message = rawError;
+        }
+
+        throw new Error(message);
       }
 
     } catch (err: any) {
       console.error('[GENERATE] ❌ Erreur attrapée:', err);
-      
-      // Extraction du message d'erreur
-      let finalMessage = "Une erreur est survenue lors de la génération.";
-      
-      if (err instanceof Error) {
-        finalMessage = err.message;
-      } else if (typeof err === 'string') {
-        finalMessage = err;
-      }
-
-      setError(finalMessage);
+      setError(err.message || "Une erreur critique est survenue.");
       setIsGenerating(false);
     }
-  }, []); // Pas besoin de clearError en dépendance ici si défini dans le même scope
+  }, []);
 
   return {
     isGenerating,
