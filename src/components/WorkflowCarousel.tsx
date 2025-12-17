@@ -63,11 +63,10 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
     <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden">
       <div className="max-w-full mx-auto pt-12 pb-14">
         
-        {/* Navigation Header */}
+        {/* Navigation Header avec le nouveau titre "STUDIO" */}
         <div className="flex items-center justify-between mb-10 px-8">
-          <div className="flex flex-col">
-            <h2 className="text-white text-3xl font-black tracking-tighter uppercase italic leading-none">Moteurs IA</h2>
-            <p className="text-gray-500 text-sm mt-2 font-medium">Faites défiler pour choisir votre workflow</p>
+          <div>
+            <h2 className="text-white text-4xl font-black tracking-tighter uppercase italic leading-none">STUDIO</h2>
           </div>
           <div className="flex gap-4">
             <button onClick={() => navigate('prev')} className="p-4 bg-gray-800 hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
@@ -103,7 +102,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                   }
                 `}
               >
-                {/* Image Area */}
+                {/* Image Area - Sans dégradé */}
                 <div className="relative h-64 w-full bg-gray-850">
                   {workflow.imageUrl ? (
                     <img 
@@ -120,13 +119,14 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                     </div>
                   )}
                   
+                  {/* Badge HD coloré en violet/rose */}
                   {isSelected && !workflow.comingSoon && (
-                    <div className="absolute top-5 right-5 bg-white/10 backdrop-blur-md text-white border border-white/20 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
-                      HD active
+                    <div className="absolute top-5 right-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase shadow-lg">
+                      HD ACTIVE
                     </div>
                   )}
                   
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-800 via-transparent to-transparent opacity-90" />
+                  {/* SUPPRESSION DU DÉGRADÉ ICI */}
                 </div>
 
                 {/* Text Area */}
@@ -147,7 +147,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
             );
           })}
           
-          {/* La correction est ici : aria-hidden="true" sans backslash */}
           <div className="flex-shrink-0 w-1" aria-hidden="true"></div>
         </div>
       </div>
