@@ -1,22 +1,116 @@
 {
-  "3": {
-    "class_type": "KSampler",
+  "9": {
     "inputs": {
-      "seed": "{{seed}}",
-      "steps": 25,
-      "cfg": 7,
-      "sampler_name": "euler",
-      "scheduler": "normal",
-      "denoise": 1,
-      "model": ["4", 0], "positive": ["6", 0], "negative": ["7", 0], "latent_image": ["5", 0]
+      "filename_prefix": "z-image",
+      "images": ["43", 0]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Enregistrer Image",
+      "output_node": true
     }
   },
-  "5": {
-    "class_type": "EmptyLatentImage",
-    "inputs": { "width": "{{width}}", "height": "{{height}}", "batch_size": 1 }
+
+  "39": {
+    "inputs": {
+      "clip_name": "qwen_3_4b.safetensors",
+      "type": "lumina2",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": { "title": "CLIP Loader" }
   },
-  "6": {
+
+  "40": {
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": { "title": "VAELoader" }
+  },
+
+  "41": {
+    "inputs": {
+      "width": "{{width}}",
+      "height": "{{height}}",
+      "batch_size": 1
+    },
+    "class_type": "EmptySD3LatentImage",
+    "_meta": {
+      "title": "Empty SD3 Latent Image"
+    }
+  },
+
+  "42": {
+    "inputs": {
+      "conditioning": ["45", 0]
+    },
+    "class_type": "ConditioningZeroOut",
+    "_meta": {
+      "title": "ConditioningZeroOut"
+    }
+  },
+
+  "43": {
+    "inputs": {
+      "samples": ["44", 0],
+      "vae": ["40", 0]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+
+  "44": {
+    "inputs": {
+      "seed": "{{seed}}",
+      "steps": 9,
+      "cfg": 1,
+      "sampler_name": "res_multistep",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": ["47", 0],
+      "positive": ["45", 0],
+      "negative": ["42", 0],
+      "latent_image": ["41", 0]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+
+  "45": {
+    "inputs": {
+      "text": "{{prompt}}",
+      "clip": ["39", 0]
+    },
     "class_type": "CLIPTextEncode",
-    "inputs": { "text": "{{user_menu_prompt}}", "clip": ["4", 1] }
+    "_meta": {
+      "title": "CLIP Text Encode"
+    }
+  },
+
+  "46": {
+    "inputs": {
+      "unet_name": "z_image_turbo_bf16.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "UNET Loader"
+    }
+  },
+
+  "47": {
+    "inputs": {
+      "shift": 3,
+      "model": ["46", 0]
+    },
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "ModelSamplingAuraFlow"
+    }
   }
 }
