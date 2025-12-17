@@ -195,3 +195,51 @@ html {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+/* --- CORRECTIONS RESPONSIVE HEADER --- */
+
+@layer utilities {
+  /* Empêche le header de casser sur les écrans étroits */
+  .header-safe-area {
+    @apply flex items-center justify-between w-full max-w-full overflow-hidden px-2 sm:px-4;
+  }
+
+  /* Cache le texte long sur mobile pour ne garder que l'essentiel */
+  .mobile-text-hide {
+    @apply hidden md:inline;
+  }
+
+  /* Force les blocs à ne pas dépasser leur parent */
+  .truncate-mobile {
+    @apply truncate max-w-[80px] sm:max-w-[150px] lg:max-w-none;
+  }
+}
+
+/* Correction spécifique pour le bloc utilisateur (Photo + Nom + Statut) */
+.user-profile-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0; /* Important pour que le truncate fonctionne */
+}
+
+@media (max-width: 768px) {
+  /* Sur mobile, on empile le statut sous le nom si nécessaire ou on le simplifie */
+  .user-status-text {
+    display: none; /* On cache "Connecté" pour ne garder que la pastille verte */
+  }
+  
+  /* On réduit la taille des boutons pour gagner de la place */
+  button.header-btn {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Masquage de la barre de défilement pour le carrousel (déjà dans votre code) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
