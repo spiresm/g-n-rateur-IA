@@ -30,7 +30,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
   const scrollRef = useRef<HTMLDivElement>(null);
   const isInternalScroll = useRef(false);
 
-  // Détection de la carte au centre pour la sélection
   const handleScroll = () => {
     if (!scrollRef.current || isInternalScroll.current) return;
     const container = scrollRef.current;
@@ -84,6 +83,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
         <div
           ref={scrollRef}
           onScroll={handleScroll}
+          // Optimisation du scroll : suppression des calculs inutiles pendant le scroll
           className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth py-16 -my-16 px-[calc(50vw-140px)] snap-x snap-mandatory"
         >
           {allWorkflows.map((workflow) => {
@@ -96,22 +96,24 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                   onSelectWorkflow(workflow.id);
                   scrollToIndex(allWorkflows.indexOf(workflow));
                 }}
+                // AJOUT : transform-gpu et will-change pour booster les perfs
                 className={`
-                  group relative flex-shrink-0 w-[280px] rounded-[32px] border-2 transition-all duration-700 snap-center overflow-hidden
+                  group relative flex-shrink-0 w-[280px] rounded-[32px] border-2 transition-all duration-500 snap-center overflow-hidden transform-gpu will-change-[transform,filter,opacity]
                   ${isSelected 
                     ? 'bg-gray-800 border-purple-500 shadow-[0_40px_80px_rgba(0,0,0,0.9)] -translate-y-8 scale-110 z-50 blur-none opacity-100' 
-                    : 'bg-gray-900/60 border-gray-800 opacity-40 z-10 blur-[4px] scale-90 grayscale'
+                    : 'bg-gray-900/60 border-gray-800 opacity-40 z-10 blur-[3px] scale-90 grayscale'
                   }
                 `}
               >
-                {/* Image Area - Justifiée en haut */}
+                {/* Image Area */}
                 <div className="relative h-64 w-full bg-gray-850">
                   {workflow.imageUrl ? (
                     <img 
                       src={workflow.imageUrl} 
                       alt={workflow.name} 
+                      // transform-gpu ici aussi pour l'animation de scale de l'image
                       className={`
-                        w-full h-full object-cover object-top transition-all duration-1000
+                        w-full h-full object-cover object-top transition-all duration-700 transform-gpu
                         ${isSelected ? 'scale-110' : 'scale-100'}
                       `}
                     />
@@ -121,7 +123,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                     </div>
                   )}
                   
-                  {/* Badge HD minimaliste */}
                   {isSelected && !workflow.comingSoon && (
                     <div className="absolute top-5 right-5 bg-white/10 backdrop-blur-md text-white border border-white/20 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
                       HD active
@@ -131,7 +132,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-800 via-transparent to-transparent opacity-90" />
                 </div>
 
-                {/* Text Area Area - Titre Large */}
+                {/* Text Area */}
                 <div className="p-8 bg-gray-800 flex flex-col items-center justify-center min-h-[100px]">
                   <h3 className={`
                     text-white font-black tracking-tight text-center leading-tight transition-all duration-500
@@ -149,7 +150,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
             );
           })}
           
-          <div className="flex-shrink-0 w-1" aria-hidden="true"></div>
+          <div className="flex-shrink-0 w-1" aria-hidden=\"true\"></div>
         </div>
       </div>
     </div>
