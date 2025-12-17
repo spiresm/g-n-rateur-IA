@@ -26,7 +26,15 @@ const emptyWorkflows: WorkflowOption[] = Array.from({ length: 10 }, (_, i) => ({
 
 const allWorkflows = [...mainWorkflows, ...emptyWorkflows];
 
-export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflow, onSelectWorkflow }: { selectedWorkflow: WorkflowType; onSelectWorkflow: (w: WorkflowType) => void }) {
+export const WorkflowCarousel = memo(function WorkflowCarousel({ 
+  selectedWorkflow, 
+  onSelectWorkflow,
+  quota = 0 // Ajout du quota via props ou à définir selon ton state
+}: { 
+  selectedWorkflow: WorkflowType; 
+  onSelectWorkflow: (w: WorkflowType) => void;
+  quota?: number;
+}) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isInternalScroll = useRef(false);
 
@@ -51,7 +59,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
 
   const currentDetail = workflowDetails[selectedWorkflow];
 
-  // Index de la carte sélectionnée pour le calcul de distance
   const selectedIndex = useMemo(() => 
     allWorkflows.findIndex(w => w.id === selectedWorkflow), 
     [selectedWorkflow]
@@ -88,9 +95,17 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
     <div className="bg-gray-900 border-b border-gray-800 relative z-20 overflow-hidden text-white uppercase">
       <div className="max-w-full mx-auto pt-4 sm:pt-12 pb-24 relative">
         
-        {/* Header STUDIO */}
+        {/* Header STUDIO + QUOTA */}
         <div className="flex items-center justify-between mb-6 sm:mb-10 px-8 relative z-50">
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
+          <div className="flex items-baseline gap-6">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tighter italic leading-none">STUDIO</h2>
+            {/* Quota Réintégré */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+              <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+              <span className="text-[10px] font-bold tracking-widest text-gray-400">CREDITS: {quota}</span>
+            </div>
+          </div>
+
           <div className="flex gap-3 sm:gap-4">
             <button onClick={() => navigate('prev')} className="p-3 sm:p-4 bg-gray-800/90 backdrop-blur-md hover:bg-gray-700 rounded-2xl border border-gray-700 transition-all active:scale-90">
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
@@ -134,7 +149,6 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
             const isSelected = selectedWorkflow === workflow.id;
             const distance = Math.abs(index - selectedIndex);
 
-            // Logique de focus progressif
             let opacity = "opacity-100";
             let blur = "blur-none";
             let scale = "scale-100";
@@ -175,12 +189,30 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({ selectedWorkflo
                         <ImageIcon className="w-12 h-12 text-white/5" />
                       </div>
                     )}
+
+                    {workflow.id === 'poster' && (
+                      <div className="absolute bottom-4 left-4 z-40 transform -rotate-12">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-amber-500 rounded-full flex items-center justify-center p-1 shadow-lg border-4 border-double border-amber-600 ring-2 ring-amber-400">
+                          <div className="text-center">
+                            <p className="text-[7px] sm:text-[8px] font-black text-amber-950 leading-none">VERSION</p>
+                            <p className="text-[10px] sm:text-[12px] font-black text-amber-900 leading-none mt-0.5">BETA</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="h-28 sm:h-32 p-6 bg-gray-800 flex flex-col items-center justify-center rounded-b-[30px] relative">
                     <h3 className={`text-white font-black tracking-tight text-center transition-all duration-500 w-full uppercase ${isSelected ? 'text-2xl italic' : 'text-lg'}`}>
                       {workflow.name}
                     </h3>
+
+                    {/* Flèche agrandie sous la carte sélectionnée */}
+                    {isSelected && !workflow.comingSoon && (
+                      <div className="absolute -bottom-12 left-0 right-0 flex justify-center animate-bounce pointer-events-none">
+                        <ChevronsDown className="w-10 h-10 text-purple-500 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+                      </div>
+                    )}
                   </div>
                 </button>
               </div>
