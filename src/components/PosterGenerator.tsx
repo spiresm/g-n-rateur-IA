@@ -17,10 +17,11 @@ const randomData = {
   environnements: ["sous la pleine lune", "dans une tempête de neige", "au sommet d'une montagne", "au fond de l'océan", "dans le désert"]
 };
 
-// CHANGEMENT DE NOM : On appelle ça PosterGenerator car c'est un COMPOSANT UI
-export default function PosterGenerator({
+// Utilisation d'un export nommé pour correspondre à l'import dans AppContent
+export function PosterGenerator({
   onGenerate,
   isGenerating,
+  onPromptGenerated,
   imageDimensions = { width: 1080, height: 1920 },
   onGetGenerateFunction
 }: PosterGeneratorProps) {
@@ -33,6 +34,7 @@ export default function PosterGenerator({
   const [composition, setComposition] = useState('Central');
   const [additionalDetails, setAdditionalDetails] = useState('');
 
+  // Fonction de construction du prompt
   const generatePromptText = () => {
     return `Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
 NO TEXT MODE:
@@ -41,12 +43,23 @@ Visual elements: ${title || 'Epic scene'} - ${subject || 'Stunning visuals'} - $
 Style: ${posterStyle}, ${lighting} lighting, ${composition} composition.`;
   };
 
+  // Met à jour le prompt dans le parent dès qu'un champ change
+  useEffect(() => {
+    if (onPromptGenerated) {
+      onPromptGenerated(generatePromptText());
+    }
+  }, [title, subject, environment, posterStyle, lighting, composition, onPromptGenerated]);
+
   const handleStartGeneration = () => {
     const finalPrompt = generatePromptText();
     
     const posterParams: PosterParams = {
-      title, subject, environment,
-      style: posterStyle, lighting, composition,
+      title, 
+      subject, 
+      environment,
+      style: posterStyle, 
+      lighting, 
+      composition,
       additionalDetails
     };
 
@@ -61,12 +74,13 @@ Style: ${posterStyle}, ${lighting} lighting, ${composition} composition.`;
     }
   };
 
-  // Crucial pour le bouton jaune : on envoie la fonction au parent
+  // Envoie la fonction de déclenchement au bouton jaune du parent
   useEffect(() => {
     if (onGetGenerateFunction) {
       onGetGenerateFunction(handleStartGeneration);
     }
-  }, [title, subject, environment, posterStyle, lighting, composition, additionalDetails]);
+    // Dépendances incluses pour que le bouton jaune utilise les données à jour
+  }, [title, subject, environment, posterStyle, lighting, composition, additionalDetails, onGetGenerateFunction]);
 
   const handleRandomize = () => {
     setTitle(randomData.titres[Math.floor(Math.random() * randomData.titres.length)]);
@@ -76,7 +90,7 @@ Style: ${posterStyle}, ${lighting} lighting, ${composition} composition.`;
 
   return (
     <div className="space-y-6 p-4">
-      <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
+      <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 shadow-xl">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-purple-400" />
@@ -95,21 +109,49 @@ Style: ${posterStyle}, ${lighting} lighting, ${composition} composition.`;
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Titre</label>
-              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" />
+              <label className="block text-sm text-gray-400 mb-2 font-medium">Titre suggéré</label>
+              <input 
+                type="text" 
+                value={title} 
+                onChange={(e) => setTitle(e.target.value)} 
+                className="w-full px-4 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none transition-all" 
+                placeholder="Ex: La Nuit des Étoiles"
+              />
             </div>
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Sujet</label>
-              <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" />
+              <label className="block text-sm text-gray-400 mb-2 font-medium">Sujet Principal</label>
+              <input 
+                type="text" 
+                value={subject} 
+                onChange={(e) => setSubject(e.target.value)} 
+                className="w-full px-4 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none transition-all" 
+                placeholder="Ex: Un chevalier"
+              />
             </div>
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Style</label>
-              <select value={posterStyle} onChange={(e) => setPosterStyle(e.target.value)} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+              <label className="block text-sm text-gray-400 mb-2 font-medium">Style visuel</label>
+              <select 
+                value={posterStyle} 
+                onChange={(e) => setPosterStyle(e.target.value)} 
+                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none appearance-none cursor-pointer"
+              >
                 <option value="Cinematic">Cinématique</option>
                 <option value="Cyberpunk">Cyberpunk</option>
+                <option value="Fantasy">Fantasy</option>
+                <option value="Digital Art">Art Digital</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-2 font-medium">Environnement</label>
+              <input 
+                type="text" 
+                value={environment} 
+                onChange={(e) => setEnvironment(e.target.value)} 
+                className="w-full px-4 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none transition-all" 
+                placeholder="Ex: Une forêt sombre"
+              />
             </div>
           </div>
         </div>
