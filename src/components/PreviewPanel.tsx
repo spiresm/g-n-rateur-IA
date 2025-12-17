@@ -14,7 +14,8 @@ type ImageFormat = {
 // Index 0: Paysage, Index 1: Portrait, Index 2: Carré
 const IMAGE_FORMATS: ImageFormat[] = [
   { width: 1920, height: 1080, label: 'Paysage' },
-  { width: 1080, height: 1920, label: 'Portrait' },
+  // ✅ L'index 1 est le Portrait, sélectionné par défaut
+  { width: 1080, height: 1920, label: 'Portrait' }, 
   { width: 1080, height: 1080, label: 'Carré' }
 ];
 
@@ -42,8 +43,9 @@ export function PreviewPanel({ 
   onFormatChange
 }: PreviewPanelProps) {
   const [showCharte, setShowCharte] = useState(false);
-  // 🚨 CORRECTION : Sélectionne le format Portrait par défaut (index 1)
+  // 🚨 CORRECTION DÉBUT : Sélectionne le format Portrait par défaut (index 1)
   const [selectedFormat, setSelectedFormat] = useState<ImageFormat>(IMAGE_FORMATS[1]); 
+  // 🚨 CORRECTION FIN
   const [lightboxImage, setLightboxImage] = useState<GeneratedImage | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
   const imagePreviewRef = useRef<HTMLDivElement>(null);
@@ -61,7 +63,7 @@ export function PreviewPanel({ 
     }
   }, [currentImage, isGenerating]);
   
-  // L'ancien useEffect d'initialisation a été retiré, le parent (AppContent) est désormais le maître du format par défaut.
+  // L'ancien useEffect d'initialisation du format est retiré, le parent (AppContent) gère l'état initial.
 
   console.log('[PREVIEW_PANEL] 🔍 DEBUG BOUTON JAUNE:', {
     onStartGeneration: onStartGeneration ? 'DÉFINIE ✅' : 'UNDEFINED ❌',
@@ -101,6 +103,7 @@ export function PreviewPanel({ 
 
   const handleFormatSelect = (format: ImageFormat) => {
     setSelectedFormat(format);
+    // ✅ Appel du callback pour notifier le composant parent des nouvelles dimensions
     if (onFormatChange) {
       onFormatChange(format.width, format.height);
     }
