@@ -61,14 +61,7 @@ export function PreviewPanel({ 
     }
   }, [currentImage, isGenerating]);
   
-  // 🚨 AJOUT : Appel initial de onFormatChange pour synchroniser AppContent au démarrage
-  useEffect(() => {
-    if (onFormatChange && selectedFormat) {
-      // S'assure que le composant parent (AppContent) connaît le format par défaut
-      onFormatChange(selectedFormat.width, selectedFormat.height);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // L'ancien useEffect d'initialisation a été retiré, le parent (AppContent) est désormais le maître du format par défaut.
 
   console.log('[PREVIEW_PANEL] 🔍 DEBUG BOUTON JAUNE:', {
     onStartGeneration: onStartGeneration ? 'DÉFINIE ✅' : 'UNDEFINED ❌',
@@ -223,7 +216,7 @@ export function PreviewPanel({ 
           <p className="text-gray-400 text-sm text-center">
             ⏳ Chargement des workflows...
           </p>
-        </div>
+          </div>
       )}
 
       {/* Main Preview - TAILLE AGRANDIE 1.5x (600px max-height) */}
