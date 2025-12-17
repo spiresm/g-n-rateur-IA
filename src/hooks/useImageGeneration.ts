@@ -20,6 +20,7 @@ const randomData = {
 export default function PosterGenerator({
   onGenerate,
   isGenerating,
+  onPromptGenerated,
   imageDimensions = { width: 1080, height: 1920 },
   onGetGenerateFunction
 }: PosterGeneratorProps) {
@@ -34,10 +35,15 @@ export default function PosterGenerator({
 
   // --- LOGIQUE DE CONSTRUCTION DU PROMPT ---
   const generatePromptText = () => {
-    return `Ultra detailed cinematic poster, ${lighting} lighting, ${composition} composition, ${posterStyle} style.
-Visual elements: ${title || 'Epic scene'} - ${subject || 'Stunning visuals'} - ${environment || 'Atmospheric background'}.
-Extra details: ${additionalDetails ? additionalDetails + ', ' : ''}cinematic particles, depth fog, volumetric light.
-NO TEXT MODE: The poster must contain ZERO text, letters, symbols or numbers. Premium professional layout.`;
+    return `Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
+NO TEXT MODE:
+The poster must contain ZERO text, letters, symbols or numbers.
+Visual elements:
+${title || 'Epic scene'} - ${subject || 'Stunning visuals'} - ${environment || 'Atmospheric background'}
+Extra details:
+${additionalDetails ? additionalDetails + ', ' : ''}cinematic particles, depth fog, volumetric light
+Image style:
+${posterStyle}, ${lighting} lighting, ${composition} composition, Premium poster design, professional layout, ultra high resolution, visually striking.`;
   };
 
   // --- FONCTION DE GÉNÉRATION (APPELÉE PAR LE BOUTON JAUNE) ---
@@ -57,7 +63,7 @@ NO TEXT MODE: The poster must contain ZERO text, letters, symbols or numbers. Pr
     };
 
     const genParams: GenerationParams = {
-      prompt: finalPrompt,
+      prompt: finalPrompt, // C'est ici que l'injection se fait pour le backend
       width: imageDimensions.width,
       height: imageDimensions.height
     };
@@ -65,12 +71,12 @@ NO TEXT MODE: The poster must contain ZERO text, letters, symbols or numbers. Pr
     onGenerate(posterParams, genParams);
   };
 
-  // Expose la fonction de génération au parent (App.tsx) pour le bouton jaune
+  // On expose la fonction au parent pour le bouton jaune
   useEffect(() => {
     if (onGetGenerateFunction) {
       onGetGenerateFunction(handleStartGeneration);
     }
-  }, [title, subject, environment, posterStyle, lighting, composition, additionalDetails, imageDimensions]);
+  }, [title, subject, environment, posterStyle, lighting, composition, additionalDetails]);
 
   // --- GÉNÉRATION ALÉATOIRE ---
   const handleRandomize = () => {
@@ -98,81 +104,51 @@ NO TEXT MODE: The poster must contain ZERO text, letters, symbols or numbers. Pr
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Colonne Gauche */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1 text-xs uppercase tracking-wider">Titre de l'affiche</label>
+              <label className="block text-sm text-gray-300 mb-2">Titre de l'affiche</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                 placeholder="Ex: La Nuit des Étoiles"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1 text-xs uppercase tracking-wider">Sujet Principal</label>
+              <label className="block text-sm text-gray-300 mb-2">Sujet Principal</label>
               <input
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-                placeholder="Ex: Un guerrier solitaire"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-1 text-xs uppercase tracking-wider">Environnement</label>
-              <input
-                type="text"
-                value={environment}
-                onChange={(e) => setEnvironment(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-                placeholder="Ex: Dans une cité futuriste"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                placeholder="Ex: Un chevalier en armure"
               />
             </div>
           </div>
 
-          {/* Colonne Droite */}
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-1 text-xs uppercase tracking-wider">Style</label>
-                <select
-                  value={posterStyle}
-                  onChange={(e) => setPosterStyle(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none"
-                >
-                  <option value="Cinematic">Cinématique</option>
-                  <option value="Digital Art">Art Digital</option>
-                  <option value="Cyberpunk">Cyberpunk</option>
-                  <option value="Fantasy">Fantasy</option>
-                  <option value="Oil Painting">Peinture à l'huile</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm text-gray-400 mb-1 text-xs uppercase tracking-wider">Éclairage</label>
-                <select
-                  value={lighting}
-                  onChange={(e) => setLighting(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none"
-                >
-                  <option value="Dramatic">Dramatique</option>
-                  <option value="Volumetric">Volumétrique</option>
-                  <option value="Neon">Néon</option>
-                  <option value="Golden Hour">Heure Dorée</option>
-                  <option value="Soft">Doux</option>
-                </select>
-              </div>
-            </div>
-
             <div>
-              <label className="block text-sm text-gray-400 mb-1 text-xs uppercase tracking-wider">Détails Supplémentaires</label>
+              <label className="block text-sm text-gray-300 mb-2">Style d'image</label>
+              <select
+                value={posterStyle}
+                onChange={(e) => setPosterStyle(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+              >
+                <option value="Cinematic">Cinématique</option>
+                <option value="Digital Art">Art Digital</option>
+                <option value="Cyberpunk">Cyberpunk</option>
+                <option value="Fantasy">Fantasy</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Détails</label>
               <textarea
                 value={additionalDetails}
                 onChange={(e) => setAdditionalDetails(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-white resize-none focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-                rows={3}
-                placeholder="Ex: Brouillard épais, étincelles magiques, particules de poussière..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white resize-none"
+                rows={2}
+                placeholder="Ex: Brouillard épais, étincelles..."
               />
             </div>
           </div>
