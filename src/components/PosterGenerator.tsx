@@ -386,7 +386,7 @@ export function PosterGenerator({
     const randomEnvironnement = randomChoice(randomData.environnements_full);
     const randomAction = randomChoice(randomData.actions_full);
     const randomPalette = randomChoice(randomData.palettes_full);
-    const randomTitleStyle = randomChoice(randomData.styles_titre_full);
+    const randomTitleStyle = randomChoice(randomData.styles_titre);
     const randomDetails = randomChoice(randomData.details_full);
 
     setTitle(randomTitle);
@@ -544,7 +544,6 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     colorPalette,
     customPalette,
     titleStyle,
-    imageDimensions,
     onPromptGenerated
   ]);
 
