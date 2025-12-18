@@ -544,6 +544,7 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     colorPalette,
     customPalette,
     titleStyle,
+    imageDimensions,
     onPromptGenerated
   ]);
 
