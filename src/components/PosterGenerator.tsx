@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Sparkles, Image as ImageIcon } from 'lucide-react';
 import { PosterParams, GenerationParams } from '../App';
@@ -1004,5 +1005,9 @@ console.log(
     disabled={isGenerating}
               />
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
