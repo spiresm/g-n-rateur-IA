@@ -38,7 +38,7 @@ export function AppContent() {
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
 
   // -------------------------
-  // Refs callbacks (SAFE)
+  // CALLBACK REFS (SAFE)
   // -------------------------
   const posterGenerateRef = useRef<null | (() => void)>(null);
   const parametersGenerateRef = useRef<null | (() => void)>(null);
@@ -53,7 +53,16 @@ export function AppContent() {
   } = useImageGeneration();
 
   // -------------------------
-  // Chargement des workflows
+  // Reset callbacks on workflow change (CRITICAL)
+  // -------------------------
+  useEffect(() => {
+    posterGenerateRef.current = null;
+    parametersGenerateRef.current = null;
+    cameraAnglesGenerateRef.current = null;
+  }, [workflow]);
+
+  // -------------------------
+  // Load workflows
   // -------------------------
   useEffect(() => {
     (async () => {
@@ -74,7 +83,7 @@ export function AppContent() {
   }, []);
 
   // -------------------------
-  // Enregistrement callbacks
+  // Register callbacks (SAFE)
   // -------------------------
   const handlePosterGenerateFunctionReceived = useCallback((fn: unknown) => {
     if (typeof fn === 'function') posterGenerateRef.current = fn;
@@ -89,7 +98,7 @@ export function AppContent() {
   }, []);
 
   // -------------------------
-  // Génération POSTER
+  // Poster generation
   // -------------------------
   const handleGenerateFromPoster = useCallback(
     async (_params: PosterParams, gen: GenerationParams) => {
@@ -132,16 +141,16 @@ export function AppContent() {
         </div>
       )}
 
-      {/* Décalage sous le Header fixed */}
+      {/* Offset under fixed header */}
       <div className="pt-24 sm:pt-32">
         <WorkflowCarousel
           selectedWorkflow={workflow}
           onSelectWorkflow={setWorkflow}
         />
 
-        {/* ✅ RESPONSIVE LAYOUT */}
+        {/* RESPONSIVE LAYOUT */}
         <div className="flex flex-col md:flex-row min-h-[calc(100vh-128px)]">
-          {/* LEFT – MENUS */}
+          {/* LEFT */}
           <div className="w-full md:w-1/2 bg-gray-800 md:border-r border-gray-700">
             {workflow === 'poster' && (
               <PosterGenerator
@@ -172,7 +181,7 @@ export function AppContent() {
             )}
           </div>
 
-          {/* RIGHT – PREVIEW */}
+          {/* RIGHT */}
           <div className="w-full md:w-1/2">
             <PreviewPanel
               currentImage={currentImage}
@@ -182,12 +191,16 @@ export function AppContent() {
               onSelectImage={setCurrentImage}
               onCopyParameters={() => {}}
               onSaveToGallery={(img) =>
-                setSavedGallery((prev) => [img, ...prev])
+                setSavedGallery(prev => [img, ...prev])
               }
               onStartGeneration={() => {
-                if (workflow === 'poster') posterGenerateRef.current?.();
-                else if (workflow === 'parameters') parametersGenerateRef.current?.();
-                else if (workflow === 'cameraAngles') cameraAnglesGenerateRef.current?.();
+                if (workflow === 'poster' && typeof posterGenerateRef.current === 'function') {
+                  posterGenerateRef.current();
+                } else if (workflow === 'parameters' && typeof parametersGenerateRef.current === 'function') {
+                  parametersGenerateRef.current();
+                } else if (workflow === 'cameraAngles' && typeof cameraAnglesGenerateRef.current === 'function') {
+                  cameraAnglesGenerateRef.current();
+                }
               }}
               onFormatChange={(w, h) =>
                 setImageDimensions({ width: w, height: h })
