@@ -418,7 +418,7 @@ export function PosterGenerator({
   const palettes = ['Choisir...', ...randomData.palettes];
   const titleStyles = ['Choisir...', ...randomData.styles_titre];
 
-  const getFullVersion = (
+  const getFullVersion = useCallback((
     shortLabel: string,
     type: 'theme' | 'ambiance' | 'character' | 'environment' | 'action' | 'palette' | 'titleStyle'
   ): string => {
@@ -443,7 +443,7 @@ export function PosterGenerator({
       palette: randomData.palettes_full[index],
       titleStyle: randomData.styles_titre_full[index]
     }[type] || shortLabel;
-  };
+  }, []);
 
   const generatePrompt = useCallback(() => {
     const hasTitle = Boolean(title.trim());
@@ -544,6 +544,7 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     colorPalette,
     customPalette,
     titleStyle,
+    getFullVersion,
     onPromptGenerated
   ]);
 
