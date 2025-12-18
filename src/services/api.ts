@@ -2,6 +2,7 @@ const BACKEND_URL = 'https://g-n-rateur-backend-1.onrender.com';
 const SUPABASE_FUNCTION_URL = 'https://brwljqgvagddaydlctrz.supabase.co/functions/v1/make-server-52811d4b';
 
 export const api = {
+  // Récupération des workflows (évite l'erreur not a function)
   async getWorkflows() {
     try {
       const response = await fetch(`${BACKEND_URL}/workflows`);
@@ -13,6 +14,7 @@ export const api = {
     }
   },
 
+  // Récupération du quota
   async getUserQuota(email: string, token: string) {
     const response = await fetch(`${SUPABASE_FUNCTION_URL}/quota/${encodeURIComponent(email)}`, {
       headers: {
@@ -24,6 +26,7 @@ export const api = {
     return response.json();
   },
 
+  // Génération d'image (Gestion de l'erreur 500)
   async generateImage(formData: FormData, token?: string) {
     const headers: Record<string, string> = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -34,11 +37,12 @@ export const api = {
       body: formData,
     });
 
+    // On récupère le corps de la réponse même en cas d'erreur
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      // ✅ Capture l'erreur spécifique de ComfyUI renvoyée par ton backend
-      throw new Error(data.error || `Erreur serveur : ${response.status}`);
+      // Si le backend renvoie "ComfyUI error", on l'affiche proprement
+      throw new Error(data.error || `Erreur serveur (${response.status}) : Vérifiez que votre GPU est allumé.`);
     }
     return data;
   }
