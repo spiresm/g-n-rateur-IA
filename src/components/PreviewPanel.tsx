@@ -174,7 +174,7 @@ export function PreviewPanel({
 
           <div className="mb-4">
             <button
-              onClick={handleStartGenerationSafe}   {/* ✅ FIX MAJEUR */}
+              onClick={handleStartGenerationSafe}
               disabled={isGenerating}
               className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg flex items-center justify-center gap-3 shadow-lg"
             >
