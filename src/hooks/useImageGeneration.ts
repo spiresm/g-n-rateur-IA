@@ -16,65 +16,67 @@ export function useImageGeneration() {
 
       setIsGenerating(true);
       setError(null);
-      setProgress(5);
       setGeneratedImage(null);
+      setProgress(5);
 
       try {
-        // 1️⃣ Submit → backend / ComfyUI
+        // 1️⃣ Submit
         const { prompt_id, client_id } = await api.generateImage(workflow, params);
-
         if (!prompt_id || !client_id) {
-          throw new Error("Échec de soumission à ComfyUI (prompt_id manquant)");
+          throw new Error("Échec de soumission ComfyUI");
         }
 
-        // 2️⃣ Progression simulée continue (UX fluide)
+        // 2️⃣ Progression simulée (jusqu’à 85%)
         progressTimerRef.current = window.setInterval(() => {
-          setProgress((p) => {
-            if (p < 85) return p + 3;
-            return p;
-          });
-        }, 600);
+          setProgress((p) => (p < 85 ? p + 2 : p));
+        }, 700);
 
-        // 3️⃣ WebSocket = signal de fin ComfyUI
-        const ws = new WebSocket(
-          `${api.wsBaseUrl}/ws/progress/${client_id}`
-        );
+        // 3️⃣ WebSocket ComfyUI
+        const ws = new WebSocket(`${api.wsBaseUrl}/ws/progress/${client_id}`);
         wsRef.current = ws;
 
-        ws.onmessage = async () => {
-          // ComfyUI a fini (peu importe le type exact de message)
-          if (progressTimerRef.current) {
-            clearInterval(progressTimerRef.current);
-            progressTimerRef.current = null;
+        ws.onmessage = async (event) => {
+          let data: any;
+          try {
+            data = JSON.parse(event.data);
+          } catch {
+            return;
           }
 
-          setProgress(95);
+          // Ignore messages non pertinents
+          if (!data?.type) return;
+          if (data.type === "executing") return;
+          if (data.type === "keepalive") return;
 
-          ws.close();
-          wsRef.current = null;
+          // ✅ FIN RÉELLE
+          if (data.type === "executed") {
+            if (progressTimerRef.current) {
+              clearInterval(progressTimerRef.current);
+              progressTimerRef.current = null;
+            }
 
-          // 4️⃣ Récupération image finale
-          const res = await api.getResult(prompt_id);
-          if (!res?.image_base64) {
-            throw new Error("Image absente après exécution ComfyUI");
+            setProgress(95);
+
+            ws.close();
+            wsRef.current = null;
+
+            // 4️⃣ Récupération image
+            const res = await api.getResult(prompt_id);
+            if (!res?.image_base64) {
+              throw new Error("Image absente après exécution");
+            }
+
+            setGeneratedImage(`data:image/png;base64,${res.image_base64}`);
+            setProgress(100);
+            setIsGenerating(false);
           }
-
-          setGeneratedImage(`data:image/png;base64,${res.image_base64}`);
-          setProgress(100);
-          setIsGenerating(false);
         };
 
         ws.onerror = () => {
           throw new Error("Erreur WebSocket ComfyUI");
         };
 
-        ws.onclose = () => {
-          wsRef.current = null;
-        };
-
       } catch (err: any) {
-        console.error("[useImageGeneration]", err);
-
         if (progressTimerRef.current) {
           clearInterval(progressTimerRef.current);
           progressTimerRef.current = null;
@@ -85,7 +87,7 @@ export function useImageGeneration() {
           wsRef.current = null;
         }
 
-        setError(err.message || "Erreur lors de la génération");
+        setError(err.message || "Erreur génération");
         setIsGenerating(false);
       }
     },
