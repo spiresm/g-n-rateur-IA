@@ -66,7 +66,7 @@ export function AppContent() {
       const newImg: GeneratedImage = {
         id: Date.now().toString(),
         imageUrl: generatedImage,
-        params: { prompt: generatedPrompt } as any,
+        params: { final_prompt: generatedPrompt } as any,
         timestamp: new Date()
       };
       setCurrentImage(newImg);
