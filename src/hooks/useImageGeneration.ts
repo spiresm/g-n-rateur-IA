@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { api } from '../services/api';
+import { useState, useCallback } from "react";
+import { api } from "../services/api";
 
 export function useImageGeneration() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -7,69 +7,54 @@ export function useImageGeneration() {
   const [error, setError] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
 
-  const startGeneration = useCallback(
-    async (workflow: string, params: any, userEmail?: string) => {
-      if (isGenerating) return;
+  const startGeneration = useCallback(async (workflow: string, params: any) => {
+    if (isGenerating) return;
 
-      setIsGenerating(true);
-      setError(null);
-      setProgress(10);
+    setIsGenerating(true);
+    setError(null);
+    setProgress(0);
 
-      try {
-        // 1️⃣ Submit ComfyUI job
-        const response = await api.generateImage(workflow, params, userEmail);
+    try {
+      // 1️⃣ Submit
+      const { prompt_id, client_id } = await api.generateImage(workflow, params);
+      if (!prompt_id || !client_id) throw new Error("Submit failed");
 
-        if (!response?.prompt_id) {
-          throw new Error("Aucun prompt_id reçu du serveur.");
+      // 2️⃣ WebSocket progress réel
+      const ws = new WebSocket(
+        `${api.wsBaseUrl}/ws/progress/${client_id}`
+      );
+
+      ws.onmessage = async (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "progress") {
+          setProgress(Math.round(data.value * 100));
         }
 
-        const promptId = response.prompt_id;
-        setProgress(30);
+        if (data.type === "executed") {
+          ws.close();
 
-        // 2️⃣ Attente du résultat (polling simple)
-        let imageBase64: string | null = null;
-
-        for (let i = 0; i < 60; i++) { // ~90s max
-          await new Promise(res => setTimeout(res, 1500));
-
-          try {
-            const result = await api.getResult(promptId);
-            if (result?.image_base64) {
-              imageBase64 = result.image_base64;
-              break;
-            }
-          } catch {
-            // image pas encore prête → on continue
+          // 3️⃣ Image finale
+          const res = await api.getResult(prompt_id);
+          if (!res?.image_base64) {
+            throw new Error("Image absente");
           }
 
-          setProgress(30 + Math.min(i * 1.2, 60));
+          setGeneratedImage(`data:image/png;base64,${res.image_base64}`);
+          setProgress(100);
+          setIsGenerating(false);
         }
+      };
 
-        if (!imageBase64) {
-          throw new Error("L'image n'est pas prête après le délai imparti.");
-        }
+      ws.onerror = () => {
+        throw new Error("WebSocket error");
+      };
 
-        setGeneratedImage(`data:image/png;base64,${imageBase64}`);
-        setProgress(100);
-
-        // Rafraîchir le quota après succès
-        if (typeof window !== 'undefined' && (window as any).refreshQuota) {
-          (window as any).refreshQuota();
-        }
-
-      } catch (err: any) {
-        const errorMessage = err.message?.includes('500')
-          ? "Erreur Serveur (500) : le générateur est peut-être saturé."
-          : (err.message || "Une erreur est survenue lors de la génération.");
-
-        setError(errorMessage);
-        console.error("[HOOK] Erreur détaillée:", err);
-      } finally {
-        setIsGenerating(false);
-      }
-    },
-    [isGenerating]
-  );
+    } catch (err: any) {
+      setError(err.message || "Erreur génération");
+      setIsGenerating(false);
+    }
+  }, [isGenerating]);
 
   return {
     startGeneration,
