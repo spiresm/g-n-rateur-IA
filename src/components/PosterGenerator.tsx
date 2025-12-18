@@ -573,18 +573,35 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     titleStyle
   };
 
-  const genParams: GenerationParams = {
-    final_prompt: prompt,
-    negativePrompt: 'low quality, blurry, distorted text, bad anatomy',
-    steps: 9,
-    cfg: 1,
-    seed: Math.floor(Math.random() * 1_000_000),
-    sampler: 'res_multistep',
-    scheduler: 'simple',
-    denoise: 1.0,
-    width: imageDimensions?.width || 1024,
-    height: imageDimensions?.height || 1792
-  };
+  const finalWidth =
+  typeof imageDimensions?.width === 'number'
+    ? imageDimensions.width
+    : 1080;
+
+const finalHeight =
+  typeof imageDimensions?.height === 'number'
+    ? imageDimensions.height
+    : 1080;
+
+const genParams: GenerationParams = {
+  final_prompt: prompt,
+  negativePrompt: 'low quality, blurry, distorted text, bad anatomy',
+  steps: 9,
+  cfg: 1,
+  seed: Math.floor(Math.random() * 1_000_000),
+  sampler: 'res_multistep',
+  scheduler: 'simple',
+  denoise: 1.0,
+  width: finalWidth,
+  height: finalHeight,
+};
+
+console.log(
+  '[POSTER_GENERATOR] 🖼️ FORMAT UTILISÉ:',
+  finalWidth,
+  'x',
+  finalHeight
+);
 
   console.log('[POSTER_GENERATOR] 🚀 Génération avec prompt ACTUEL:', prompt.slice(0, 120) + '...');
 
