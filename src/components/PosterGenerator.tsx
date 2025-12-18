@@ -17,7 +17,7 @@ const randomData = {
   environnements: ["sous la pleine lune", "dans une tempête de neige", "au sommet d'une montagne", "au fond de l'océan", "dans le désert"]
 };
 
-// Utilisation d'un export nommé pour correspondre à l'import dans AppContent
+// CORRECTION : Suppression du 'default' pour corriger l'erreur de build Netlify
 export function PosterGenerator({
   onGenerate,
   isGenerating,
@@ -34,7 +34,6 @@ export function PosterGenerator({
   const [composition, setComposition] = useState('Central');
   const [additionalDetails, setAdditionalDetails] = useState('');
 
-  // Fonction de construction du prompt
   const generatePromptText = () => {
     return `Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
 NO TEXT MODE:
@@ -43,12 +42,12 @@ Visual elements: ${title || 'Epic scene'} - ${subject || 'Stunning visuals'} - $
 Style: ${posterStyle}, ${lighting} lighting, ${composition} composition.`;
   };
 
-  // Met à jour le prompt dans le parent dès qu'un champ change
+  // Met à jour le prompt temps réel pour la prévisualisation
   useEffect(() => {
     if (onPromptGenerated) {
       onPromptGenerated(generatePromptText());
     }
-  }, [title, subject, environment, posterStyle, lighting, composition, onPromptGenerated]);
+  }, [title, subject, environment, posterStyle, lighting, composition]);
 
   const handleStartGeneration = () => {
     const finalPrompt = generatePromptText();
@@ -74,12 +73,12 @@ Style: ${posterStyle}, ${lighting} lighting, ${composition} composition.`;
     }
   };
 
-  // Envoie la fonction de déclenchement au bouton jaune du parent
+  // Envoie la fonction au bouton jaune (Parent)
   useEffect(() => {
     if (onGetGenerateFunction) {
       onGetGenerateFunction(handleStartGeneration);
     }
-    // Dépendances incluses pour que le bouton jaune utilise les données à jour
+    // Dépendances ajoutées pour que la fonction envoyée au parent soit toujours à jour
   }, [title, subject, environment, posterStyle, lighting, composition, additionalDetails, onGetGenerateFunction]);
 
   const handleRandomize = () => {
@@ -135,7 +134,7 @@ Style: ${posterStyle}, ${lighting} lighting, ${composition} composition.`;
               <select 
                 value={posterStyle} 
                 onChange={(e) => setPosterStyle(e.target.value)} 
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none appearance-none cursor-pointer"
+                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none"
               >
                 <option value="Cinematic">Cinématique</option>
                 <option value="Cyberpunk">Cyberpunk</option>
