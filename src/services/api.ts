@@ -1,28 +1,13 @@
 const BACKEND_URL = 'https://g-n-rateur-backend-1.onrender.com';
-const SUPABASE_FUNCTION_URL = 'https://brwljqgvagddaydlctrz.supabase.co/functions/v1/make-server-52811d4b';
 
 export const api = {
-  // ✅ Cette fonction doit exister pour corriger l'erreur AppContent.tsx:51
   async getWorkflows() {
     try {
       const response = await fetch(`${BACKEND_URL}/workflows`);
-      if (!response.ok) return [];
-      return await response.json();
+      return response.ok ? await response.json() : [];
     } catch (e) {
-      console.error("Erreur workflows:", e);
       return [];
     }
-  },
-
-  async getUserQuota(email: string, token: string) {
-    const response = await fetch(`${SUPABASE_FUNCTION_URL}/quota/${encodeURIComponent(email)}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    if (!response.ok) throw new Error('Erreur quota: ' + response.status);
-    return response.json();
   },
 
   async generateImage(formData: FormData, token?: string) {
@@ -38,8 +23,9 @@ export const api = {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      // ✅ Affiche l'erreur ComfyUI si elle existe
-      throw new Error(data.error || `Erreur serveur : ${response.status}`);
+      // ✅ Log pour voir si le serveur envoie un détail technique
+      console.error("DEBUG SERVER ERROR:", data);
+      throw new Error(data.error || `Erreur GPU : ${response.status}`);
     }
     return data;
   }
