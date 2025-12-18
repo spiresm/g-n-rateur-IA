@@ -4,7 +4,7 @@ import { AppContent } from './components/AppContent';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 export interface GenerationParams {
-  prompt: string;
+  final_prompt: string;
   negativePrompt: string;
   steps: number;
   cfg: number;
