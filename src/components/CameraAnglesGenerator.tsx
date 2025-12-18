@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Upload, Camera, X } from 'lucide-react';
 
 type CameraAngle = {
@@ -20,19 +20,16 @@ const CAMERA_ANGLES: CameraAngle[] = [
 ];
 
 interface CameraAnglesGeneratorProps {
-  onGenerate: (params: {
-    workflowType: 'camera-angles'; // Type littéral strict
-    selectedAngle: string;
-    promptNode: string;
-    seed: number;
-    steps: number;
-    cfg: number;
-    imageFile: File;
-  }) => void;
+  onGenerate: (params: any) => void;
   isGenerating: boolean;
+  onGetGenerateFunction?: (fn: () => void) => void; // Ajout pour le bouton jaune
 }
 
-export function CameraAnglesGenerator({ onGenerate, isGenerating }: CameraAnglesGeneratorProps) {
+export function CameraAnglesGenerator({ 
+  onGenerate, 
+  isGenerating, 
+  onGetGenerateFunction 
+}: CameraAnglesGeneratorProps) {
   const [selectedAngle, setSelectedAngle] = useState<CameraAngle>(CAMERA_ANGLES[0]);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -56,144 +53,111 @@ export function CameraAnglesGenerator({ onGenerate, isGenerating }: CameraAngles
     setImageFile(null);
   };
 
+  // La fonction qui sera appelée par le bouton jaune du parent
   const handleGenerate = () => {
     if (!imageFile) {
-      alert('Veuillez uploader une image avant de générer.');
+      alert('Veuillez uploader une image source pour changer l\'angle.');
       return;
     }
 
-    // Générer un seed aléatoire
-    const seed = Math.floor(Math.random() * 1000000000000000);
+    const seed = Math.floor(Math.random() * 1000000000);
 
     onGenerate({
       workflowType: 'camera-angles',
       selectedAngle: selectedAngle.id,
       promptNode: selectedAngle.promptNode,
       seed,
-      steps: 4, // Fixé à 4 pour ce workflow
-      cfg: 1, // Fixé à 1 pour ce workflow
-      imageFile,
+      steps: 4,
+      cfg: 1,
+      imageFile, // L'image est envoyée ici
     });
   };
 
+  // CRUCIAL : Liaison avec le bouton jaune d'AppContent
+  useEffect(() => {
+    if (onGetGenerateFunction) {
+      onGetGenerateFunction(handleGenerate);
+    }
+  }, [selectedAngle, imageFile, onGetGenerateFunction]);
+
   return (
-    <div className="h-full bg-gray-900 rounded-lg">
-      <div className="h-full overflow-y-auto p-6">
-        <div className="space-y-6">
-          {/* En-tête */}
-          <div className="flex items-center gap-3 pb-4 border-b border-gray-700">
-            <Camera className="w-6 h-6 text-purple-400" />
-            <div>
-              <h2 className="text-white text-lg">Angles de Caméra</h2>
-              <p className="text-gray-400 text-sm">Uploadez une image et choisissez un angle</p>
-            </div>
+    <div className="h-full bg-[#0f1117] p-6 overflow-y-auto custom-scrollbar">
+      <div className="space-y-6">
+        {/* En-tête */}
+        <div className="flex items-center gap-3 pb-4 border-b border-gray-800">
+          <Camera className="w-6 h-6 text-purple-400" />
+          <div>
+            <h2 className="text-white text-lg font-bold">Angles de Caméra (Qwen)</h2>
+            <p className="text-gray-500 text-sm">Réorientez votre image source</p>
           </div>
+        </div>
 
-          {/* Zone d'upload */}
-          <div className="space-y-3">
-            <label className="text-gray-300 text-sm block">Image Source</label>
-            
-            {!uploadedImage ? (
-              <label className="block w-full aspect-square max-h-[300px] cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  disabled={isGenerating}
-                />
-                <div className="w-full h-full border-2 border-dashed border-gray-600 rounded-lg hover:border-purple-500 transition-colors flex flex-col items-center justify-center gap-3 bg-gray-800/50">
-                  <Upload className="w-12 h-12 text-gray-500" />
-                  <div className="text-center px-4">
-                    <p className="text-gray-300 mb-1">Cliquez pour uploader</p>
-                    <p className="text-gray-500 text-xs">PNG, JPG jusqu'à 10MB</p>
-                  </div>
+        {/* Zone d'upload */}
+        <div className="space-y-3">
+          <label className="text-gray-400 text-xs uppercase font-bold tracking-wider">Image Source</label>
+          
+          {!uploadedImage ? (
+            <label className="block w-full aspect-video cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                disabled={isGenerating}
+              />
+              <div className="w-full h-full border-2 border-dashed border-gray-700 rounded-2xl hover:border-purple-500/50 hover:bg-purple-500/5 transition-all flex flex-col items-center justify-center gap-3 bg-gray-900/50">
+                <Upload className="w-10 h-10 text-gray-600" />
+                <div className="text-center">
+                  <p className="text-gray-400 text-sm">Cliquez pour uploader l'image</p>
+                  <p className="text-gray-600 text-xs mt-1">L'IA va générer l'angle choisi à partir de celle-ci</p>
                 </div>
-              </label>
-            ) : (
-              <div className="relative aspect-square max-h-[300px] rounded-lg overflow-hidden bg-gray-800">
-                <img 
-                  src={uploadedImage} 
-                  alt="Uploaded" 
-                  className="w-full h-full object-contain"
-                />
-                <button
-                  onClick={handleRemoveImage}
-                  disabled={isGenerating}
-                  className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition-colors disabled:opacity-50"
-                  title="Supprimer l'image"
-                >
-                  <X className="w-4 h-4" />
-                </button>
               </div>
-            )}
-          </div>
-
-          {/* Sélection de l'angle */}
-          <div className="space-y-3">
-            <label className="text-gray-300 text-sm block">Angle de Caméra</label>
-            <div className="grid grid-cols-2 gap-2">
-              {CAMERA_ANGLES.map((angle) => (
-                <button
-                  key={angle.id}
-                  onClick={() => setSelectedAngle(angle)}
-                  disabled={isGenerating}
-                  className={`p-3 rounded-lg transition-all text-left border-2 ${
-                    selectedAngle.id === angle.id
-                      ? 'bg-purple-600 border-purple-500 text-white'
-                      : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500'
-                  } disabled:opacity-50`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{angle.icon}</span>
-                    <span className="text-sm">{angle.label}</span>
-                  </div>
-                </button>
-              ))}
+            </label>
+          ) : (
+            <div className="relative aspect-video rounded-2xl overflow-hidden bg-black border border-gray-700 shadow-2xl">
+              <img 
+                src={uploadedImage} 
+                alt="Source" 
+                className="w-full h-full object-contain"
+              />
+              <button
+                onClick={handleRemoveImage}
+                disabled={isGenerating}
+                className="absolute top-3 right-3 bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-xl backdrop-blur-md transition-all shadow-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Info technique */}
-          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
-            <h3 className="text-gray-300 text-sm mb-2">Paramètres Techniques</h3>
-            <div className="space-y-1 text-xs text-gray-400">
-              <div className="flex justify-between">
-                <span>Steps:</span>
-                <span className="text-gray-300">4 (fixe)</span>
-              </div>
-              <div className="flex justify-between">
-                <span>CFG Scale:</span>
-                <span className="text-gray-300">1.0 (fixe)</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Sampler:</span>
-                <span className="text-gray-300">Euler</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Modèle:</span>
-                <span className="text-gray-300">Qwen Image Edit</span>
-              </div>
-            </div>
+        {/* Sélection de l'angle */}
+        <div className="space-y-3">
+          <label className="text-gray-400 text-xs uppercase font-bold tracking-wider">Choisir le nouvel angle</label>
+          <div className="grid grid-cols-2 gap-3">
+            {CAMERA_ANGLES.map((angle) => (
+              <button
+                key={angle.id}
+                onClick={() => setSelectedAngle(angle)}
+                disabled={isGenerating}
+                className={`p-4 rounded-xl transition-all text-left border-2 flex items-center gap-3 ${
+                  selectedAngle.id === angle.id
+                    ? 'bg-purple-600/20 border-purple-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.2)]'
+                    : 'bg-gray-900 border-gray-800 text-gray-400 hover:border-gray-600'
+                } disabled:opacity-40`}
+              >
+                <span className="text-2xl">{angle.icon}</span>
+                <span className="text-sm font-medium">{angle.label}</span>
+              </button>
+            ))}
           </div>
+        </div>
 
-          {/* Bouton Générer */}
-          <button
-            onClick={handleGenerate}
-            disabled={!uploadedImage || isGenerating}
-            className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 disabled:from-gray-700 disabled:to-gray-700 text-white py-4 rounded-lg transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isGenerating ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Génération en cours...
-              </span>
-            ) : (
-              <span className="flex items-center justify-center gap-2">
-                <Camera className="w-5 h-5" />
-                Générer l'Angle
-              </span>
-            )}
-          </button>
+        {/* Note informative */}
+        <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl">
+           <p className="text-blue-400 text-xs leading-relaxed">
+             <strong>Info :</strong> Ce workflow utilise l'IA Qwen pour ré-imaginer votre image sous une perspective différente. La cohérence dépend de la complexité de l'image source.
+           </p>
         </div>
       </div>
     </div>
