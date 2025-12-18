@@ -19,14 +19,12 @@ interface QuotaDisplayProps {
 }
 
 export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
-  // ✅ Récupération du token depuis le contexte d'auth
   const { user, token } = useAuth();
   const [quota, setQuota] = useState<QuotaInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [systemEnabled, setSystemEnabled] = useState(true);
 
   const fetchQuota = useCallback(async () => {
-    // ✅ On vérifie qu'on a bien l'email ET le token
     if (!user?.email || !token) return;
 
     try {
@@ -36,16 +34,12 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
         {
           headers: {
             'Content-Type': 'application/json',
-            // ✅ AJOUT DU TOKEN : C'est ce qui corrige l'erreur 401
             'Authorization': `Bearer ${token}`
           },
         }
       );
 
       if (!response.ok) {
-        if (response.status === 401) {
-          console.error('❌ Erreur 401 : Jeton d\'authentification invalide ou manquant.');
-        }
         setSystemEnabled(false);
         setLoading(false);
         return;
@@ -55,12 +49,11 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
       setQuota(data);
       setSystemEnabled(true);
     } catch (error) {
-      console.warn('⚠️ Erreur réseau ou système de quota non configuré.');
+      console.warn('⚠️ Système de quota non configuré.');
       setSystemEnabled(false);
     } finally {
       setLoading(false);
     }
-    // ✅ Ajout de token dans les dépendances du callback
   }, [user?.email, token]);
 
   useEffect(() => {
@@ -69,7 +62,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
     }
   }, [user?.email, token, fetchQuota]);
 
-  // Expose la fonction de rafraîchissement au besoin
+  // Expose la fonction globalement pour rafraîchir après une génération
   useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as any).refreshQuota = fetchQuota;
@@ -83,60 +76,75 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
 
   if (!systemEnabled) return null;
 
+  // État de chargement (Rectangle gris animé)
   if (loading || !quota) {
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800/50 animate-pulse">
-        <div className="w-20 h-4 bg-gray-700 rounded"></div>
+      <div className="flex flex-col items-end gap-1 px-3 animate-pulse">
+        <div className="w-12 h-3 bg-gray-700 rounded"></div>
+        <div className="w-20 h-1.5 bg-gray-700 rounded-full"></div>
       </div>
     );
   }
 
-  // --- RENDU UI (Premium ou Standard) ---
+  // --- RENDU UI PREMIUM ---
   if (quota.is_premium) {
     return (
-      <div className="flex items-center gap-2">
-        <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 px-3 py-1.5">
-          <Sparkles className="w-3 h-3 mr-1.5" />
+      <div className="flex flex-col items-end gap-1 pr-2">
+        <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 px-2 py-0.5 text-[10px]">
+          <Sparkles className="w-3 h-3 mr-1" />
           {quota.subscription_type.toUpperCase()}
         </Badge>
-        <div className="text-sm text-gray-400">∞ générations</div>
+        <div className="text-[10px] text-gray-400 font-medium">Générations illimitées</div>
       </div>
     );
   }
 
-  const remaining = quota.remaining as number;
-  const percentUsed = (quota.used / quota.limit) * 100;
+  // --- RENDU UI STANDARD (Crédits restants) ---
+  const remaining = typeof quota.remaining === 'number' ? quota.remaining : 0;
+  const limit = quota.limit || 10;
+  // Calcul du pourcentage : On veut montrer ce qu'il RESTE
+  const progressPercent = (remaining / limit) * 100;
+  
   const isLow = remaining <= 2;
   const isEmpty = remaining === 0;
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800/50 border border-gray-700 shadow-sm">
-        <div className="flex flex-col items-end">
-          <div className={`text-sm font-bold ${isEmpty ? 'text-red-400' : isLow ? 'text-yellow-400' : 'text-green-400'}`}>
-            {remaining}/{quota.limit}
-          </div>
-          <div className="text-[10px] uppercase tracking-wider text-gray-500">Crédits</div>
+      <div 
+        onClick={onUpgradeClick}
+        className="flex flex-col items-end cursor-pointer group"
+      >
+        <div className="flex items-center gap-2 mb-0.5">
+          <span className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter group-hover:text-gray-400 transition-colors">
+            Crédits
+          </span>
+          <span className={`text-sm font-black tracking-tight ${
+            isEmpty ? 'text-red-500' : isLow ? 'text-yellow-500' : 'text-white'
+          }`}>
+            {remaining} / {limit}
+          </span>
         </div>
         
-        <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+        {/* Barre de progression visuelle */}
+        <div className="w-20 sm:w-24 h-1.5 bg-gray-700 rounded-full overflow-hidden border border-gray-600/30">
           <div 
-            className={`h-full transition-all duration-500 ${
-              isEmpty ? 'bg-red-500' : isLow ? 'bg-yellow-500' : 'bg-green-500'
+            className={`h-full transition-all duration-700 ease-out ${
+              isEmpty ? 'bg-red-600' : isLow ? 'bg-yellow-500' : 'bg-gradient-to-r from-green-500 to-emerald-400'
             }`}
-            style={{ width: `${(remaining / quota.limit) * 100}%` }}
+            style={{ width: `${Math.min(100, progressPercent)}%` }}
           />
         </div>
       </div>
 
-      {(isEmpty || isLow) && (
+      {/* Petit bouton d'urgence si plus de crédits */}
+      {isEmpty && (
         <Button
           onClick={onUpgradeClick}
           size="sm"
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 h-8 gap-1.5"
+          className="bg-red-600 hover:bg-red-700 text-white border-0 h-7 px-2 text-[10px] font-bold animate-bounce"
         >
-          <CreditCard className="w-3.5 h-3.5" />
-          {isEmpty ? 'Premium' : 'Upgrade'}
+          <CreditCard className="w-3 h-3 mr-1" />
+          RECHARGER
         </Button>
       )}
     </div>
