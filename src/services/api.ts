@@ -17,16 +17,25 @@ export const api = {
 
   /**
    * 🔑 Génération image ComfyUI
-   * ⚠️ formData DOIT contenir :
+   * params DOIT contenir :
    * - final_prompt (obligatoire)
    * - width
    * - height
    */
-  async generateImage(workflow: string, formData: FormData, token?: string) {
-    // 🔒 Vérification côté front (évite bugs silencieux)
-    if (!formData.has("final_prompt")) {
-      throw new Error("final_prompt manquant dans FormData (générateur d’affiches ludiques)");
+  async generateImage(workflow: string, params: any, token?: string) {
+    // ✅ Construction du FormData ICI (et pas ailleurs)
+    if (!params || !params.final_prompt) {
+      throw new Error(
+        "final_prompt manquant (générateur d’affiches ludiques)"
+      );
     }
+
+    const formData = new FormData();
+    formData.append("final_prompt", params.final_prompt);
+
+    if (params.width) formData.append("width", String(params.width));
+    if (params.height) formData.append("height", String(params.height));
+    if (params.seed) formData.append("seed", String(params.seed));
 
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -45,15 +54,18 @@ export const api = {
     try {
       data = await response.json();
     } catch {
-      // réponse vide ou non-JSON
+      // réponse vide ou non JSON
     }
 
     if (!response.ok) {
       console.error("DEBUG SERVER ERROR:", data);
-      throw new Error(data.error || `Erreur serveur (${response.status})`);
+      throw new Error(
+        data.error || `Erreur serveur (${response.status})`
+      );
     }
 
-    return data; // { prompt_id, client_id }
+    // attendu : { prompt_id, client_id }
+    return data;
   },
 
   /**
@@ -62,7 +74,9 @@ export const api = {
   async getResult(promptId: string) {
     const response = await fetch(
       `${BACKEND_URL}/result/${promptId}`,
-      { credentials: "include" }
+      {
+        credentials: "include",
+      }
     );
 
     if (!response.ok) {
