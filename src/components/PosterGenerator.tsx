@@ -549,49 +549,18 @@ Premium poster design, professional layout, ultra high resolution, visually stri
 
   // ✅ Fonction de génération stable (pas de callback obsolète)
   const handleStartGeneration = useCallback(() => {
-    const prompt = generatePrompt();
+  const prompt = generatePrompt();
+  if (!prompt) {
+    console.warn('[POSTER_GENERATOR] Prompt vide – génération annulée');
+    return;
+  }
 
-    const posterParams: PosterParams = {
-      title,
-      subtitle,
-      tagline,
-      occasion: occasion === 'Choisir...' ? customOccasion : occasion,
-      ambiance: ambiance === 'Choisir...' ? customAmbiance : ambiance,
-      mainCharacter,
-      characterDescription,
-      environment,
-      environmentDescription,
-      characterAction,
-      actionDescription,
-      additionalDetails,
-      colorPalette: colorPalette === 'Choisir...' ? customPalette : colorPalette,
-      titleStyle
-    };
-
-    const genParams: GenerationParams = {
-      prompt,
-      negativePrompt: 'low quality, blurry, distorted text, bad anatomy',
-      steps: 9,
-      cfg: 1,
-      seed: Math.floor(Math.random() * 1000000),
-      sampler: 'res_multistep',
-      scheduler: 'simple',
-      denoise: 1.0,
-      width: imageDimensions?.width || 1024,
-      height: imageDimensions?.height || 1792
-    };
-
-    console.log('[POSTER_GENERATOR] 🚀 Génération avec prompt ACTUEL:', prompt.substring(0, 100) + '...');
-    onGenerate(posterParams, genParams);
-  }, [
-    generatePrompt,
+  const posterParams: PosterParams = {
     title,
     subtitle,
     tagline,
-    occasion,
-    customOccasion,
-    ambiance,
-    customAmbiance,
+    occasion: occasion === 'Choisir...' ? customOccasion : occasion,
+    ambiance: ambiance === 'Choisir...' ? customAmbiance : ambiance,
     mainCharacter,
     characterDescription,
     environment,
@@ -599,11 +568,52 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     characterAction,
     actionDescription,
     additionalDetails,
-    colorPalette,
-    customPalette,
-    titleStyle,
-    imageDimensions,
-    onGenerate
+    colorPalette: colorPalette === 'Choisir...' ? customPalette : colorPalette,
+    titleStyle
+  };
+
+  const genParams: GenerationParams = {
+    prompt,
+    negativePrompt: 'low quality, blurry, distorted text, bad anatomy',
+    steps: 9,
+    cfg: 1,
+    seed: Math.floor(Math.random() * 1_000_000),
+    sampler: 'res_multistep',
+    scheduler: 'simple',
+    denoise: 1.0,
+    width: imageDimensions?.width || 1024,
+    height: imageDimensions?.height || 1792
+  };
+
+  console.log('[POSTER_GENERATOR] 🚀 Génération avec prompt ACTUEL:', prompt.slice(0, 120) + '...');
+
+  if (typeof onGenerate === 'function') {
+    onGenerate(posterParams, genParams);
+  } else {
+    console.warn('[POSTER_GENERATOR] onGenerate invalide', onGenerate);
+  }
+}, [
+  generatePrompt,
+  title,
+  subtitle,
+  tagline,
+  occasion,
+  customOccasion,
+  ambiance,
+  customAmbiance,
+  mainCharacter,
+  characterDescription,
+  environment,
+  environmentDescription,
+  characterAction,
+  actionDescription,
+  additionalDetails,
+  colorPalette,
+  customPalette,
+  titleStyle,
+  imageDimensions,
+  onGenerate
+]);
   ]);
 
   // ✅ Exposer la fonction de génération au parent (toujours à jour)
