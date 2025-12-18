@@ -781,103 +781,227 @@ console.log(
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Environnement</label>
-              <select
-  value={environment}
-  onChange={(e) => {
-    setEnvironment(e.target.value);
-    setEnvironmentDescription(''); // ✅ reset champ libre
-  }}
-  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
-  disabled={isGenerating}
->
-  {environments.map((e1) => (
-    <option key={e1} value={e1}>{e1}</option>
-  ))}
-</select>
+                <label className="block text-sm text-gray-300 mb-2">Environnement</label>
 
-<input
-  type="text"
-  value={environmentDescription}
-  onChange={(e) => {
-    setEnvironmentDescription(e.target.value);
-    setEnvironment('Choisir...'); // ✅ reset select
-  }}
-  placeholder="Description personnelle..."
-  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
-             text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
-             focus:border-transparent text-sm"
-  disabled={isGenerating}
-              />
-            </div>
+  <select
+    value={environment}
+    onChange={(e) => {
+      setEnvironment(e.target.value);
+      setEnvironmentDescription("");
+    }}
+    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+               text-white focus:ring-2 focus:ring-purple-500
+               focus:border-transparent text-sm mb-2"
+    disabled={isGenerating}
+  >
+    <option value="Choisir...">Choisir...</option>
+    {environments.map((env) => (
+      <option key={env} value={env}>{env}</option>
+    ))}
+  </select>
 
-            <div>
-              <label className="block text-sm text-gray-300 mb-2">Action</label>
-              <select
-                value={characterAction}
-                onChange={(e) => setCharacterAction(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
-                disabled={isGenerating}
-              >
-                {actions.map((a) => (
-                  <option key={a} value={a}>{a}</option>
-                ))}
-              </select>
-              <input
-                type="text"
-                value={actionDescription}
-                onChange={(e) => setActionDescription(e.target.value)}
-                placeholder="Description personnelle..."
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                disabled={isGenerating}
-              />
-            </div>
+  <input
+    type="text"
+    value={environmentDescription}
+    onChange={(e) => {
+      setEnvironmentDescription(e.target.value.toUpperCase());
+      setEnvironment("Choisir...");
+    }}
+    placeholder="ENVIRONNEMENT PERSONNALISÉ"
+    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+               text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
+               focus:border-transparent text-sm uppercase"
+    disabled={isGenerating}
+  />
+</div>
 
-            <div>
-              <label className="block text-sm text-gray-300 mb-2">Palette de Couleurs</label>
-              <select
-                value={colorPalette}
-                onChange={(e) => setColorPalette(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
-                disabled={isGenerating}
-              >
-                {palettes.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-              <input
-                type="text"
-                value={customPalette}
-                onChange={(e) => setCustomPalette(e.target.value)}
-                placeholder="Ou palette personnalisée..."
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                disabled={isGenerating}
-              />
-            </div>
+{/* ================================
+   OCCASION
+================================ */}
+<div>
+  <label className="block text-sm text-gray-300 mb-2">Occasion</label>
 
-            <div>
-              <label className="block text-sm text-gray-300 mb-2">Style du Titre</label>
-              <select
-                value={titleStyle}
-                onChange={(e) => setTitleStyle(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                disabled={isGenerating}
-              >
-                {titleStyles.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
+  <select
+    value={occasion}
+    onChange={(e) => {
+      setOccasion(e.target.value);
+      setCustomOccasion("");
+    }}
+    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+               text-white focus:ring-2 focus:ring-purple-500
+               focus:border-transparent text-sm mb-2"
+    disabled={isGenerating}
+  >
+    <option value="Choisir...">Choisir...</option>
+    {occasions.map((o) => (
+      <option key={o} value={o}>{o}</option>
+    ))}
+  </select>
 
-            <div>
-              <label className="block text-sm text-gray-300 mb-2">Détails Supplémentaires</label>
-              <textarea
-                value={additionalDetails}
-                onChange={(e) => setAdditionalDetails(e.target.value)}
-                placeholder="Ex: Feux d'artifice, neige..."
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
-                rows={3}
-                disabled={isGenerating}
+  <input
+    type="text"
+    value={customOccasion}
+    onChange={(e) => {
+      setCustomOccasion(e.target.value.toUpperCase());
+      setOccasion("Choisir...");
+    }}
+    placeholder="OCCASION PERSONNALISÉE"
+    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+               text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
+               focus:border-transparent text-sm uppercase"
+    disabled={isGenerating}
+  />
+</div>
+
+{/* ================================
+   AMBIANCE
+================================ */}
+<div>
+  <label className="block text-sm text-gray-300 mb-2">Ambiance</label>
+
+  <select
+    value={ambiance}
+    onChange={(e) => {
+      setAmbiance(e.target.value);
+      setCustomAmbiance("");
+    }}
+    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+               text-white focus:ring-2 focus:ring-purple-500
+               focus:border-transparent text-sm mb-2"
+    disabled={isGenerating}
+  >
+    <option value="Choisir...">Choisir...</option>
+    {ambiances.map((a) => (
+      <option key={a} value={a}>{a}</option>
+    ))}
+  </select>
+
+  <input
+    type="text"
+    value={customAmbiance}
+    onChange={(e) => {
+      setCustomAmbiance(e.target.value.toUpperCase());
+      setAmbiance("Choisir...");
+    }}
+    placeholder="AMBIANCE PERSONNALISÉE"
+    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+               text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
+               focus:border-transparent text-sm uppercase"
+    disabled={isGenerating}
+  />
+</div>
+
+{/* ================================
+   PERSONNAGE PRINCIPAL
+================================ */}
+<div>
+  <label className="block text-sm text-gray-300 mb-2">Personnage principal</label>
+
+  <select
+    value={mainCharacter}
+    onChange={(e) => {
+      setMainCharacter(e.target.value);
+      setCharacterDescription("");
+    }}
+    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+               text-white focus:ring-2 focus:ring-purple-500
+               focus:border-transparent text-sm mb-2"
+    disabled={isGenerating}
+  >
+    <option value="Choisir...">Choisir...</option>
+    {mainCharacters.map((c) => (
+      <option key={c} value={c}>{c}</option>
+    ))}
+  </select>
+
+  <input
+    type="text"
+    value={characterDescription}
+    onChange={(e) => {
+      setCharacterDescription(e.target.value.toUpperCase());
+      setMainCharacter("Choisir...");
+    }}
+    placeholder="DESCRIPTION PERSONNALISÉE"
+    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+               text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
+               focus:border-transparent text-sm uppercase"
+    disabled={isGenerating}
+  />
+</div>
+
+{/* ================================
+   ACTION DU PERSONNAGE
+================================ */}
+<div>
+  <label className="block text-sm text-gray-300 mb-2">Action</label>
+
+  <select
+    value={characterAction}
+    onChange={(e) => {
+      setCharacterAction(e.target.value);
+      setActionDescription("");
+    }}
+    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+               text-white focus:ring-2 focus:ring-purple-500
+               focus:border-transparent text-sm mb-2"
+    disabled={isGenerating}
+  >
+    <option value="Choisir...">Choisir...</option>
+    {actions.map((a) => (
+      <option key={a} value={a}>{a}</option>
+    ))}
+  </select>
+
+  <input
+    type="text"
+    value={actionDescription}
+    onChange={(e) => {
+      setActionDescription(e.target.value.toUpperCase());
+      setCharacterAction("Choisir...");
+    }}
+    placeholder="ACTION PERSONNALISÉE"
+    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+               text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
+               focus:border-transparent text-sm uppercase"
+    disabled={isGenerating}
+  />
+</div>
+
+{/* ================================
+   PALETTE DE COULEURS
+================================ */}
+<div>
+  <label className="block text-sm text-gray-300 mb-2">Palette de couleurs</label>
+
+  <select
+    value={colorPalette}
+    onChange={(e) => {
+      setColorPalette(e.target.value);
+      setCustomPalette("");
+    }}
+    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+               text-white focus:ring-2 focus:ring-purple-500
+               focus:border-transparent text-sm mb-2"
+    disabled={isGenerating}
+  >
+    <option value="Choisir...">Choisir...</option>
+    {colorPalettes.map((p) => (
+      <option key={p} value={p}>{p}</option>
+    ))}
+  </select>
+
+  <input
+    type="text"
+    value={customPalette}
+    onChange={(e) => {
+      setCustomPalette(e.target.value.toUpperCase());
+      setColorPalette("Choisir...");
+    }}
+    placeholder="PALETTE PERSONNALISÉE"
+    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+               text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
+               focus:border-transparent text-sm uppercase"
+    disabled={isGenerating}
               />
             </div>
           </div>
