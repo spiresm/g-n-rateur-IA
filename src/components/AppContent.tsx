@@ -24,6 +24,9 @@ export function AppContent() {
   const { user } = useAuth();
   const { isConfigured, isChecking } = useQuotaSystemStatus();
 
+  // -------------------------
+  // State
+  // -------------------------
   const [workflow, setWorkflow] = useState<WorkflowType>('poster');
   const [workflowToUse, setWorkflowToUse] = useState<string | null>(null);
   const workflowToUseRef = useRef<string | null>(null);
@@ -34,7 +37,9 @@ export function AppContent() {
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
 
-  // ✅ REFS POUR LES CALLBACKS (CORRECTION DÉFINITIVE)
+  // -------------------------
+  // Refs callbacks (SAFE)
+  // -------------------------
   const posterGenerateRef = useRef<null | (() => void)>(null);
   const parametersGenerateRef = useRef<null | (() => void)>(null);
   const cameraAnglesGenerateRef = useRef<null | (() => void)>(null);
@@ -57,7 +62,7 @@ export function AppContent() {
         const selected =
           data?.workflows?.includes('affiche.json')
             ? 'affiche.json'
-            : data?.workflows?.[0];
+            : data?.workflows?.[0] ?? 'affiche.json';
 
         setWorkflowToUse(selected);
         workflowToUseRef.current = selected;
@@ -71,16 +76,22 @@ export function AppContent() {
   // -------------------------
   // Enregistrement callbacks
   // -------------------------
-  const handlePosterGenerateFunctionReceived = useCallback((fn: () => void) => {
-    posterGenerateRef.current = fn;
+  const handlePosterGenerateFunctionReceived = useCallback((fn: unknown) => {
+    if (typeof fn === 'function') {
+      posterGenerateRef.current = fn;
+    }
   }, []);
 
-  const handleParametersGenerateFunctionReceived = useCallback((fn: () => void) => {
-    parametersGenerateRef.current = fn;
+  const handleParametersGenerateFunctionReceived = useCallback((fn: unknown) => {
+    if (typeof fn === 'function') {
+      parametersGenerateRef.current = fn;
+    }
   }, []);
 
-  const handleCameraGenerateFunctionReceived = useCallback((fn: () => void) => {
-    cameraAnglesGenerateRef.current = fn;
+  const handleCameraGenerateFunctionReceived = useCallback((fn: unknown) => {
+    if (typeof fn === 'function') {
+      cameraAnglesGenerateRef.current = fn;
+    }
   }, []);
 
   // -------------------------
@@ -88,11 +99,12 @@ export function AppContent() {
   // -------------------------
   const handleGenerateFromPoster = useCallback(
     async (_params: PosterParams, gen: GenerationParams) => {
-      if (!workflowToUseRef.current) return;
+      const wf = workflowToUseRef.current;
+      if (!wf) return;
 
       clearError();
       await startGeneration(
-        workflowToUseRef.current,
+        wf,
         {
           prompt: gen.prompt,
           negative_prompt: gen.negativePrompt,
@@ -118,69 +130,77 @@ export function AppContent() {
     <>
       <Header />
 
+      {/* Overlay progression */}
       <ProgressOverlay isVisible={isGenerating} progress={progress} />
 
+      {/* Erreur */}
       {error && (
         <div className="fixed top-36 right-4 bg-red-600 text-white px-4 py-2 rounded z-50">
           {error}
         </div>
       )}
 
-      <WorkflowCarousel selectedWorkflow={workflow} onSelectWorkflow={setWorkflow} />
+      {/* ✅ Décalage sous le Header fixed */}
+      <div className="pt-24 sm:pt-32">
+        <WorkflowCarousel
+          selectedWorkflow={workflow}
+          onSelectWorkflow={setWorkflow}
+        />
 
-      <div className="flex">
-        {/* LEFT */}
-        <div className="w-1/2">
-          {workflow === 'poster' && (
-            <PosterGenerator
-              onGenerate={handleGenerateFromPoster}
+        <div className="flex min-h-[calc(100vh-128px)]">
+          {/* LEFT */}
+          <div className="w-1/2 bg-gray-800 border-r border-gray-700">
+            {workflow === 'poster' && (
+              <PosterGenerator
+                onGenerate={handleGenerateFromPoster}
+                isGenerating={isGenerating}
+                onPromptGenerated={setGeneratedPrompt}
+                generatedPrompt={generatedPrompt}
+                imageDimensions={imageDimensions}
+                onGetGenerateFunction={handlePosterGenerateFunctionReceived}
+              />
+            )}
+
+            {workflow === 'parameters' && (
+              <GenerationParameters
+                onGenerate={() => {}}
+                isGenerating={isGenerating}
+                imageDimensions={imageDimensions}
+                onGetGenerateFunction={handleParametersGenerateFunctionReceived}
+              />
+            )}
+
+            {workflow === 'cameraAngles' && (
+              <CameraAnglesGenerator
+                onGenerate={() => {}}
+                isGenerating={isGenerating}
+                onGetGenerateFunction={handleCameraGenerateFunctionReceived}
+              />
+            )}
+          </div>
+
+          {/* RIGHT */}
+          <div className="w-1/2">
+            <PreviewPanel
+              currentImage={currentImage}
+              savedGallery={savedGallery}
               isGenerating={isGenerating}
-              onPromptGenerated={setGeneratedPrompt}
               generatedPrompt={generatedPrompt}
-              imageDimensions={imageDimensions}
-              onGetGenerateFunction={handlePosterGenerateFunctionReceived}
+              onSelectImage={setCurrentImage}
+              onCopyParameters={() => {}}
+              onSaveToGallery={(img) =>
+                setSavedGallery((prev) => [img, ...prev])
+              }
+              onStartGeneration={() => {
+                if (workflow === 'poster') posterGenerateRef.current?.();
+                else if (workflow === 'parameters') parametersGenerateRef.current?.();
+                else if (workflow === 'cameraAngles') cameraAnglesGenerateRef.current?.();
+              }}
+              onFormatChange={(w, h) =>
+                setImageDimensions({ width: w, height: h })
+              }
             />
-          )}
-
-          {workflow === 'parameters' && (
-            <GenerationParameters
-              onGenerate={() => {}}
-              isGenerating={isGenerating}
-              imageDimensions={imageDimensions}
-              onGetGenerateFunction={handleParametersGenerateFunctionReceived}
-            />
-          )}
-
-          {workflow === 'cameraAngles' && (
-            <CameraAnglesGenerator
-              onGenerate={() => {}}
-              isGenerating={isGenerating}
-              onGetGenerateFunction={handleCameraGenerateFunctionReceived}
-            />
-          )}
-        </div>
-
-        {/* RIGHT */}
-        <div className="w-1/2">
-          <PreviewPanel
-            currentImage={currentImage}
-            savedGallery={savedGallery}
-            isGenerating={isGenerating}
-            generatedPrompt={generatedPrompt}
-            onSelectImage={setCurrentImage}
-            onCopyParameters={() => {}}
-            onSaveToGallery={(img) =>
-              setSavedGallery((prev) => [img, ...prev])
-            }
-            onStartGeneration={() => {
-              if (workflow === 'poster') posterGenerateRef.current?.();
-              if (workflow === 'parameters') parametersGenerateRef.current?.();
-              if (workflow === 'cameraAngles') cameraAnglesGenerateRef.current?.();
-            }}
-            onFormatChange={(w, h) =>
-              setImageDimensions({ width: w, height: h })
-            }
-          />
+          </div>
         </div>
       </div>
 
