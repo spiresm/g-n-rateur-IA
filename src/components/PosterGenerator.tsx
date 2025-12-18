@@ -1004,9 +1004,5 @@ console.log(
     disabled={isGenerating}
               />
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }
