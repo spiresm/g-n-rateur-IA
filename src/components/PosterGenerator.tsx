@@ -989,8 +989,8 @@ console.log(
     disabled={isGenerating}
   >
     <option value="Choisir...">Choisir...</option>
-    {colorPalettes.map((p) => (
-      <option key={p} value={p}>{p}</option>
+   {palettes.map((p) => (
+  <option key={p} value={p}>{p}</option>
     ))}
   </select>
 
