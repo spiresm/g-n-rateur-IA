@@ -614,8 +614,7 @@ Premium poster design, professional layout, ultra high resolution, visually stri
   imageDimensions,
   onGenerate
 ]);
-  ]);
-
+    
   // ✅ Exposer la fonction de génération au parent (toujours à jour)
   useEffect(() => {
     if (typeof onGetGenerateFunction === 'function') {
