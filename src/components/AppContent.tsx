@@ -3,6 +3,7 @@ import { useImageGeneration } from '../hooks/useImageGeneration';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuotaSystemStatus } from '../hooks/useQuotaSystemStatus';
 import { api } from '../services/api';
+
 import type {
   GenerationParams,
   PosterParams,
@@ -31,6 +32,11 @@ export function AppContent() {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [imageDimensions, setImageDimensions] = useState({ width: 1024, height: 1024 });
 
+  // 🔒 États OBLIGATOIRES pour PreviewPanel
+  const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
+  const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
+
+  // 🔑 Fonctions de génération (callbacks enfants)
   const [posterGenerateFn, setPosterGenerateFn] = useState<(() => void) | null>(null);
   const [parametersGenerateFn, setParametersGenerateFn] = useState<(() => void) | null>(null);
   const [cameraAnglesGenerateFn, setCameraAnglesGenerateFn] = useState<(() => void) | null>(null);
@@ -44,14 +50,17 @@ export function AppContent() {
     clearError
   } = useImageGeneration();
 
-  // --- Chargement des workflows ---
+  // -------------------------
+  // Chargement des workflows
+  // -------------------------
   useEffect(() => {
     (async () => {
       try {
         const data = await api.getWorkflows();
-        const selected = data?.workflows?.includes('affiche.json')
-          ? 'affiche.json'
-          : data?.workflows?.[0];
+        const selected =
+          data?.workflows?.includes('affiche.json')
+            ? 'affiche.json'
+            : data?.workflows?.[0];
 
         setWorkflowToUse(selected);
         workflowToUseRef.current = selected;
@@ -62,27 +71,34 @@ export function AppContent() {
     })();
   }, []);
 
-  // --- Reset des fonctions quand on change de workflow ---
+  // ----------------------------------
+  // Reset des callbacks au changement
+  // ----------------------------------
   useEffect(() => {
     if (workflow !== 'poster') setPosterGenerateFn(null);
     if (workflow !== 'parameters') setParametersGenerateFn(null);
     if (workflow !== 'cameraAngles') setCameraAnglesGenerateFn(null);
   }, [workflow]);
 
-  // --- Enregistrement des fonctions (CORRECTION CLÉ) ---
+  // ----------------------------------
+  // Enregistrement des callbacks
+  // ✅ CORRECTION CLÉ (setState(() => fn))
+  // ----------------------------------
   const handlePosterGenerateFunctionReceived = useCallback((fn: () => void) => {
-    setPosterGenerateFn(() => fn); // ✅ CORRECTION
+    setPosterGenerateFn(() => fn);
   }, []);
 
   const handleParametersGenerateFunctionReceived = useCallback((fn: () => void) => {
-    setParametersGenerateFn(() => fn); // ✅ CORRECTION
+    setParametersGenerateFn(() => fn);
   }, []);
 
   const handleCameraGenerateFunctionReceived = useCallback((fn: () => void) => {
-    setCameraAnglesGenerateFn(() => fn); // ✅ CORRECTION
+    setCameraAnglesGenerateFn(() => fn);
   }, []);
 
-  // --- Génération ---
+  // -------------------------
+  // Génération POSTER
+  // -------------------------
   const handleGenerateFromPoster = useCallback(
     async (_params: PosterParams, gen: GenerationParams) => {
       if (!workflowToUseRef.current) return;
@@ -108,6 +124,9 @@ export function AppContent() {
     [startGeneration, clearError, user]
   );
 
+  // -------------------------
+  // UI
+  // -------------------------
   return (
     <>
       <Header />
@@ -115,7 +134,7 @@ export function AppContent() {
       <ProgressOverlay isVisible={isGenerating} progress={progress} />
 
       {error && (
-        <div className="fixed top-36 right-4 bg-red-600 text-white px-4 py-2 rounded">
+        <div className="fixed top-36 right-4 bg-red-600 text-white px-4 py-2 rounded z-50">
           {error}
         </div>
       )}
@@ -123,6 +142,7 @@ export function AppContent() {
       <WorkflowCarousel selectedWorkflow={workflow} onSelectWorkflow={setWorkflow} />
 
       <div className="flex">
+        {/* LEFT PANEL */}
         <div className="w-1/2">
           {workflow === 'poster' && (
             <PosterGenerator
@@ -153,21 +173,33 @@ export function AppContent() {
           )}
         </div>
 
+        {/* RIGHT PANEL */}
         <div className="w-1/2">
           <PreviewPanel
+            currentImage={currentImage}
+            savedGallery={savedGallery}
             isGenerating={isGenerating}
             generatedPrompt={generatedPrompt}
+            onSelectImage={setCurrentImage}
+            onCopyParameters={() => {}}
+            onSaveToGallery={(img) =>
+              setSavedGallery((prev) => [img, ...prev])
+            }
             onStartGeneration={() => {
               if (workflow === 'poster' && posterGenerateFn) posterGenerateFn();
               if (workflow === 'parameters' && parametersGenerateFn) parametersGenerateFn();
               if (workflow === 'cameraAngles' && cameraAnglesGenerateFn) cameraAnglesGenerateFn();
             }}
-            onFormatChange={(w, h) => setImageDimensions({ width: w, height: h })}
+            onFormatChange={(w, h) =>
+              setImageDimensions({ width: w, height: h })
+            }
           />
         </div>
       </div>
 
-      {!isConfigured && !isChecking && <AdminSetupNotice onDismiss={() => {}} />}
+      {!isConfigured && !isChecking && (
+        <AdminSetupNotice onDismiss={() => {}} />
+      )}
     </>
   );
 }
