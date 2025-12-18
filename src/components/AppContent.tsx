@@ -5,7 +5,6 @@ import { useQuotaSystemStatus } from '../hooks/useQuotaSystemStatus';
 import { api } from '../services/api';
 
 import type {
-  GenerationParams,
   GeneratedImage,
   WorkflowType
 } from '../App';
@@ -28,39 +27,49 @@ export function AppContent() {
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [workflowToUse, setWorkflowToUse] = useState<string | null>(null);
+  const [workflowToUse, setWorkflowToUse] = useState<string>('affiche.json');
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
 
-  /* ✅ SOURCE UNIQUE DE VÉRITÉ FORMAT IMAGE */
-  const [imageDimensions, setImageDimensions] = useState({
-    width: 1080,
-    height: 1920, // portrait par défaut
-  });
+  // ✅ Dimensions par défaut (portrait)
+  const [imageDimensions, setImageDimensions] = useState({ width: 1080, height: 1920 });
 
-  /* refs génération */
+  // Références pour les fonctions de génération des sous-composants
   const posterGenerateFn = useRef<(() => void) | null>(null);
   const parametersGenerateFn = useRef<(() => void) | null>(null);
   const cameraAnglesGenerateFn = useRef<(() => void) | null>(null);
 
-  const { 
-    startGeneration, 
-    isGenerating, 
-    progress, 
-    error, 
-    generatedImage, 
-    clearError 
+  const {
+    startGeneration,
+    isGenerating,
+    progress,
+    error,
+    generatedImage,
+    clearError
   } = useImageGeneration();
 
-  /* -------------------------------------------------- */
-  /* Chargement workflows */
+  // ✅ callbacks STABLES -> empêche la boucle infinie “Envoi (ou mise à jour)...”
+  const registerPosterGenerateFn = useCallback((fn: () => void) => {
+    posterGenerateFn.current = fn;
+  }, []);
+
+  const registerParametersGenerateFn = useCallback((fn: () => void) => {
+    parametersGenerateFn.current = fn;
+  }, []);
+
+  const registerCameraAnglesGenerateFn = useCallback((fn: () => void) => {
+    cameraAnglesGenerateFn.current = fn;
+  }, []);
+
+  // Charger les workflows au montage
   useEffect(() => {
     api.getWorkflows()
-      .then(data => {
-        if (data?.workflows?.length > 0) {
-          const selected =
-            data.workflows.find((wf: string) => wf === 'affiche.json')
-            || data.workflows[0];
+      .then((data: any) => {
+        const list = data?.workflows || [];
+        if (list.length > 0) {
+          const selected = list.find((wf: string) => wf === 'affiche.json') || list[0];
           setWorkflowToUse(selected);
+        } else {
+          setWorkflowToUse('affiche.json');
         }
         setWorkflowsLoaded(true);
       })
@@ -70,8 +79,7 @@ export function AppContent() {
       });
   }, []);
 
-  /* -------------------------------------------------- */
-  /* Réception image finale */
+  // Dès qu’une image est dispo (hook), on l’affiche
   useEffect(() => {
     if (generatedImage && !isGenerating) {
       const newImg: GeneratedImage = {
@@ -81,40 +89,34 @@ export function AppContent() {
           final_prompt: generatedPrompt,
           width: imageDimensions.width,
           height: imageDimensions.height,
+          user: user?.email
         } as any,
-        timestamp: new Date(),
+        timestamp: new Date()
       };
       setCurrentImage(newImg);
     }
-  }, [generatedImage, isGenerating, generatedPrompt, imageDimensions]);
+  }, [generatedImage, isGenerating, generatedPrompt, imageDimensions, user?.email]);
 
-  /* -------------------------------------------------- */
-  /* Handler génération CENTRALISÉ */
-  const handleGenerateAction = useCallback(
-    async (params: any) => {
-      if (!startGeneration || !workflowToUse || isGenerating) return;
+  // ✅ Handler central : force width/height à chaque génération
+  const handleGenerateAction = useCallback(async (params: any) => {
+    if (!workflowToUse || isGenerating) return;
 
-      const finalParams = {
-        ...params,
-        width: imageDimensions.width,
-        height: imageDimensions.height,
-      };
+    const finalParams = {
+      ...params,
+      width: imageDimensions.width,
+      height: imageDimensions.height
+    };
 
-      console.log(
-        '[GENERATION]',
-        finalParams.width,
-        finalParams.height
-      );
+    // Debug utile
+    console.log('[APP] GEN with', finalParams.width, 'x', finalParams.height);
 
-      await startGeneration(workflowToUse, finalParams);
-    },
-    [startGeneration, workflowToUse, isGenerating, imageDimensions]
-  );
+    await startGeneration(workflowToUse, finalParams);
+  }, [startGeneration, workflowToUse, isGenerating, imageDimensions]);
 
-  /* -------------------------------------------------- */
   return (
     <>
       <Header />
+
       <ProgressOverlay
         isVisible={isGenerating}
         progress={progress}
@@ -124,50 +126,35 @@ export function AppContent() {
       {error && (
         <div className="fixed top-36 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-xl z-50 flex items-center gap-3">
           <span>{error}</span>
-          <button
-            onClick={clearError}
-            className="hover:opacity-70 font-bold"
-          >
-            ✕
-          </button>
+          <button onClick={clearError} className="hover:opacity-70 font-bold">✕</button>
         </div>
       )}
 
       <div className="pt-32">
-        <WorkflowCarousel
-          selectedWorkflow={workflow}
-          onSelectWorkflow={setWorkflow}
-        />
+        <WorkflowCarousel selectedWorkflow={workflow} onSelectWorkflow={setWorkflow} />
 
         <div className="flex flex-col md:flex-row min-h-[calc(100vh-268px)]">
           <div className="w-full md:w-1/2 bg-gray-800 border-r border-gray-700">
             {workflow === 'poster' ? (
               <PosterGenerator
-                onGenerate={(_p: any, g: any) => handleGenerateAction(g)}
+                onGenerate={(_posterParams: any, genParams: any) => handleGenerateAction(genParams)}
                 isGenerating={isGenerating}
                 onPromptGenerated={setGeneratedPrompt}
-                onGetGenerateFunction={(fn: any) => {
-                  posterGenerateFn.current = fn;
-                }}
-                /* ✅ FIX CRITIQUE */
-                imageDimensions={imageDimensions}
-                setImageDimensions={setImageDimensions}
+                generatedPrompt={generatedPrompt}               // ✅ prop manquante avant
+                imageDimensions={imageDimensions}               // ✅ indispensable pour les formats
+                onGetGenerateFunction={registerPosterGenerateFn} // ✅ stable -> plus de loop
               />
             ) : workflow === 'parameters' ? (
               <GenerationParameters
                 onGenerate={handleGenerateAction}
                 isGenerating={isGenerating}
-                onGetGenerateFunction={(fn: any) => {
-                  parametersGenerateFn.current = fn;
-                }}
+                onGetGenerateFunction={registerParametersGenerateFn} // ✅ stable
               />
             ) : (
               <CameraAnglesGenerator
                 onGenerate={handleGenerateAction}
                 isGenerating={isGenerating}
-                onGetGenerateFunction={(fn: any) => {
-                  cameraAnglesGenerateFn.current = fn;
-                }}
+                onGetGenerateFunction={registerCameraAnglesGenerateFn} // ✅ stable
               />
             )}
           </div>
@@ -178,9 +165,7 @@ export function AppContent() {
               savedGallery={savedGallery}
               isGenerating={isGenerating}
               onSelectImage={setCurrentImage}
-              onSaveToGallery={(img) =>
-                setSavedGallery(prev => [img, ...prev])
-              }
+              onSaveToGallery={(img) => setSavedGallery(prev => [img, ...prev])}
               onStartGeneration={() => {
                 if (workflow === 'poster') posterGenerateFn.current?.();
                 else if (workflow === 'parameters') parametersGenerateFn.current?.();
