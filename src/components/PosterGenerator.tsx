@@ -783,22 +783,31 @@ console.log(
             <div>
               <label className="block text-sm text-gray-300 mb-2">Environnement</label>
               <select
-                value={environment}
-                onChange={(e) => setEnvironment(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
-                disabled={isGenerating}
-              >
-                {environments.map((e1) => (
-                  <option key={e1} value={e1}>{e1}</option>
-                ))}
-              </select>
-              <input
-                type="text"
-                value={environmentDescription}
-                onChange={(e) => setEnvironmentDescription(e.target.value)}
-                placeholder="Description personnelle..."
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                disabled={isGenerating}
+  value={environment}
+  onChange={(e) => {
+    setEnvironment(e.target.value);
+    setEnvironmentDescription(''); // ✅ reset champ libre
+  }}
+  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
+  disabled={isGenerating}
+>
+  {environments.map((e1) => (
+    <option key={e1} value={e1}>{e1}</option>
+  ))}
+</select>
+
+<input
+  type="text"
+  value={environmentDescription}
+  onChange={(e) => {
+    setEnvironmentDescription(e.target.value);
+    setEnvironment('Choisir...'); // ✅ reset select
+  }}
+  placeholder="Description personnelle..."
+  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+             text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
+             focus:border-transparent text-sm"
+  disabled={isGenerating}
               />
             </div>
 
