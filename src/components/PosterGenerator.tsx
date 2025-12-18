@@ -668,8 +668,9 @@ console.log(
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ex: LA GRANDE AVENTURE"
+                onChange={(e) => setTitle(e.target.value.toUpperCase())}
+                className="uppercase"
+                placeholder="TITRE DE L’AFFICHE"
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                 disabled={isGenerating}
               />
