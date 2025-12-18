@@ -77,21 +77,15 @@ export function AppContent() {
   // Enregistrement callbacks
   // -------------------------
   const handlePosterGenerateFunctionReceived = useCallback((fn: unknown) => {
-    if (typeof fn === 'function') {
-      posterGenerateRef.current = fn;
-    }
+    if (typeof fn === 'function') posterGenerateRef.current = fn;
   }, []);
 
   const handleParametersGenerateFunctionReceived = useCallback((fn: unknown) => {
-    if (typeof fn === 'function') {
-      parametersGenerateRef.current = fn;
-    }
+    if (typeof fn === 'function') parametersGenerateRef.current = fn;
   }, []);
 
   const handleCameraGenerateFunctionReceived = useCallback((fn: unknown) => {
-    if (typeof fn === 'function') {
-      cameraAnglesGenerateRef.current = fn;
-    }
+    if (typeof fn === 'function') cameraAnglesGenerateRef.current = fn;
   }, []);
 
   // -------------------------
@@ -130,26 +124,25 @@ export function AppContent() {
     <>
       <Header />
 
-      {/* Overlay progression */}
       <ProgressOverlay isVisible={isGenerating} progress={progress} />
 
-      {/* Erreur */}
       {error && (
         <div className="fixed top-36 right-4 bg-red-600 text-white px-4 py-2 rounded z-50">
           {error}
         </div>
       )}
 
-      {/* ✅ Décalage sous le Header fixed */}
+      {/* Décalage sous le Header fixed */}
       <div className="pt-24 sm:pt-32">
         <WorkflowCarousel
           selectedWorkflow={workflow}
           onSelectWorkflow={setWorkflow}
         />
 
-        <div className="flex min-h-[calc(100vh-128px)]">
-          {/* LEFT */}
-          <div className="w-1/2 bg-gray-800 border-r border-gray-700">
+        {/* ✅ RESPONSIVE LAYOUT */}
+        <div className="flex flex-col md:flex-row min-h-[calc(100vh-128px)]">
+          {/* LEFT – MENUS */}
+          <div className="w-full md:w-1/2 bg-gray-800 md:border-r border-gray-700">
             {workflow === 'poster' && (
               <PosterGenerator
                 onGenerate={handleGenerateFromPoster}
@@ -179,8 +172,8 @@ export function AppContent() {
             )}
           </div>
 
-          {/* RIGHT */}
-          <div className="w-1/2">
+          {/* RIGHT – PREVIEW */}
+          <div className="w-full md:w-1/2">
             <PreviewPanel
               currentImage={currentImage}
               savedGallery={savedGallery}
