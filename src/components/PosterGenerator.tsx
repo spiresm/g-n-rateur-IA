@@ -574,7 +574,7 @@ Premium poster design, professional layout, ultra high resolution, visually stri
   };
 
   const genParams: GenerationParams = {
-    prompt,
+    final_prompt: prompt,
     negativePrompt: 'low quality, blurry, distorted text, bad anatomy',
     steps: 9,
     cfg: 1,
