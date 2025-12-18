@@ -422,3 +422,9 @@ export function AppContent() {
     </>
   );
 }
+const imageGenRaw = useImageGeneration();
+
+console.log(
+  '[DEBUG useImageGeneration keys]',
+  Object.keys(imageGenRaw || {})
+);
