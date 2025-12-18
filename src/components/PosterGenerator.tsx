@@ -665,6 +665,7 @@ console.log(
   <div className="grid grid-cols-2 gap-4">
     <div className="space-y-4">
 
+      {/* TITRE */}
       <div>
         <label className="block text-sm text-gray-300 mb-2">
           Titre de l'affiche
@@ -681,6 +682,7 @@ console.log(
         />
       </div>
 
+      {/* SOUS-TITRE */}
       <div>
         <label className="block text-sm text-gray-300 mb-2">
           Sous-titre
@@ -697,6 +699,7 @@ console.log(
         />
       </div>
 
+      {/* ACCROCHE */}
       <div>
         <label className="block text-sm text-gray-300 mb-2">
           Accroche
