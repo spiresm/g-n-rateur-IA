@@ -5,19 +5,20 @@ import { PosterParams, GenerationParams } from '../App';
 interface PosterGeneratorProps {
   onGenerate: (posterParams: PosterParams, genParams: GenerationParams) => void;
   isGenerating: boolean;
-  onPromptGenerated?: (prompt: string) => void;
-  generatedPrompt?: string;
+  onPromptGenerated: (prompt: string) => void;
+  generatedPrompt: string;
   imageDimensions?: { width: number; height: number };
   onGetGenerateFunction?: (fn: () => void) => void;
 }
 
+// Données de ton archive pour le bouton Aléatoire
 const randomData = {
-  titres: ["La Nuit des Étoiles", "Royaume d'Hiver", "L'Éveil du Dragon", "Chasseurs de Légendes", "Le Grand Mystère"],
-  sujets: ["Un guerrier solitaire", "Une cité futuriste", "Une forêt enchantée", "Un vaisseau spatial", "Un lion majestueux"],
-  environnements: ["sous la pleine lune", "dans une tempête de neige", "au sommet d'une montagne", "au fond de l'océan", "dans le désert"]
+  titres: ["La Nuit des Étoiles", "Royaume d'Hiver", "L'Éveil du Dragon", "Chasseurs de Légendes", "Le Grand Mystère", "Voyage Intemporel"],
+  sous_titres: ["Une aventure épique", "Le chapitre final", "L'histoire commence", "Édition collector"],
+  ambiances: ["Mystérieux", "Épique", "Sombre", "Lumineux", "Coloré", "Minimaliste"]
 };
 
-// CORRECTION : Suppression du 'default' pour corriger l'erreur de build Netlify
+// ON UTILISE "export function" pour correspondre à ton AppContent
 export function PosterGenerator({
   onGenerate,
   isGenerating,
@@ -26,133 +27,95 @@ export function PosterGenerator({
   onGetGenerateFunction
 }: PosterGeneratorProps) {
   
+  // TOUS LES ÉTATS DE TON ARCHIVE
   const [title, setTitle] = useState('');
-  const [subject, setSubject] = useState('');
-  const [environment, setEnvironment] = useState('');
-  const [posterStyle, setPosterStyle] = useState('Cinematic');
-  const [lighting, setLighting] = useState('Dramatic');
-  const [composition, setComposition] = useState('Central');
+  const [subtitle, setSubtitle] = useState('');
+  const [tagline, setTagline] = useState('');
+  const [occasion, setOccasion] = useState('Autre');
+  const [customOccasion, setCustomOccasion] = useState('');
+  const [ambiance, setAmbiance] = useState('Épique');
+  const [customAmbiance, setCustomAmbiance] = useState('');
+  const [mainCharacter, setMainCharacter] = useState('Aucun');
+  const [characterDescription, setCharacterDescription] = useState('');
+  const [environment, setEnvironment] = useState('Nature');
+  const [environmentDescription, setEnvironmentDescription] = useState('');
+  const [characterAction, setCharacterAction] = useState('Pose statique');
+  const [actionDescription, setActionDescription] = useState('');
   const [additionalDetails, setAdditionalDetails] = useState('');
+  const [colorPalette, setColorPalette] = useState('Vibrante');
+  const [customPalette, setCustomPalette] = useState('');
+  const [titleStyle, setTitleStyle] = useState('Moderne');
 
   const generatePromptText = () => {
-    return `Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
-NO TEXT MODE:
-The poster must contain ZERO text.
-Visual elements: ${title || 'Epic scene'} - ${subject || 'Stunning visuals'} - ${environment || 'Atmospheric background'}
-Style: ${posterStyle}, ${lighting} lighting, ${composition} composition.`;
+    return `Ultra detailed cinematic poster. Visual elements: ${title} - ${subtitle}. 
+            Subject: ${characterDescription || mainCharacter}. 
+            Action: ${actionDescription || characterAction}.
+            Environment: ${environmentDescription || environment}. 
+            Style: ${ambiance}, ${colorPalette} colors. 
+            NO TEXT MODE: ZERO letters.`;
   };
 
-  // Met à jour le prompt temps réel pour la prévisualisation
+  // Mise à jour du prompt pour le parent
   useEffect(() => {
-    if (onPromptGenerated) {
-      onPromptGenerated(generatePromptText());
-    }
-  }, [title, subject, environment, posterStyle, lighting, composition]);
+    onPromptGenerated(generatePromptText());
+  }, [title, subtitle, characterDescription, environmentDescription, ambiance]);
 
   const handleStartGeneration = () => {
-    const finalPrompt = generatePromptText();
-    
-    const posterParams: PosterParams = {
-      title, 
-      subject, 
-      environment,
-      style: posterStyle, 
-      lighting, 
-      composition,
-      additionalDetails
+    const posterParams: PosterParams = { 
+        title, subtitle, tagline, occasion, customOccasion, ambiance, 
+        customAmbiance, mainCharacter, characterDescription, environment, 
+        environmentDescription, characterAction, actionDescription, 
+        additionalDetails, colorPalette, customPalette, titleStyle 
     };
-
     const genParams: GenerationParams = {
-      prompt: finalPrompt,
+      prompt: generatePromptText(),
       width: imageDimensions.width,
       height: imageDimensions.height
     };
-
-    if (onGenerate) {
-      onGenerate(posterParams, genParams);
-    }
+    onGenerate(posterParams, genParams);
   };
 
-  // Envoie la fonction au bouton jaune (Parent)
+  // LIAISON AVEC LE BOUTON JAUNE
   useEffect(() => {
     if (onGetGenerateFunction) {
       onGetGenerateFunction(handleStartGeneration);
     }
-    // Dépendances ajoutées pour que la fonction envoyée au parent soit toujours à jour
-  }, [title, subject, environment, posterStyle, lighting, composition, additionalDetails, onGetGenerateFunction]);
+  }, [title, subtitle, characterDescription, environmentDescription, ambiance, additionalDetails]);
 
   const handleRandomize = () => {
     setTitle(randomData.titres[Math.floor(Math.random() * randomData.titres.length)]);
-    setSubject(randomData.sujets[Math.floor(Math.random() * randomData.sujets.length)]);
-    setEnvironment(randomData.environnements[Math.floor(Math.random() * randomData.environnements.length)]);
+    setSubtitle(randomData.sous_titres[Math.floor(Math.random() * randomData.sous_titres.length)]);
+    setAmbiance(randomData.ambiances[Math.floor(Math.random() * randomData.ambiances.length)]);
   };
 
   return (
-    <div className="space-y-6 p-4">
-      <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 shadow-xl">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-400" />
-            <h2 className="text-lg font-semibold text-white">Configuration de l'Affiche</h2>
-          </div>
-          <button
-            onClick={handleRandomize}
-            type="button"
-            className="flex items-center gap-2 px-3 py-1.5 bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 rounded-lg transition-colors text-sm border border-purple-600/30"
-            disabled={isGenerating}
-          >
-            <ImageIcon className="w-4 h-4" /> Aléatoire
-          </button>
+    <div className="p-6 space-y-8 bg-gray-900/50 rounded-xl border border-gray-800">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <Sparkles className="text-yellow-400" /> Configuration de l'Affiche
+        </h2>
+        <button onClick={handleRandomize} className="text-sm bg-purple-600/20 px-3 py-1 rounded border border-purple-500/50 text-purple-300 flex items-center gap-1">
+          <ImageIcon size={14} /> Aléatoire
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-gray-400">Titre</label>
+          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-gray-800 border border-gray-700 p-2 rounded text-white" />
+          
+          <label className="block text-sm font-medium text-gray-400">Sujet principal</label>
+          <textarea value={characterDescription} onChange={(e) => setCharacterDescription(e.target.value)} className="w-full bg-gray-800 border border-gray-700 p-2 rounded text-white h-24" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-400 mb-2 font-medium">Titre suggéré</label>
-              <input 
-                type="text" 
-                value={title} 
-                onChange={(e) => setTitle(e.target.value)} 
-                className="w-full px-4 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none transition-all" 
-                placeholder="Ex: La Nuit des Étoiles"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2 font-medium">Sujet Principal</label>
-              <input 
-                type="text" 
-                value={subject} 
-                onChange={(e) => setSubject(e.target.value)} 
-                className="w-full px-4 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none transition-all" 
-                placeholder="Ex: Un chevalier"
-              />
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-400 mb-2 font-medium">Style visuel</label>
-              <select 
-                value={posterStyle} 
-                onChange={(e) => setPosterStyle(e.target.value)} 
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none"
-              >
-                <option value="Cinematic">Cinématique</option>
-                <option value="Cyberpunk">Cyberpunk</option>
-                <option value="Fantasy">Fantasy</option>
-                <option value="Digital Art">Art Digital</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2 font-medium">Environnement</label>
-              <input 
-                type="text" 
-                value={environment} 
-                onChange={(e) => setEnvironment(e.target.value)} 
-                className="w-full px-4 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 outline-none transition-all" 
-                placeholder="Ex: Une forêt sombre"
-              />
-            </div>
-          </div>
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-gray-400">Ambiance</label>
+          <select value={ambiance} onChange={(e) => setAmbiance(e.target.value)} className="w-full bg-gray-800 border border-gray-700 p-2 rounded text-white">
+            {randomData.ambiances.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+          
+          <label className="block text-sm font-medium text-gray-400">Environnement</label>
+          <input type="text" value={environmentDescription} onChange={(e) => setEnvironmentDescription(e.target.value)} className="w-full bg-gray-800 border border-gray-700 p-2 rounded text-white" />
         </div>
       </div>
     </div>
