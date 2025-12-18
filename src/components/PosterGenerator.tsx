@@ -166,7 +166,7 @@ const randomData = {
     "Crimson black",
     "Seafoam coral"
   ],
-  styles_: [
+  styles_titre: [
     "Dripping horror",
     "Neon tubes",
     "Frosted glass",
@@ -307,7 +307,7 @@ const randomData = {
     "crimson red and pitch black",
     "seafoam green and coral pink"
   ],
-  styles__full: [
+  styles_titre_full: [
     "dripping horror lettering, torn edges, glossy red liquid texture, glowing sinister vibe",
     "bright neon tube letters, electric glow, slight chromatic aberration, futuristic vaporwave look",
     "frosted glass letters, icy texture, translucent frozen edges, cold blue inner glow",
@@ -661,63 +661,44 @@ console.log(
       </div>
 
       <div className="space-y-4">
-  <div className="grid grid-cols-2 gap-4">
-    <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Titre de l'affiche</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value.toUpperCase())}
+                className="uppercase"
+                placeholder="TITRE DE L’AFFICHE"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
 
-      {/* TITRE */}
-      <div>
-        <label className="block text-sm text-gray-300 mb-2">
-          Titre de l’affiche
-        </label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value.toUpperCase())}
-          placeholder="TITRE DE L’AFFICHE"
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
-                     text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
-                     focus:border-transparent text-sm uppercase"
-          disabled={isGenerating}
-        />
-      </div>
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Sous-titre</label>
+              <input
+                type="text"
+                value={subtitle}
+                onChange={(e) => setSubtitle(e.target.value)}
+                placeholder="Ex: Édition spéciale"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
 
-      {/* SOUS-TITRE */}
-      <div>
-        <label className="block text-sm text-gray-300 mb-2">
-          Sous-titre
-        </label>
-        <input
-          type="text"
-          value={subtitle}
-          onChange={(e) => setSubtitle(e.target.value.toUpperCase())}
-          placeholder="ÉDITION SPÉCIALE"
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
-                     text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
-                     focus:border-transparent text-sm uppercase"
-          disabled={isGenerating}
-        />
-      </div>
-
-      {/* ACCROCHE */}
-      <div>
-        <label className="block text-sm text-gray-300 mb-2">
-          Accroche
-        </label>
-        <input
-          type="text"
-          value={tagline}
-          onChange={(e) => setTagline(e.target.value.toUpperCase())}
-          placeholder="UNE AVENTURE INOUBLIABLE"
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
-                     text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
-                     focus:border-transparent text-sm uppercase"
-          disabled={isGenerating}
-        />
-      </div>
-
-    </div>
-  </div>
-</div>
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Accroche</label>
+              <input
+                type="text"
+                value={tagline}
+                onChange={(e) => setTagline(e.target.value)}
+                placeholder="Ex: Une aventure..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
 
             <div>
               <label className="block text-sm text-gray-300 mb-2">Occasion / Thème</label>
