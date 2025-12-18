@@ -166,7 +166,7 @@ const randomData = {
     "Crimson black",
     "Seafoam coral"
   ],
-  styles_titre: [
+  styles_: [
     "Dripping horror",
     "Neon tubes",
     "Frosted glass",
@@ -307,7 +307,7 @@ const randomData = {
     "crimson red and pitch black",
     "seafoam green and coral pink"
   ],
-  styles_titre_full: [
+  styles__full: [
     "dripping horror lettering, torn edges, glossy red liquid texture, glowing sinister vibe",
     "bright neon tube letters, electric glow, slight chromatic aberration, futuristic vaporwave look",
     "frosted glass letters, icy texture, translucent frozen edges, cold blue inner glow",
@@ -681,7 +681,8 @@ console.log(
               <input
                 type="text"
                 value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value)}
+                onChange={(e) => setTitle(e.target.value.toUpperCase())}
+                className="uppercase"
                 placeholder="Ex: Édition spéciale"
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                 disabled={isGenerating}
@@ -693,7 +694,8 @@ console.log(
               <input
                 type="text"
                 value={tagline}
-                onChange={(e) => setTagline(e.target.value)}
+                onChange={(e) => setTitle(e.target.value.toUpperCase())}
+                className="uppercase"
                 placeholder="Ex: Une aventure..."
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                 disabled={isGenerating}
