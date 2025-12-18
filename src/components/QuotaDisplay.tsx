@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CreditCard, Sparkles } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from './ui/button'; // Vérifie le chemin (souvent ./ui/button)
 import { Badge } from './ui/badge';
 import { useAuth } from '../contexts/AuthContext';
 import { projectId } from '../utils/supabase/info';
@@ -19,15 +19,15 @@ interface QuotaDisplayProps {
 }
 
 export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
+  // ✅ On récupère 'token' en plus de 'user' depuis le contexte
   const { user, token } = useAuth();
   const [quota, setQuota] = useState<QuotaInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [systemEnabled, setSystemEnabled] = useState(true);
 
   const fetchQuota = useCallback(async () => {
-    // Si l'email ou le token manque, on ne déclenche pas l'appel mais on arrête le loading après un délai
+    // ✅ On vérifie qu'on a l'email ET le token avant de lancer l'appel
     if (!user?.email || !token) {
-      console.warn("[Quota] Données d'auth manquantes", { email: !!user?.email, token: !!token });
       return;
     }
 
@@ -38,13 +38,14 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
         {
           headers: {
             'Content-Type': 'application/json',
+            // ✅ AJOUT INDISPENSABLE : Le token pour prouver l'identité
             'Authorization': `Bearer ${token}`
           },
         }
       );
 
       if (!response.ok) {
-        console.error("[Quota] Erreur API:", response.status);
+        console.warn('⚠️ Erreur réponse API Quota:', response.status);
         setSystemEnabled(false);
         return;
       }
@@ -53,18 +54,20 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
       setQuota(data);
       setSystemEnabled(true);
     } catch (error) {
-      console.error("[Quota] Erreur réseau:", error);
+      console.warn('⚠️ Erreur réseau système de quota');
       setSystemEnabled(false);
     } finally {
       setLoading(false);
     }
+    // ✅ On ajoute token dans les dépendances
   }, [user?.email, token]);
 
   useEffect(() => {
-    fetchQuota();
-  }, [fetchQuota]);
+    if (user?.email && token) {
+      fetchQuota();
+    }
+  }, [user?.email, token, fetchQuota]);
 
-  // Expose la fonction globalement pour rafraîchir après une génération
   useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as any).refreshQuota = fetchQuota;
@@ -78,7 +81,6 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
 
   if (!systemEnabled) return null;
 
-  // État de chargement (Rectangle gris animé)
   if (loading || !quota) {
     return (
       <div className="flex flex-col items-end gap-1 px-3 animate-pulse">
@@ -88,23 +90,26 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
     );
   }
 
-  const remaining = typeof quota.remaining === 'number' ? quota.remaining : 0;
-  const limit = quota.limit || 10;
-  const progressPercent = (remaining / limit) * 100;
-  const isLow = remaining <= 2;
-  const isEmpty = remaining === 0;
-
+  // --- AFFICHAGE PREMIUM ---
   if (quota.is_premium) {
     return (
       <div className="flex flex-col items-end gap-1 pr-2">
         <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 px-2 py-0.5 text-[10px]">
           <Sparkles className="w-3 h-3 mr-1" />
-          {quota.subscription_type?.toUpperCase() || 'PREMIUM'}
+          {quota.subscription_type?.toUpperCase()}
         </Badge>
-        <div className="text-[10px] text-gray-400 font-medium">Illimité</div>
+        <div className="text-[10px] text-gray-400 font-medium tracking-tight">Illimité</div>
       </div>
     );
   }
+
+  // --- AFFICHAGE STANDARD (10/10) ---
+  const remaining = typeof quota.remaining === 'number' ? quota.remaining : 0;
+  const limit = quota.limit || 10;
+  const progressPercent = (remaining / limit) * 100;
+  
+  const isLow = remaining <= 2;
+  const isEmpty = remaining === 0;
 
   return (
     <div className="flex items-center gap-3">
@@ -123,7 +128,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
         </div>
       </div>
       {isEmpty && (
-        <Button onClick={onUpgradeClick} size="sm" className="bg-red-600 hover:bg-red-700 h-7 px-2 text-[10px] font-bold animate-bounce">
+        <Button onClick={onUpgradeClick} size="sm" className="bg-red-600 hover:bg-red-700 text-white h-7 px-2 text-[10px] font-bold animate-bounce">
           <CreditCard className="w-3 h-3 mr-1" /> RECHARGER
         </Button>
       )}
