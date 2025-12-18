@@ -913,8 +913,8 @@ console.log(
     disabled={isGenerating}
   >
     <option value="Choisir...">Choisir...</option>
-    {mainCharacters.map((c) => (
-      <option key={c} value={c}>{c}</option>
+    {characters.map((c) => (
+  <option key={c} value={c}>{c}</option>
     ))}
   </select>
 
