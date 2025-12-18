@@ -25,7 +25,11 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
   const [systemEnabled, setSystemEnabled] = useState(true);
 
   const fetchQuota = useCallback(async () => {
-    if (!user?.email || !token) return;
+    // Si l'email ou le token manque, on ne déclenche pas l'appel mais on arrête le loading après un délai
+    if (!user?.email || !token) {
+      console.warn("[Quota] Données d'auth manquantes", { email: !!user?.email, token: !!token });
+      return;
+    }
 
     try {
       setLoading(true);
@@ -40,8 +44,8 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
       );
 
       if (!response.ok) {
+        console.error("[Quota] Erreur API:", response.status);
         setSystemEnabled(false);
-        setLoading(false);
         return;
       }
 
@@ -49,7 +53,7 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
       setQuota(data);
       setSystemEnabled(true);
     } catch (error) {
-      console.warn('⚠️ Système de quota non configuré.');
+      console.error("[Quota] Erreur réseau:", error);
       setSystemEnabled(false);
     } finally {
       setLoading(false);
@@ -57,10 +61,8 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
   }, [user?.email, token]);
 
   useEffect(() => {
-    if (user?.email && token) {
-      fetchQuota();
-    }
-  }, [user?.email, token, fetchQuota]);
+    fetchQuota();
+  }, [fetchQuota]);
 
   // Expose la fonction globalement pour rafraîchir après une génération
   useEffect(() => {
@@ -86,65 +88,43 @@ export function QuotaDisplay({ onUpgradeClick }: QuotaDisplayProps) {
     );
   }
 
-  // --- RENDU UI PREMIUM ---
+  const remaining = typeof quota.remaining === 'number' ? quota.remaining : 0;
+  const limit = quota.limit || 10;
+  const progressPercent = (remaining / limit) * 100;
+  const isLow = remaining <= 2;
+  const isEmpty = remaining === 0;
+
   if (quota.is_premium) {
     return (
       <div className="flex flex-col items-end gap-1 pr-2">
         <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 px-2 py-0.5 text-[10px]">
           <Sparkles className="w-3 h-3 mr-1" />
-          {quota.subscription_type.toUpperCase()}
+          {quota.subscription_type?.toUpperCase() || 'PREMIUM'}
         </Badge>
-        <div className="text-[10px] text-gray-400 font-medium">Générations illimitées</div>
+        <div className="text-[10px] text-gray-400 font-medium">Illimité</div>
       </div>
     );
   }
 
-  // --- RENDU UI STANDARD (Crédits restants) ---
-  const remaining = typeof quota.remaining === 'number' ? quota.remaining : 0;
-  const limit = quota.limit || 10;
-  // Calcul du pourcentage : On veut montrer ce qu'il RESTE
-  const progressPercent = (remaining / limit) * 100;
-  
-  const isLow = remaining <= 2;
-  const isEmpty = remaining === 0;
-
   return (
     <div className="flex items-center gap-3">
-      <div 
-        onClick={onUpgradeClick}
-        className="flex flex-col items-end cursor-pointer group"
-      >
+      <div onClick={onUpgradeClick} className="flex flex-col items-end cursor-pointer group">
         <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter group-hover:text-gray-400 transition-colors">
-            Crédits
-          </span>
-          <span className={`text-sm font-black tracking-tight ${
-            isEmpty ? 'text-red-500' : isLow ? 'text-yellow-500' : 'text-white'
-          }`}>
+          <span className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">Crédits</span>
+          <span className={`text-sm font-black ${isEmpty ? 'text-red-500' : isLow ? 'text-yellow-500' : 'text-white'}`}>
             {remaining} / {limit}
           </span>
         </div>
-        
-        {/* Barre de progression visuelle */}
         <div className="w-20 sm:w-24 h-1.5 bg-gray-700 rounded-full overflow-hidden border border-gray-600/30">
           <div 
-            className={`h-full transition-all duration-700 ease-out ${
-              isEmpty ? 'bg-red-600' : isLow ? 'bg-yellow-500' : 'bg-gradient-to-r from-green-500 to-emerald-400'
-            }`}
+            className={`h-full transition-all duration-700 ${isEmpty ? 'bg-red-600' : isLow ? 'bg-yellow-500' : 'bg-green-500'}`}
             style={{ width: `${Math.min(100, progressPercent)}%` }}
           />
         </div>
       </div>
-
-      {/* Petit bouton d'urgence si plus de crédits */}
       {isEmpty && (
-        <Button
-          onClick={onUpgradeClick}
-          size="sm"
-          className="bg-red-600 hover:bg-red-700 text-white border-0 h-7 px-2 text-[10px] font-bold animate-bounce"
-        >
-          <CreditCard className="w-3 h-3 mr-1" />
-          RECHARGER
+        <Button onClick={onUpgradeClick} size="sm" className="bg-red-600 hover:bg-red-700 h-7 px-2 text-[10px] font-bold animate-bounce">
+          <CreditCard className="w-3 h-3 mr-1" /> RECHARGER
         </Button>
       )}
     </div>
