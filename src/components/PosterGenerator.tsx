@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Sparkles, Image as ImageIcon } from 'lucide-react';
 import { PosterParams, GenerationParams } from '../App';
 
@@ -8,7 +8,7 @@ interface PosterGeneratorProps {
   onPromptGenerated: (prompt: string) => void;
   generatedPrompt: string;
   imageDimensions?: { width: number; height: number };
-  onGetGenerateFunction?: (fn: () => void) => void; // RETOUR AU NOM ORIGINAL
+  onGetGenerateFunction?: (fn: () => void) => void;
 }
 
 // Données aléatoires pour génération d'affiches
@@ -205,7 +205,6 @@ const randomData = {
     "Ghostly wisps",
     "Motion blur"
   ],
-  // Données complètes pour la génération de prompts (non affichées dans les menus)
   themes_full: [
     "Epic fantasy adventure",
     "Sci-fi space opera",
@@ -349,7 +348,14 @@ const randomData = {
   ]
 };
 
-export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, generatedPrompt: _generatedPrompt, imageDimensions, onGetGenerateFunction }: PosterGeneratorProps) {
+export function PosterGenerator({
+  onGenerate,
+  isGenerating,
+  onPromptGenerated,
+  generatedPrompt: _generatedPrompt,
+  imageDimensions,
+  onGetGenerateFunction
+}: PosterGeneratorProps) {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [tagline, setTagline] = useState('');
@@ -368,12 +374,8 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
   const [customPalette, setCustomPalette] = useState('');
   const [titleStyle, setTitleStyle] = useState('Choisir...');
 
-  // Fonction utilitaire pour choisir un élément aléatoire
-  const randomChoice = <T,>(arr: T[]): T => {
-    return arr[Math.floor(Math.random() * arr.length)];
-  };
+  const randomChoice = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
-  // Générer une affiche aléatoire
   const generateRandomPoster = () => {
     const randomTitle = randomChoice(randomData.titres);
     const randomSubtitle = randomChoice(randomData.sous_titres);
@@ -387,7 +389,6 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
     const randomTitleStyle = randomChoice(randomData.styles_titre_full);
     const randomDetails = randomChoice(randomData.details_full);
 
-    // Mettre à jour tous les états
     setTitle(randomTitle);
     setSubtitle(randomSubtitle);
     setTagline(randomTagline);
@@ -406,47 +407,21 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
     setCustomPalette(randomPalette);
     setTitleStyle(randomTitleStyle);
 
-    // NE PAS générer automatiquement - juste remplir les champs
     console.log('[POSTER_GENERATOR] 🎲 Affiche aléatoire générée (champs remplis uniquement)');
   };
 
-  const occasions = [
-    'Choisir...', 
-    ...randomData.themes
-  ];
+  const occasions = ['Choisir...', ...randomData.themes];
+  const ambiances = ['Choisir...', ...randomData.ambiances];
+  const characters = ['Choisir...', ...randomData.personnages];
+  const environments = ['Choisir...', ...randomData.environnements];
+  const actions = ['Choisir...', ...randomData.actions];
+  const palettes = ['Choisir...', ...randomData.palettes];
+  const titleStyles = ['Choisir...', ...randomData.styles_titre];
 
-  const ambiances = [
-    'Choisir...', 
-    ...randomData.ambiances
-  ];
-
-  const characters = [
-    'Choisir...', 
-    ...randomData.personnages
-  ];
-
-  const environments = [
-    'Choisir...', 
-    ...randomData.environnements
-  ];
-
-  const actions = [
-    'Choisir...', 
-    ...randomData.actions
-  ];
-
-  const palettes = [
-    'Choisir...', 
-    ...randomData.palettes
-  ];
-
-  const titleStyles = [
-    'Choisir...',
-    ...randomData.styles_titre
-  ];
-
-  // Fonction pour convertir les labels courts en versions complètes pour le prompt
-  const getFullVersion = (shortLabel: string, type: 'theme' | 'ambiance' | 'character' | 'environment' | 'action' | 'palette' | 'titleStyle'): string => {
+  const getFullVersion = (
+    shortLabel: string,
+    type: 'theme' | 'ambiance' | 'character' | 'environment' | 'action' | 'palette' | 'titleStyle'
+  ): string => {
     const index = {
       theme: randomData.themes.indexOf(shortLabel),
       ambiance: randomData.ambiances.indexOf(shortLabel),
@@ -457,7 +432,7 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
       titleStyle: randomData.styles_titre.indexOf(shortLabel)
     }[type];
 
-    if (index === -1) return shortLabel; // Si pas trouvé, retourner tel quel
+    if (index === -1) return shortLabel;
 
     return {
       theme: randomData.themes_full[index],
@@ -470,15 +445,13 @@ export function PosterGenerator({ onGenerate, isGenerating, onPromptGenerated, g
     }[type] || shortLabel;
   };
 
-  const generatePrompt = () => {
-    // Vérifier si on a du texte à afficher
+  const generatePrompt = useCallback(() => {
     const hasTitle = Boolean(title.trim());
     const hasSubtitle = Boolean(subtitle.trim());
     const hasTagline = Boolean(tagline.trim());
-    
-    // BLOC TEXTE : Instructions strictes pour le modèle
-    let textBlock = "";
-    
+
+    let textBlock = '';
+
     if (!hasTitle && !hasSubtitle && !hasTagline) {
       textBlock = `
 NO TEXT MODE:
@@ -490,78 +463,94 @@ Avoid any shapes that resemble typography.
       textBlock = `
 ALLOWED TEXT ONLY (MODEL MUST NOT INVENT ANYTHING ELSE):
 
-${hasTitle ? `TITLE: "${title}" (top area, clean, sharp, readable, no distortion)` : ""}
-${hasSubtitle ? `SUBTITLE: "${subtitle}" (under title, smaller, crisp, readable)` : ""}
-${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
+${hasTitle ? `TITLE: "${title}" (top area, clean, sharp, readable, no distortion)` : ''}
+${hasSubtitle ? `SUBTITLE: "${subtitle}" (under title, smaller, crisp, readable)` : ''}
+${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ''}
 
 RULES FOR TEXT:
 - Only the items above are permitted. No additional text, no hallucinated wording.
-- **TEXT STYLE/MATERIAL (APPLIES ONLY TO LETTERING)**: ${titleStyle === 'Choisir...' || !titleStyle ? 'cinematic, elegant contrast' : getFullVersion(titleStyle, 'titleStyle')}.
+- **TEXT STYLE/MATERIAL (APPLIES ONLY TO LETTERING)**: ${
+        titleStyle === 'Choisir...' || !titleStyle
+          ? 'cinematic, elegant contrast'
+          : getFullVersion(titleStyle, 'titleStyle')
+      }.
 - **CRITICAL INSTRUCTION: DO NOT APPLY** the text style (e.g., 'dripping horror', 'neon', 'frosted') to the **characters, environment, lighting, or overall rendering**. The main image's mood and style must be defined exclusively by the 'Visual elements' below.
 `;
     }
-    
-    // ÉLÉMENTS VISUELS : Collecter tous les éléments non-vides
-    const visualParts = [];
-    
-    // Thème/Occasion
+
+    const visualParts: string[] = [];
+
     const selectedOccasion = occasion === 'Choisir...' ? '' : occasion;
     const finalOccasion = selectedOccasion || customOccasion;
     if (finalOccasion) visualParts.push(getFullVersion(finalOccasion, 'theme'));
-    
-    // Ambiance
+
     const selectedAmbiance = ambiance === 'Choisir...' ? '' : ambiance;
     const finalAmbiance = selectedAmbiance || customAmbiance;
     if (finalAmbiance) visualParts.push(getFullVersion(finalAmbiance, 'ambiance'));
-    
-    // Personnage
+
     const selectedCharacter = mainCharacter === 'Choisir...' ? '' : mainCharacter;
     const finalCharacter = characterDescription || selectedCharacter;
     if (finalCharacter) visualParts.push(getFullVersion(finalCharacter, 'character'));
-    
-    // Environnement
+
     const selectedEnvironment = environment === 'Choisir...' ? '' : environment;
     const finalEnvironment = environmentDescription || selectedEnvironment;
     if (finalEnvironment) visualParts.push(getFullVersion(finalEnvironment, 'environment'));
-    
-    // Action
+
     const selectedAction = characterAction === 'Choisir...' ? '' : characterAction;
     const finalAction = actionDescription || selectedAction;
     if (finalAction) visualParts.push(getFullVersion(finalAction, 'action'));
-    
-    // Palette de couleurs
+
     const selectedPalette = colorPalette === 'Choisir...' ? '' : colorPalette;
     const finalPalette = selectedPalette || customPalette;
     if (finalPalette) visualParts.push(getFullVersion(finalPalette, 'palette'));
-    
+
     const visualElements = visualParts.join(', ');
-    
-    // Construction du prompt final structuré
+
     const prompt = `
 Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
 
 ${textBlock}
 
 Visual elements:
-${visualElements || "epic cinematic scene"}
+${visualElements || 'epic cinematic scene'}
 
 Extra details:
-${additionalDetails || "cinematic particles, depth fog, volumetric light"}
+${additionalDetails || 'cinematic particles, depth fog, volumetric light'}
 
 Image style:
 Premium poster design, professional layout, ultra high resolution, visually striking.
-    `.trim().replace(/\n\s*\n/g, '\n').replace(/\s{2,}/g, ' ');
-    
-    onPromptGenerated(prompt);
-    
-    return prompt;
-  };
+    `
+      .trim()
+      .replace(/\n\s*\n/g, '\n')
+      .replace(/\s{2,}/g, ' ');
 
-  const handleStartGeneration = () => {
-    // ✅ TOUJOURS régénérer le prompt avec les valeurs ACTUELLES des champs
-    // Ne pas utiliser generatedPrompt qui peut être obsolète
+    onPromptGenerated(prompt);
+    return prompt;
+  }, [
+    title,
+    subtitle,
+    tagline,
+    occasion,
+    customOccasion,
+    ambiance,
+    customAmbiance,
+    mainCharacter,
+    characterDescription,
+    environment,
+    environmentDescription,
+    characterAction,
+    actionDescription,
+    additionalDetails,
+    colorPalette,
+    customPalette,
+    titleStyle,
+    onPromptGenerated
+  ]);
+
+  // ✅ Fonction de génération stable (pas de callback obsolète)
+  const handleStartGeneration = useCallback(() => {
     const prompt = generatePrompt();
-    
+
     const posterParams: PosterParams = {
       title,
       subtitle,
@@ -576,34 +565,54 @@ Premium poster design, professional layout, ultra high resolution, visually stri
       actionDescription,
       additionalDetails,
       colorPalette: colorPalette === 'Choisir...' ? customPalette : colorPalette,
-      titleStyle,
+      titleStyle
     };
 
     const genParams: GenerationParams = {
       prompt,
       negativePrompt: 'low quality, blurry, distorted text, bad anatomy',
-      steps: 9, // Optimisé pour Z-Image Turbo
-      cfg: 1, // Optimisé pour Z-Image Turbo
-      seed: Math.floor(Math.random() * 1000000), // Seed aléatoire
-      sampler: 'res_multistep', // Optimisé pour Z-Image Turbo
-      scheduler: 'simple', // Optimisé pour Z-Image Turbo
+      steps: 9,
+      cfg: 1,
+      seed: Math.floor(Math.random() * 1000000),
+      sampler: 'res_multistep',
+      scheduler: 'simple',
       denoise: 1.0,
       width: imageDimensions?.width || 1024,
-      height: imageDimensions?.height || 1792, // Format poster (9:16)
+      height: imageDimensions?.height || 1792
     };
 
     console.log('[POSTER_GENERATOR] 🚀 Génération avec prompt ACTUEL:', prompt.substring(0, 100) + '...');
     onGenerate(posterParams, genParams);
-  };
+  }, [
+    generatePrompt,
+    title,
+    subtitle,
+    tagline,
+    occasion,
+    customOccasion,
+    ambiance,
+    customAmbiance,
+    mainCharacter,
+    characterDescription,
+    environment,
+    environmentDescription,
+    characterAction,
+    actionDescription,
+    additionalDetails,
+    colorPalette,
+    customPalette,
+    titleStyle,
+    imageDimensions,
+    onGenerate
+  ]);
 
-  // Exposer la fonction de génération au parent via callback
+  // ✅ Exposer la fonction de génération au parent (toujours à jour)
   useEffect(() => {
-    if (onGetGenerateFunction) {
-      console.log('[POSTER_GENERATOR] Envoi de la fonction de génération au parent');
+    if (typeof onGetGenerateFunction === 'function') {
+      console.log('[POSTER_GENERATOR] Envoi (ou mise à jour) de la fonction de génération au parent');
       onGetGenerateFunction(handleStartGeneration);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [onGetGenerateFunction, handleStartGeneration]);
 
   return (
     <div className="p-6">
@@ -625,15 +634,10 @@ Premium poster design, professional layout, ultra high resolution, visually stri
       </div>
 
       <div className="space-y-4">
-        {/* Grille 2 colonnes pour les champs */}
         <div className="grid grid-cols-2 gap-4">
-          {/* Colonne 1 */}
           <div className="space-y-4">
-            {/* Titre de l'affiche */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Titre de l'affiche
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Titre de l'affiche</label>
               <input
                 type="text"
                 value={title}
@@ -644,11 +648,8 @@ Premium poster design, professional layout, ultra high resolution, visually stri
               />
             </div>
 
-            {/* Sous-titre */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Sous-titre
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Sous-titre</label>
               <input
                 type="text"
                 value={subtitle}
@@ -659,11 +660,8 @@ Premium poster design, professional layout, ultra high resolution, visually stri
               />
             </div>
 
-            {/* Accroche */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Accroche
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Accroche</label>
               <input
                 type="text"
                 value={tagline}
@@ -674,18 +672,15 @@ Premium poster design, professional layout, ultra high resolution, visually stri
               />
             </div>
 
-            {/* Occasion/Thème */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Occasion / Thème
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Occasion / Thème</label>
               <select
                 value={occasion}
                 onChange={(e) => setOccasion(e.target.value)}
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
                 disabled={isGenerating}
               >
-                {occasions.map(o => (
+                {occasions.map((o) => (
                   <option key={o} value={o}>{o}</option>
                 ))}
               </select>
@@ -699,18 +694,15 @@ Premium poster design, professional layout, ultra high resolution, visually stri
               />
             </div>
 
-            {/* Ambiance Générale */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Ambiance
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Ambiance</label>
               <select
                 value={ambiance}
                 onChange={(e) => setAmbiance(e.target.value)}
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
                 disabled={isGenerating}
               >
-                {ambiances.map(a => (
+                {ambiances.map((a) => (
                   <option key={a} value={a}>{a}</option>
                 ))}
               </select>
@@ -724,18 +716,15 @@ Premium poster design, professional layout, ultra high resolution, visually stri
               />
             </div>
 
-            {/* Personnage Principal */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Personnage
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Personnage</label>
               <select
                 value={mainCharacter}
                 onChange={(e) => setMainCharacter(e.target.value)}
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
                 disabled={isGenerating}
               >
-                {characters.map(c => (
+                {characters.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
@@ -750,21 +739,17 @@ Premium poster design, professional layout, ultra high resolution, visually stri
             </div>
           </div>
 
-          {/* Colonne 2 */}
           <div className="space-y-4">
-            {/* Environnement */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Environnement
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Environnement</label>
               <select
                 value={environment}
                 onChange={(e) => setEnvironment(e.target.value)}
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
                 disabled={isGenerating}
               >
-                {environments.map(e => (
-                  <option key={e} value={e}>{e}</option>
+                {environments.map((e1) => (
+                  <option key={e1} value={e1}>{e1}</option>
                 ))}
               </select>
               <input
@@ -777,18 +762,15 @@ Premium poster design, professional layout, ultra high resolution, visually stri
               />
             </div>
 
-            {/* Action du Personnage */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Action
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Action</label>
               <select
                 value={characterAction}
                 onChange={(e) => setCharacterAction(e.target.value)}
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
                 disabled={isGenerating}
               >
-                {actions.map(a => (
+                {actions.map((a) => (
                   <option key={a} value={a}>{a}</option>
                 ))}
               </select>
@@ -802,18 +784,15 @@ Premium poster design, professional layout, ultra high resolution, visually stri
               />
             </div>
 
-            {/* Palette de Couleurs */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Palette de Couleurs
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Palette de Couleurs</label>
               <select
                 value={colorPalette}
                 onChange={(e) => setColorPalette(e.target.value)}
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
                 disabled={isGenerating}
               >
-                {palettes.map(p => (
+                {palettes.map((p) => (
                   <option key={p} value={p}>{p}</option>
                 ))}
               </select>
@@ -827,28 +806,22 @@ Premium poster design, professional layout, ultra high resolution, visually stri
               />
             </div>
 
-            {/* Style du Titre */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Style du Titre
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Style du Titre</label>
               <select
                 value={titleStyle}
                 onChange={(e) => setTitleStyle(e.target.value)}
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                 disabled={isGenerating}
               >
-                {titleStyles.map(s => (
+                {titleStyles.map((s) => (
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
             </div>
 
-            {/* Détails Supplémentaires */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Détails Supplémentaires
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Détails Supplémentaires</label>
               <textarea
                 value={additionalDetails}
                 onChange={(e) => setAdditionalDetails(e.target.value)}
@@ -860,9 +833,6 @@ Premium poster design, professional layout, ultra high resolution, visually stri
             </div>
           </div>
         </div>
-
-        {/* Affichage du prompt généré (pleine largeur) - SUPPRIMÉ car redondant */}
-        {/* Le prompt est déjà visible dans PreviewPanel sous l'image générée */}
       </div>
     </div>
   );
