@@ -7,7 +7,6 @@ import { api } from '../services/api';
 import type {
   GenerationParams,
   PosterParams,
-  CameraAnglesParams,
   GeneratedImage,
   WorkflowType
 } from '../App';
@@ -32,20 +31,18 @@ export function AppContent() {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [imageDimensions, setImageDimensions] = useState({ width: 1024, height: 1024 });
 
-  // 🔒 États OBLIGATOIRES pour PreviewPanel
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
 
-  // 🔑 Fonctions de génération (callbacks enfants)
-  const [posterGenerateFn, setPosterGenerateFn] = useState<(() => void) | null>(null);
-  const [parametersGenerateFn, setParametersGenerateFn] = useState<(() => void) | null>(null);
-  const [cameraAnglesGenerateFn, setCameraAnglesGenerateFn] = useState<(() => void) | null>(null);
+  // ✅ REFS POUR LES CALLBACKS (CORRECTION DÉFINITIVE)
+  const posterGenerateRef = useRef<null | (() => void)>(null);
+  const parametersGenerateRef = useRef<null | (() => void)>(null);
+  const cameraAnglesGenerateRef = useRef<null | (() => void)>(null);
 
   const {
     isGenerating,
     progress,
     error,
-    generatedImage,
     startGeneration,
     clearError
   } = useImageGeneration();
@@ -71,29 +68,19 @@ export function AppContent() {
     })();
   }, []);
 
-  // ----------------------------------
-  // Reset des callbacks au changement
-  // ----------------------------------
-  useEffect(() => {
-    if (workflow !== 'poster') setPosterGenerateFn(null);
-    if (workflow !== 'parameters') setParametersGenerateFn(null);
-    if (workflow !== 'cameraAngles') setCameraAnglesGenerateFn(null);
-  }, [workflow]);
-
-  // ----------------------------------
-  // Enregistrement des callbacks
-  // ✅ CORRECTION CLÉ (setState(() => fn))
-  // ----------------------------------
+  // -------------------------
+  // Enregistrement callbacks
+  // -------------------------
   const handlePosterGenerateFunctionReceived = useCallback((fn: () => void) => {
-    setPosterGenerateFn(() => fn);
+    posterGenerateRef.current = fn;
   }, []);
 
   const handleParametersGenerateFunctionReceived = useCallback((fn: () => void) => {
-    setParametersGenerateFn(() => fn);
+    parametersGenerateRef.current = fn;
   }, []);
 
   const handleCameraGenerateFunctionReceived = useCallback((fn: () => void) => {
-    setCameraAnglesGenerateFn(() => fn);
+    cameraAnglesGenerateRef.current = fn;
   }, []);
 
   // -------------------------
@@ -142,7 +129,7 @@ export function AppContent() {
       <WorkflowCarousel selectedWorkflow={workflow} onSelectWorkflow={setWorkflow} />
 
       <div className="flex">
-        {/* LEFT PANEL */}
+        {/* LEFT */}
         <div className="w-1/2">
           {workflow === 'poster' && (
             <PosterGenerator
@@ -173,7 +160,7 @@ export function AppContent() {
           )}
         </div>
 
-        {/* RIGHT PANEL */}
+        {/* RIGHT */}
         <div className="w-1/2">
           <PreviewPanel
             currentImage={currentImage}
@@ -186,9 +173,9 @@ export function AppContent() {
               setSavedGallery((prev) => [img, ...prev])
             }
             onStartGeneration={() => {
-              if (workflow === 'poster' && posterGenerateFn) posterGenerateFn();
-              if (workflow === 'parameters' && parametersGenerateFn) parametersGenerateFn();
-              if (workflow === 'cameraAngles' && cameraAnglesGenerateFn) cameraAnglesGenerateFn();
+              if (workflow === 'poster') posterGenerateRef.current?.();
+              if (workflow === 'parameters') parametersGenerateRef.current?.();
+              if (workflow === 'cameraAngles') cameraAnglesGenerateRef.current?.();
             }}
             onFormatChange={(w, h) =>
               setImageDimensions({ width: w, height: h })
