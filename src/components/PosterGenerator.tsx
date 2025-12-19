@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Sparkles, Image as ImageIcon, Smartphone, Monitor, Square } from 'lucide-react';
+import { Sparkles, Image as ImageIcon } from 'lucide-react';
 import { PosterParams, GenerationParams } from '../App';
 
 interface PosterGeneratorProps {
@@ -7,7 +7,7 @@ interface PosterGeneratorProps {
   isGenerating: boolean;
   onPromptGenerated: (prompt: string) => void;
   generatedPrompt: string;
-
+  imageDimensions?: { width: number; height: number };
   onGetGenerateFunction?: (fn: () => void) => void;
 }
 
@@ -374,13 +374,6 @@ export function PosterGenerator({
   const [customPalette, setCustomPalette] = useState('');
   const [titleStyle, setTitleStyle] = useState('Choisir...');
 
-  // ✅ Format d’image piloté par l’UI
-  const [dimensions, setDimensions] = useState({
-    width: 1080,
-    height: 1920,
-    label: 'Portrait'
-  });
-
   const randomChoice = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
   const generateRandomPoster = () => {
@@ -580,9 +573,15 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     titleStyle
   };
 
-  // ✅ Format choisi via les boutons
-const finalWidth = dimensions.width;
-const finalHeight = dimensions.height;
+  const finalWidth =
+  typeof imageDimensions?.width === 'number'
+    ? imageDimensions.width
+    : 1080;
+
+const finalHeight =
+  typeof imageDimensions?.height === 'number'
+    ? imageDimensions.height
+    : 1080;
 
 const genParams: GenerationParams = {
   final_prompt: prompt,
@@ -782,10 +781,7 @@ console.log(
 
           <div className="space-y-4">
             <div>
-              
-            
-            </div>
-<label className="block text-sm text-gray-300 mb-2">Environnement</label>
+              <label className="block text-sm text-gray-300 mb-2">Environnement</label>
               <select
   value={environment}
   onChange={(e) => {
