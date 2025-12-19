@@ -165,17 +165,21 @@ export function AppContent() {
               workflow === 'cameraAngles' ? 'bg-gray-900' : 'bg-black'
             }`}
           >
-            <PreviewPanel
+            PreviewPanel
   mode={workflow === 'angles' ? 'camera_angles' : 'poster'}
   currentImage={currentImage}
   savedGallery={savedGallery}
   isGenerating={isGenerating}
   onSelectImage={setCurrentImage}
-  onSaveToGallery={(img) => setSavedGallery(prev => [img, ...prev])}
+  onSaveToGallery={(img) =>
+    setSavedGallery((prev) => [img, ...prev])
+  }
   onStartGeneration={() => {
     if (workflow === 'poster') posterGenerateFn.current?.();
-    else if (workflow === 'parameters') parametersGenerateFn.current?.();
-    else if (workflow === 'angles') cameraAnglesGenerateFn.current?.();
+    else if (workflow === 'parameters')
+      parametersGenerateFn.current?.();
+    else if (workflow === 'angles')
+      cameraAnglesGenerateFn.current?.();
   }}
 />
           </div>
