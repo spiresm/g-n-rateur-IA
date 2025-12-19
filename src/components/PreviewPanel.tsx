@@ -21,13 +21,11 @@ interface PreviewPanelProps {
   savedGallery: GeneratedImage[];
   isGenerating: boolean;
   onSelectImage: (image: GeneratedImage) => void;
-  onCopyParameters: (image: GeneratedImage) => void;
   onSaveToGallery: (image: GeneratedImage) => void;
-  generatedPrompt: string;
   onStartGeneration?: () => void;
   onFormatChange?: (width: number, height: number) => void;
 
-  /** ✅ NOUVEAU : type de workflow */
+  /** 🔑 Mode du workflow */
   mode?: 'poster' | 'camera';
 }
 
@@ -46,7 +44,6 @@ export function PreviewPanel({
   const [showCharte, setShowCharte] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<ImageFormat>(IMAGE_FORMATS[1]);
   const [lightboxImage, setLightboxImage] = useState<GeneratedImage | null>(null);
-  const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
   const imagePreviewRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,20 +54,16 @@ export function PreviewPanel({
     }
   }, [currentImage, isGenerating]);
 
-  const handleStartGenerationSafe = () => {
-    if (typeof onStartGeneration === 'function') {
-      onStartGeneration();
-    }
-  };
-
   const handleDownload = async (imageUrl: string) => {
     const response = await fetch(imageUrl);
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
+
     const a = document.createElement('a');
     a.href = url;
     a.download = `image-${Date.now()}.jpg`;
     a.click();
+
     window.URL.revokeObjectURL(url);
   };
 
@@ -79,23 +72,19 @@ export function PreviewPanel({
     onFormatChange?.(format.width, format.height);
   };
 
-  const safeGallery = Array.isArray(savedGallery) ? savedGallery : [];
-
   return (
     <div className={`p-6 h-full ${isCamera ? 'bg-gray-950' : 'bg-black'}`}>
       {/* HEADER */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <ImageIcon className="w-5 h-5 text-purple-400" />
-          <h2 className="text-white">
-            {isCamera ? 'Aperçu angle caméra' : 'Résultat & Prévisualisation'}
-          </h2>
-        </div>
+      <div className="flex items-center gap-2 mb-6">
+        <ImageIcon className="w-5 h-5 text-purple-400" />
+        <h2 className="text-white">
+          {isCamera ? 'Aperçu angle caméra' : 'Résultat & Prévisualisation'}
+        </h2>
       </div>
 
-      {/* FORMATS — UNIQUEMENT POUR POSTER */}
+      {/* FORMATS — POSTER UNIQUEMENT */}
       {!isCamera && onStartGeneration && (
-        <div className="mb-4">
+        <div className="mb-6">
           <h3 className="text-gray-300 mb-3 text-sm">Format de l'image</h3>
           <div className="grid grid-cols-3 gap-3">
             {IMAGE_FORMATS.map(format => {
@@ -108,10 +97,10 @@ export function PreviewPanel({
                   key={`${format.width}x${format.height}`}
                   onClick={() => handleFormatSelect(format)}
                   disabled={isGenerating}
-                  className={`p-4 rounded-lg border-2 ${
+                  className={`p-4 rounded-lg border-2 transition ${
                     isSelected
                       ? 'border-purple-500 bg-purple-500/10'
-                      : 'border-gray-700 bg-gray-800'
+                      : 'border-gray-700 bg-gray-800 hover:border-gray-600'
                   }`}
                 >
                   <p className="text-sm text-gray-300">{format.label}</p>
@@ -125,10 +114,10 @@ export function PreviewPanel({
         </div>
       )}
 
-      {/* BOUTON GENERER */}
+      {/* BOUTON GENERER — TOUS LES WORKFLOWS */}
       {onStartGeneration && (
         <button
-          onClick={handleStartGenerationSafe}
+          onClick={onStartGeneration}
           disabled={isGenerating}
           className="w-full mb-6 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 text-white py-3 rounded-lg flex items-center justify-center gap-3"
         >
@@ -156,7 +145,7 @@ export function PreviewPanel({
         )}
       </div>
 
-      {/* ACTIONS */}
+      {/* ACTIONS — POSTER UNIQUEMENT */}
       {currentImage && !isCamera && (
         <div className="flex gap-3 justify-center">
           <button
@@ -174,16 +163,18 @@ export function PreviewPanel({
         </div>
       )}
 
+      {/* LIGHTBOX */}
       {lightboxImage && (
         <ImageLightbox
           open
           image={lightboxImage}
-          gallery={safeGallery}
+          gallery={savedGallery}
           onOpenChange={() => setLightboxImage(null)}
           onSelectImage={onSelectImage}
         />
       )}
 
+      {/* CHARTE */}
       <SimpleAlertDialog
         open={showCharte}
         onOpenChange={setShowCharte}
