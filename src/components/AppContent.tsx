@@ -228,38 +228,3 @@ export function AppContent() {
     </>
   );
 }
-<div className="w-full md:w-1/2 bg-gray-800 border-r border-gray-700">
-  {workflow === 'poster' && (
-    <PosterGenerator
-      onGenerate={(_, genParams) => handleGenerateAction(genParams)}
-      isGenerating={isGenerating}
-      onPromptGenerated={setGeneratedPrompt}
-      generatedPrompt={generatedPrompt}
-      imageDimensions={imageDimensions}
-      onGetGenerateFunction={registerPosterGenerateFn}
-    />
-  )}
-
-  {workflow === 'parameters' && (
-    <GenerationParameters
-      onGenerate={handleGenerateAction}
-      isGenerating={isGenerating}
-      onGetGenerateFunction={registerParametersGenerateFn}
-    />
-  )}
-
-  {workflow === 'angles' && (
-    <CameraAnglesGenerator
-      onGenerate={handleGenerateAction}
-      isGenerating={isGenerating}
-      onGetGenerateFunction={registerCameraAnglesGenerateFn}
-    />
-  )}
-
-  {/* 🔴 FALLBACK DEBUG – À SUPPRIMER APRÈS */}
-  {!['poster', 'parameters', 'angles'].includes(workflow) && (
-    <div className="p-8 text-red-400 text-sm">
-      ⚠️ Workflow inconnu : <b>{workflow}</b>
-    </div>
-  )}
-</div>
