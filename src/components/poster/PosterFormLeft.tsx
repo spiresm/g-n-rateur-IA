@@ -31,106 +31,145 @@ type PosterFormLeftProps = {
   hasTagline: boolean;
 };
 
-export function PosterFormLeft(props: PosterFormLeftProps) {
-  const {
-    title,
-    setTitle,
-    subtitle,
-    setSubtitle,
-    tagline,
-    setTagline,
-    occasion,
-    setOccasion,
-    customOccasion,
-    setCustomOccasion,
-    ambiance,
-    setAmbiance,
-    customAmbiance,
-    setCustomAmbiance,
-    mainCharacter,
-    setMainCharacter,
-    characterDescription,
-    setCharacterDescription,
-    isGenerating,
-    occasions,
-    ambiances,
-    characters
-  } = props;
-
+export function PosterFormLeft({
+  title,
+  setTitle,
+  subtitle,
+  setSubtitle,
+  tagline,
+  setTagline,
+  occasion,
+  setOccasion,
+  customOccasion,
+  setCustomOccasion,
+  ambiance,
+  setAmbiance,
+  customAmbiance,
+  setCustomAmbiance,
+  mainCharacter,
+  setMainCharacter,
+  characterDescription,
+  setCharacterDescription,
+  isGenerating,
+  occasions,
+  ambiances,
+  characters
+}: PosterFormLeftProps) {
   return (
     <div className="space-y-4">
-      <input
-        className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-        placeholder="Titre"
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        disabled={isGenerating}
-      />
-
-      <input
-        className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-        placeholder="Sous-titre"
-        value={subtitle}
-        onChange={e => setSubtitle(e.target.value)}
-        disabled={isGenerating}
-      />
-
-      <input
-        className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-        placeholder="Tagline"
-        value={tagline}
-        onChange={e => setTagline(e.target.value)}
-        disabled={isGenerating}
-      />
-
-      <select
-        className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-        value={occasion}
-        onChange={e => setOccasion(e.target.value)}
-        disabled={isGenerating}
-      >
-        {occasions.map(o => (
-          <option key={o} value={o}>{o}</option>
-        ))}
-      </select>
-
-      {occasion === 'Choisir...' && (
+      {/* TITRE */}
+      <div>
+        <label className="block text-sm text-gray-300 mb-2">Titre de l'affiche</label>
         <input
-          className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-          placeholder="Occasion personnalisée"
-          value={customOccasion}
-          onChange={e => setCustomOccasion(e.target.value)}
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value.toUpperCase())}
+          placeholder="TITRE DE L’AFFICHE"
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm uppercase"
+          disabled={isGenerating}
         />
-      )}
+      </div>
 
-      <select
-        className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-        value={ambiance}
-        onChange={e => setAmbiance(e.target.value)}
-        disabled={isGenerating}
-      >
-        {ambiances.map(a => (
-          <option key={a} value={a}>{a}</option>
-        ))}
-      </select>
+      {/* SOUS-TITRE */}
+      <div>
+        <label className="block text-sm text-gray-300 mb-2">Sous-titre</label>
+        <input
+          type="text"
+          value={subtitle}
+          onChange={(e) => setSubtitle(e.target.value)}
+          placeholder="Sous-titre..."
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+          disabled={isGenerating}
+        />
+      </div>
 
-      <select
-        className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-        value={mainCharacter}
-        onChange={e => setMainCharacter(e.target.value)}
-        disabled={isGenerating}
-      >
-        {characters.map(c => (
-          <option key={c} value={c}>{c}</option>
-        ))}
-      </select>
+      {/* TAGLINE */}
+      <div>
+        <label className="block text-sm text-gray-300 mb-2">Tagline</label>
+        <input
+          type="text"
+          value={tagline}
+          onChange={(e) => setTagline(e.target.value)}
+          placeholder="Une phrase d'accroche..."
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+          disabled={isGenerating}
+        />
+      </div>
 
-      <textarea
-        className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2"
-        placeholder="Description du personnage"
-        value={characterDescription}
-        onChange={e => setCharacterDescription(e.target.value)}
-      />
+      {/* OCCASION / THEME */}
+      <div>
+        <label className="block text-sm text-gray-300 mb-2">Thème / Occasion</label>
+        <select
+          value={occasion}
+          onChange={(e) => setOccasion(e.target.value)}
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+          disabled={isGenerating}
+        >
+          {occasions.map((o) => (
+            <option key={o} value={o}>{o}</option>
+          ))}
+        </select>
+
+        {occasion === 'Choisir...' && (
+          <input
+            type="text"
+            value={customOccasion}
+            onChange={(e) => setCustomOccasion(e.target.value)}
+            placeholder="Ou thème personnalisé..."
+            className="mt-2 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+            disabled={isGenerating}
+          />
+        )}
+      </div>
+
+      {/* AMBIANCE */}
+      <div>
+        <label className="block text-sm text-gray-300 mb-2">Ambiance</label>
+        <select
+          value={ambiance}
+          onChange={(e) => setAmbiance(e.target.value)}
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+          disabled={isGenerating}
+        >
+          {ambiances.map((a) => (
+            <option key={a} value={a}>{a}</option>
+          ))}
+        </select>
+
+        {ambiance === 'Choisir...' && (
+          <input
+            type="text"
+            value={customAmbiance}
+            onChange={(e) => setCustomAmbiance(e.target.value)}
+            placeholder="Ou ambiance personnalisée..."
+            className="mt-2 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+            disabled={isGenerating}
+          />
+        )}
+      </div>
+
+      {/* PERSONNAGE */}
+      <div>
+        <label className="block text-sm text-gray-300 mb-2">Personnage</label>
+        <select
+          value={mainCharacter}
+          onChange={(e) => setMainCharacter(e.target.value)}
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+          disabled={isGenerating}
+        >
+          {characters.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+
+        <textarea
+          value={characterDescription}
+          onChange={(e) => setCharacterDescription(e.target.value)}
+          placeholder="Description libre (prioritaire si remplie)…"
+          className="mt-2 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm min-h-[84px]"
+          disabled={isGenerating}
+        />
+      </div>
     </div>
   );
 }
