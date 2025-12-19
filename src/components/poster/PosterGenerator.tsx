@@ -454,14 +454,20 @@ export function PosterGenerator({
   }, []);
 
   const generatePrompt = useCallback(() => {
-    const hasTitle = Boolean(title.trim());
-    const hasSubtitle = Boolean(subtitle.trim());
-    const hasTagline = Boolean(tagline.trim());
 
-    let textBlock = '';
+  // ✅ FORCER LES MAJUSCULES AVANT TOUT
+  const finalTitle = title.trim().toUpperCase();
+  const finalSubtitle = subtitle.trim().toUpperCase();
+  const finalTagline = tagline.trim().toUpperCase();
 
-    if (!hasTitle && !hasSubtitle && !hasTagline) {
-      textBlock = `
+  const hasTitle = Boolean(finalTitle);
+  const hasSubtitle = Boolean(finalSubtitle);
+  const hasTagline = Boolean(finalTagline);
+
+  let textBlock = '';
+
+  if (!hasTitle && !hasSubtitle && !hasTagline) {
+    textBlock = `
 NO TEXT MODE:
 The poster must contain ZERO text, letters, symbols or numbers.
 Do not invent any title, subtitle or tagline.
