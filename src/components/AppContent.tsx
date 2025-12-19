@@ -191,35 +191,27 @@ export function AppContent() {
             )}
           </div>
 
-          {/* RIGHT COLUMN */}
-          <div
-            className={`w-full md:w-1/2 ${
-              workflow === 'angles' ? 'bg-gray-900' : 'bg-black'
-            }`}
-          >
-            <PreviewPanel
-              currentImage={currentImage}
-              savedGallery={savedGallery}
-              isGenerating={isGenerating}
-              onSelectImage={setCurrentImage}
-              onSaveToGallery={(img) =>
-                setSavedGallery((prev) => [img, ...prev])
-              }
-              onStartGeneration={() => {
-                if (workflow === 'poster') posterGenerateFn.current?.();
-                else if (workflow === 'parameters')
-                  parametersGenerateFn.current?.();
-                else if (workflow === 'angles')
-                  cameraAnglesGenerateFn.current?.();
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {showAdminNotice && !isConfigured && !isChecking && (
-        <AdminSetupNotice onDismiss={() => setShowAdminNotice(false)} />
-      )}
-    </>
-  );
-}
+         {/* RIGHT COLUMN */}
+<div
+  className={`w-full md:w-1/2 ${
+    workflow === 'angles' ? 'bg-gray-900' : 'bg-black'
+  }`}
+>
+  <PreviewPanel
+    currentImage={currentImage}
+    savedGallery={savedGallery}
+    isGenerating={isGenerating}
+    onSelectImage={setCurrentImage}
+    onSaveToGallery={(img) =>
+      setSavedGallery((prev) => [img, ...prev])
+    }
+    onStartGeneration={() => {
+      if (workflow === 'poster') posterGenerateFn.current?.();
+      else if (workflow === 'parameters')
+        parametersGenerateFn.current?.();
+      else if (workflow === 'angles')
+        cameraAnglesGenerateFn.current?.();
+    }}
+    mode={workflow === 'angles' ? 'camera_angles' : 'poster'}
+  />
+</div>
