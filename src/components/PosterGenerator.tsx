@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Sparkles, Image as ImageIcon } from 'lucide-react';
+import { Sparkles, Image as ImageIcon, Smartphone, Monitor, Square } from 'lucide-react';
 import { PosterParams, GenerationParams } from '../App';
 
 interface PosterGeneratorProps {
@@ -373,7 +373,7 @@ export function PosterGenerator({
   const [colorPalette, setColorPalette] = useState('');
   const [customPalette, setCustomPalette] = useState('');
   const [titleStyle, setTitleStyle] = useState('Choisir...');
-
+  const [dimensions, setDimensions] = useState({ width: 1080, height: 1920, label: 'Portrait' });
   const randomChoice = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
   const generateRandomPoster = () => {
