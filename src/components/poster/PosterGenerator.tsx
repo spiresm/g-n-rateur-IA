@@ -2,8 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import type { PosterParams, GenerationParams } from '../App';
 import { posterData } from './posterData';
 import { usePosterPrompt } from './usePosterPrompt';
-import { PosterFormLeft } from './PosterFormLeft';
-import { PosterFormRight } from './PosterFormRight';
+
 
 type PosterGeneratorProps = {
   onGenerate: (params: GenerationParams) => void;
