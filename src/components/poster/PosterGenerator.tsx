@@ -186,27 +186,7 @@ Premium poster design, professional layout, ultra high resolution, visually stri
 
     onPromptGenerated(prompt);
     return prompt;
-  }, [
-    title,
-    subtitle,
-    tagline,
-    occasion,
-    customOccasion,
-    ambiance,
-    customAmbiance,
-    mainCharacter,
-    characterDescription,
-    environment,
-    environmentDescription,
-    characterAction,
-    actionDescription,
-    additionalDetails,
-    colorPalette,
-    customPalette,
-    titleStyle,
-    getFullVersion,
-    onPromptGenerated
-  ]);
+  
 
   // ✅ Fonction de génération stable (pas de callback obsolète)
   const handleStartGeneration = useCallback(() => {
