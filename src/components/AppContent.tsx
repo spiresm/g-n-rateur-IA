@@ -19,20 +19,33 @@ export function AppContent() {
   const { user } = useAuth();
   const { isConfigured, isChecking } = useQuotaSystemStatus();
 
+  /* =====================================================
+     🔁 WORKFLOW STATE
+     ===================================================== */
   const [workflow, setWorkflow] = useState<WorkflowType>('poster');
-  const [workflowToUse, setWorkflowToUse] = useState<string>('affiche.json');
+  const [workflowToUse, setWorkflowToUse] = useState('affiche.json');
 
+  /* =====================================================
+     🖼️ IMAGE STATE
+     ===================================================== */
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
 
-  const [imageDimensions] = useState({ width: 1080, height: 1920 });
+  const imageDimensions = { width: 1080, height: 1920 };
+
   const [showAdminNotice, setShowAdminNotice] = useState(false);
 
+  /* =====================================================
+     🔗 GENERATE FUNCTIONS REFS
+     ===================================================== */
   const posterGenerateFn = useRef<(() => void) | null>(null);
   const parametersGenerateFn = useRef<(() => void) | null>(null);
   const cameraAnglesGenerateFn = useRef<(() => void) | null>(null);
 
+  /* =====================================================
+     ⚙️ GENERATION HOOK
+     ===================================================== */
   const {
     startGeneration,
     isGenerating,
@@ -43,16 +56,24 @@ export function AppContent() {
   } = useImageGeneration();
 
   /* =====================================================
-     📦 WORKFLOW ↔ JSON BINDING (CORRIGÉ)
+     📦 LOAD WORKFLOW JSON
      ===================================================== */
   useEffect(() => {
-    if (workflow === 'angles') {
-      setWorkflowToUse('multiple-angles.json');
-    } else if (workflow === 'parameters') {
-      setWorkflowToUse('parameters.json');
-    } else {
-      setWorkflowToUse('affiche.json');
-    }
+    api.getWorkflows()
+      .then(() => {
+        if (workflow === 'cameraAngles') {
+          setWorkflowToUse('multiple-angles.json');
+        } else {
+          setWorkflowToUse('affiche.json');
+        }
+      })
+      .catch(() => {
+        setWorkflowToUse(
+          workflow === 'cameraAngles'
+            ? 'multiple-angles.json'
+            : 'affiche.json'
+        );
+      });
   }, [workflow]);
 
   /* =====================================================
@@ -72,33 +93,29 @@ export function AppContent() {
         timestamp: new Date(),
       });
     }
-  }, [
-    generatedImage,
-    isGenerating,
-    generatedPrompt,
-    imageDimensions,
-    user?.email,
-  ]);
+  }, [generatedImage, isGenerating, generatedPrompt, user?.email]);
 
   /* =====================================================
-     🚀 GENERATION HANDLER
+     🚀 GENERATE HANDLER
      ===================================================== */
   const handleGenerateAction = useCallback(
     async (params: any) => {
       if (isGenerating || !workflowToUse) return;
 
       const finalParams =
-        workflow === 'angles'
-          ? params
+        workflow === 'cameraAngles'
+          ? params // ⚠️ PAS de width/height ici
           : {
               ...params,
               width: imageDimensions.width,
               height: imageDimensions.height,
             };
 
+      console.log('[APP] GENERATE →', workflowToUse, finalParams);
+
       await startGeneration(workflowToUse, finalParams);
     },
-    [startGeneration, workflowToUse, isGenerating, workflow, imageDimensions]
+    [startGeneration, workflowToUse, isGenerating, workflow]
   );
 
   /* =====================================================
@@ -119,8 +136,6 @@ export function AppContent() {
   /* =====================================================
      🧩 UI
      ===================================================== */
-  console.log('[DEBUG] workflow =', workflow);
-
   return (
     <>
       <Header />
@@ -147,7 +162,8 @@ export function AppContent() {
         />
 
         <div className="flex flex-col md:flex-row min-h-[calc(100vh-268px)]">
-          {/* LEFT COLUMN */}
+
+          {/* ================= LEFT COLUMN ================= */}
           <div className="w-full md:w-1/2 bg-gray-800 border-r border-gray-700">
             {workflow === 'poster' && (
               <PosterGenerator
@@ -168,7 +184,7 @@ export function AppContent() {
               />
             )}
 
-            {workflow === 'angles' && (
+            {workflow === 'cameraAngles' && (
               <CameraAnglesGenerator
                 onGenerate={handleGenerateAction}
                 isGenerating={isGenerating}
@@ -177,14 +193,13 @@ export function AppContent() {
             )}
           </div>
 
-          {/* RIGHT COLUMN */}
+          {/* ================= RIGHT COLUMN ================= */}
           <div
             className={`w-full md:w-1/2 ${
-              workflow === 'angles' ? 'bg-gray-900' : 'bg-black'
+              workflow === 'cameraAngles' ? 'bg-gray-900' : 'bg-black'
             }`}
           >
             <PreviewPanel
-              mode={workflow === 'angles' ? 'camera_angles' : 'poster'}
               currentImage={currentImage}
               savedGallery={savedGallery}
               isGenerating={isGenerating}
@@ -196,9 +211,10 @@ export function AppContent() {
                 if (workflow === 'poster') posterGenerateFn.current?.();
                 else if (workflow === 'parameters')
                   parametersGenerateFn.current?.();
-                else if (workflow === 'angles')
+                else if (workflow === 'cameraAngles')
                   cameraAnglesGenerateFn.current?.();
               }}
+              mode={workflow === 'cameraAngles' ? 'camera_angles' : 'poster'}
             />
           </div>
         </div>
