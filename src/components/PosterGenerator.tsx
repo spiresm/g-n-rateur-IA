@@ -7,7 +7,7 @@ interface PosterGeneratorProps {
   isGenerating: boolean;
   onPromptGenerated: (prompt: string) => void;
   generatedPrompt: string;
-  imageDimensions?: { width: number; height: number };
+
   onGetGenerateFunction?: (fn: () => void) => void;
 }
 
@@ -373,7 +373,14 @@ export function PosterGenerator({
   const [colorPalette, setColorPalette] = useState('');
   const [customPalette, setCustomPalette] = useState('');
   const [titleStyle, setTitleStyle] = useState('Choisir...');
-  const [dimensions, setDimensions] = useState({ width: 1080, height: 1920, label: 'Portrait' });
+
+  // ✅ Format d’image piloté par l’UI
+  const [dimensions, setDimensions] = useState({
+    width: 1080,
+    height: 1920,
+    label: 'Portrait'
+  });
+
   const randomChoice = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
   const generateRandomPoster = () => {
@@ -573,15 +580,9 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     titleStyle
   };
 
-  const finalWidth =
-  typeof imageDimensions?.width === 'number'
-    ? imageDimensions.width
-    : 1080;
-
-const finalHeight =
-  typeof imageDimensions?.height === 'number'
-    ? imageDimensions.height
-    : 1080;
+  // ✅ Format choisi via les boutons
+const finalWidth = dimensions.width;
+const finalHeight = dimensions.height;
 
 const genParams: GenerationParams = {
   final_prompt: prompt,
@@ -781,7 +782,60 @@ console.log(
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Environnement</label>
+              
+            {/* ✅ FORMAT IMAGE */}
+            <div className="bg-gray-800/40 p-3 rounded-lg border border-gray-600 mb-4">
+              <label className="block text-xs text-gray-400 mb-2 font-medium uppercase tracking-wider">
+                Format
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDimensions({ width: 1080, height: 1920, label: 'Portrait' })
+                  }
+                  className={`p-2 rounded border flex flex-col items-center gap-1 transition-all ${
+                    dimensions.label === 'Portrait'
+                      ? 'bg-purple-600 border-purple-400 text-white'
+                      : 'bg-gray-700 border-gray-600 text-gray-400'
+                  }`}
+                >
+                  <Smartphone size={16} />
+                  <span className="text-[10px]">Portrait</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDimensions({ width: 1920, height: 1080, label: 'Paysage' })
+                  }
+                  className={`p-2 rounded border flex flex-col items-center gap-1 transition-all ${
+                    dimensions.label === 'Paysage'
+                      ? 'bg-purple-600 border-purple-400 text-white'
+                      : 'bg-gray-700 border-gray-600 text-gray-400'
+                  }`}
+                >
+                  <Monitor size={16} />
+                  <span className="text-[10px]">Paysage</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDimensions({ width: 1024, height: 1024, label: 'Carré' })
+                  }
+                  className={`p-2 rounded border flex flex-col items-center gap-1 transition-all ${
+                    dimensions.label === 'Carré'
+                      ? 'bg-purple-600 border-purple-400 text-white'
+                      : 'bg-gray-700 border-gray-600 text-gray-400'
+                  }`}
+                >
+                  <Square size={16} />
+                  <span className="text-[10px]">Carré</span>
+                </button>
+              </div>
+            </div>
+<label className="block text-sm text-gray-300 mb-2">Environnement</label>
               <select
   value={environment}
   onChange={(e) => {
