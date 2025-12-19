@@ -1,6 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Sparkles, Image as ImageIcon, Smartphone, Monitor, Square } from 'lucide-react';
-import { PosterParams, GenerationParams } from '../App';
+const poster = usePosterState();
 
 interface PosterGeneratorProps {
   onGenerate: (posterParams: PosterParams, genParams: GenerationParams) => void;
