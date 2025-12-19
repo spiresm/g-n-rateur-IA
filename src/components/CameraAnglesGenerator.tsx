@@ -1,201 +1,138 @@
-import { useState } from 'react';
-import { Upload, Camera, X } from 'lucide-react';
+import { useState, useEffect, useCallback } from "react";
 
-type CameraAngle = {
-  id: string;
-  label: string;
-  promptNode: string;
-  icon: string;
-};
+type AngleKey =
+  | "close_up"
+  | "wide"
+  | "left_45"
+  | "left_90"
+  | "right_45"
+  | "right_90"
+  | "aerial"
+  | "low";
 
-const CAMERA_ANGLES: CameraAngle[] = [
-  { id: 'close_up', label: 'Close-up', promptNode: '66', icon: '📷' },
-  { id: 'wide_shot', label: 'Wide Shot', promptNode: '67', icon: '🎬' },
-  { id: '45_right', label: '45° Droite', promptNode: '69', icon: '↗️' },
-  { id: '90_right', label: '90° Droite', promptNode: '68', icon: '→' },
-  { id: 'aerial_view', label: 'Vue Aérienne', promptNode: '70', icon: '🚁' },
-  { id: 'low_angle', label: 'Contre-plongée', promptNode: '71', icon: '⬆️' },
-  { id: '45_left', label: '45° Gauche', promptNode: '73', icon: '↖️' },
-  { id: '90_left', label: '90° Gauche', promptNode: '72', icon: '←' },
+const ANGLES: { key: AngleKey; label: string }[] = [
+  { key: "close_up", label: "Gros plan" },
+  { key: "wide", label: "Plan large" },
+  { key: "left_45", label: "45° gauche" },
+  { key: "left_90", label: "90° gauche" },
+  { key: "right_45", label: "45° droite" },
+  { key: "right_90", label: "90° droite" },
+  { key: "aerial", label: "Vue aérienne" },
+  { key: "low", label: "Contre-plongée" },
 ];
 
-interface CameraAnglesGeneratorProps {
-  onGenerate: (params: {
-    workflowType: 'camera-angles'; // Type littéral strict
-    selectedAngle: string;
-    promptNode: string;
-    seed: number;
-    steps: number;
-    cfg: number;
-    imageFile: File;
-  }) => void;
+type FormatKey = "portrait" | "landscape" | "square";
+
+const FORMATS: Record<FormatKey, { width: number; height: number; label: string }> = {
+  portrait: { width: 1080, height: 1920, label: "Portrait 1080×1920" },
+  landscape: { width: 1920, height: 1080, label: "Paysage 1920×1080" },
+  square: { width: 1080, height: 1080, label: "Carré 1080×1080" },
+};
+
+interface Props {
+  onGenerate: (params: any) => void;
   isGenerating: boolean;
+  onGetGenerateFunction?: (fn: () => void) => void;
 }
 
-export function CameraAnglesGenerator({ onGenerate, isGenerating }: CameraAnglesGeneratorProps) {
-  const [selectedAngle, setSelectedAngle] = useState<CameraAngle>(CAMERA_ANGLES[0]);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+export function CameraAnglesGenerator({
+  onGenerate,
+  isGenerating,
+  onGetGenerateFunction,
+}: Props) {
+  // 🔒 états stables (ne se reset jamais tout seuls)
+  const [finalPrompt, setFinalPrompt] = useState("");
+  const [angle, setAngle] = useState<AngleKey>("close_up");
+  const [format, setFormat] = useState<FormatKey>("portrait");
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setUploadedImage(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // dimensions dérivées (jamais stockées ailleurs)
+  const { width, height } = FORMATS[format];
 
-  const handleRemoveImage = () => {
-    setUploadedImage(null);
-    setImageFile(null);
-  };
-
-  const handleGenerate = () => {
-    if (!imageFile) {
-      alert('Veuillez uploader une image avant de générer.');
-      return;
-    }
-
-    // Générer un seed aléatoire
-    const seed = Math.floor(Math.random() * 1000000000000000);
+  // 🔁 fonction unique de génération
+  const generate = useCallback(() => {
+    if (!finalPrompt.trim() || isGenerating) return;
 
     onGenerate({
-      workflowType: 'camera-angles',
-      selectedAngle: selectedAngle.id,
-      promptNode: selectedAngle.promptNode,
-      seed,
-      steps: 4, // Fixé à 4 pour ce workflow
-      cfg: 1, // Fixé à 1 pour ce workflow
-      imageFile,
+      final_prompt: finalPrompt.trim(),
+      angle,
+      width,
+      height,
     });
-  };
+  }, [finalPrompt, angle, width, height, isGenerating, onGenerate]);
+
+  // 📤 expose la fonction au parent (PreviewPanel bouton)
+  useEffect(() => {
+    onGetGenerateFunction?.(generate);
+  }, [generate, onGetGenerateFunction]);
 
   return (
-    <div className="h-full bg-gray-900 rounded-lg">
-      <div className="h-full overflow-y-auto p-6">
-        <div className="space-y-6">
-          {/* En-tête */}
-          <div className="flex items-center gap-3 pb-4 border-b border-gray-700">
-            <Camera className="w-6 h-6 text-purple-400" />
-            <div>
-              <h2 className="text-white text-lg">Angles de Caméra</h2>
-              <p className="text-gray-400 text-sm">Uploadez une image et choisissez un angle</p>
-            </div>
-          </div>
-
-          {/* Zone d'upload */}
-          <div className="space-y-3">
-            <label className="text-gray-300 text-sm block">Image Source</label>
-            
-            {!uploadedImage ? (
-              <label className="block w-full aspect-square max-h-[300px] cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  disabled={isGenerating}
-                />
-                <div className="w-full h-full border-2 border-dashed border-gray-600 rounded-lg hover:border-purple-500 transition-colors flex flex-col items-center justify-center gap-3 bg-gray-800/50">
-                  <Upload className="w-12 h-12 text-gray-500" />
-                  <div className="text-center px-4">
-                    <p className="text-gray-300 mb-1">Cliquez pour uploader</p>
-                    <p className="text-gray-500 text-xs">PNG, JPG jusqu'à 10MB</p>
-                  </div>
-                </div>
-              </label>
-            ) : (
-              <div className="relative aspect-square max-h-[300px] rounded-lg overflow-hidden bg-gray-800">
-                <img 
-                  src={uploadedImage} 
-                  alt="Uploaded" 
-                  className="w-full h-full object-contain"
-                />
-                <button
-                  onClick={handleRemoveImage}
-                  disabled={isGenerating}
-                  className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full transition-colors disabled:opacity-50"
-                  title="Supprimer l'image"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Sélection de l'angle */}
-          <div className="space-y-3">
-            <label className="text-gray-300 text-sm block">Angle de Caméra</label>
-            <div className="grid grid-cols-2 gap-2">
-              {CAMERA_ANGLES.map((angle) => (
-                <button
-                  key={angle.id}
-                  onClick={() => setSelectedAngle(angle)}
-                  disabled={isGenerating}
-                  className={`p-3 rounded-lg transition-all text-left border-2 ${
-                    selectedAngle.id === angle.id
-                      ? 'bg-purple-600 border-purple-500 text-white'
-                      : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500'
-                  } disabled:opacity-50`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{angle.icon}</span>
-                    <span className="text-sm">{angle.label}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Info technique */}
-          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
-            <h3 className="text-gray-300 text-sm mb-2">Paramètres Techniques</h3>
-            <div className="space-y-1 text-xs text-gray-400">
-              <div className="flex justify-between">
-                <span>Steps:</span>
-                <span className="text-gray-300">4 (fixe)</span>
-              </div>
-              <div className="flex justify-between">
-                <span>CFG Scale:</span>
-                <span className="text-gray-300">1.0 (fixe)</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Sampler:</span>
-                <span className="text-gray-300">Euler</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Modèle:</span>
-                <span className="text-gray-300">Qwen Image Edit</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Bouton Générer */}
-          <button
-            onClick={handleGenerate}
-            disabled={!uploadedImage || isGenerating}
-            className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 disabled:from-gray-700 disabled:to-gray-700 text-white py-4 rounded-lg transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isGenerating ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Génération en cours...
-              </span>
-            ) : (
-              <span className="flex items-center justify-center gap-2">
-                <Camera className="w-5 h-5" />
-                Générer l'Angle
-              </span>
-            )}
-          </button>
-        </div>
+    <div className="p-6 space-y-6">
+      {/* TITRE */}
+      <div>
+        <h2 className="text-xl font-bold text-white">Angles de caméra</h2>
+        <p className="text-sm text-gray-400">
+          Choisis un angle et un format, puis génère une image.
+        </p>
       </div>
+
+      {/* PROMPT FINAL */}
+      <div className="space-y-2">
+        <label className="text-sm text-gray-300">
+          Prompt final (généré par ton outil)
+        </label>
+        <textarea
+          value={finalPrompt}
+          onChange={(e) => setFinalPrompt(e.target.value)}
+          disabled={isGenerating}
+          className="w-full min-h-[100px] px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm"
+          placeholder="Colle ici le prompt final…"
+        />
+      </div>
+
+      {/* FORMATS */}
+      <div className="flex flex-wrap gap-2">
+        {(Object.keys(FORMATS) as FormatKey[]).map((key) => (
+          <button
+            key={key}
+            disabled={isGenerating}
+            onClick={() => setFormat(key)}
+            className={`px-3 py-2 rounded-lg text-sm border transition ${
+              format === key
+                ? "bg-purple-600 border-purple-500 text-white"
+                : "bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
+            }`}
+          >
+            {FORMATS[key].label}
+          </button>
+        ))}
+      </div>
+
+      {/* ANGLES */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        {ANGLES.map((a) => (
+          <button
+            key={a.key}
+            disabled={isGenerating}
+            onClick={() => setAngle(a.key)}
+            className={`p-3 rounded-lg border text-sm transition ${
+              angle === a.key
+                ? "bg-purple-600/20 border-purple-500 text-white"
+                : "bg-gray-800 border-gray-700 text-gray-200 hover:bg-gray-700"
+            }`}
+          >
+            {a.label}
+          </button>
+        ))}
+      </div>
+
+      {/* BOUTON GENERER */}
+      <button
+        disabled={isGenerating || !finalPrompt.trim()}
+        onClick={generate}
+        className="w-full py-3 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold"
+      >
+        Générer avec cet angle
+      </button>
     </div>
   );
 }
