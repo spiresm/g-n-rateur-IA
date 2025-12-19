@@ -1,4 +1,4 @@
-import { ImageIcon, Download, Sparkles } from 'lucide-react';
+import { ImageIcon, Sparkles } from 'lucide-react';
 import { GeneratedImage } from '../App';
 import { useEffect, useRef, useState } from 'react';
 import { ImageLightbox } from './ImageLightbox';
@@ -11,12 +11,16 @@ interface PreviewPanelProps {
   onSaveToGallery: (image: GeneratedImage) => void;
   onStartGeneration?: () => void;
   mode?: 'poster' | 'cameraAngles';
+
+  /* ✅ AJOUTS */
+  imageDimensions: { width: number; height: number };
+  onChangeDimensions: (dims: { width: number; height: number }) => void;
 }
 
 const IMAGE_FORMATS = [
-  { label: 'Paysage' },
-  { label: 'Portrait' },
-  { label: 'Carré' },
+  { label: 'Paysage', width: 1920, height: 1080 },
+  { label: 'Portrait', width: 1080, height: 1920 },
+  { label: 'Carré', width: 1024, height: 1024 },
 ];
 
 export function PreviewPanel({
@@ -26,6 +30,8 @@ export function PreviewPanel({
   onSelectImage,
   onSaveToGallery,
   onStartGeneration,
+  imageDimensions,
+  onChangeDimensions,
   mode = 'poster',
 }: PreviewPanelProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -37,6 +43,9 @@ export function PreviewPanel({
     }
   }, [currentImage, isGenerating]);
 
+  const isActiveFormat = (w: number, h: number) =>
+    imageDimensions.width === w && imageDimensions.height === h;
+
   return (
     <div className={`p-6 h-full ${mode === 'cameraAngles' ? 'bg-gray-900' : 'bg-black'}`}>
       <div className="flex items-center gap-2 mb-6">
@@ -44,17 +53,28 @@ export function PreviewPanel({
         <h2 className="text-white">Résultat & Prévisualisation</h2>
       </div>
 
-      {/* FORMATS → AFFICHE UNIQUEMENT */}
+      {/* FORMATS → ACTIFS (COLONNE DE DROITE) */}
       {mode === 'poster' && (
         <div className="grid grid-cols-3 gap-3 mb-6">
-          {IMAGE_FORMATS.map(f => (
-            <div
-              key={f.label}
-              className="bg-gray-800 py-2 rounded-lg text-center text-gray-300 text-sm"
-            >
-              {f.label}
-            </div>
-          ))}
+          {IMAGE_FORMATS.map(f => {
+            const active = isActiveFormat(f.width, f.height);
+
+            return (
+              <button
+                key={f.label}
+                type="button"
+                onClick={() => onChangeDimensions({ width: f.width, height: f.height })}
+                className={`py-2 rounded-lg text-sm transition-all border
+                  ${
+                    active
+                      ? 'bg-purple-600 border-purple-400 text-white'
+                      : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+                  }`}
+              >
+                {f.label}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -63,7 +83,7 @@ export function PreviewPanel({
         <button
           onClick={onStartGeneration}
           disabled={isGenerating}
-          className="w-full mb-6 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg flex items-center justify-center gap-2"
+          className="w-full mb-6 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-60"
         >
           <Sparkles className="w-4 h-4" />
           {isGenerating ? 'Génération…' : 'Générer'}
