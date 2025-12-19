@@ -23,6 +23,8 @@ export function PosterGenerator({
   imageDimensions,
   onGetGenerateFunction
 }: PosterGeneratorProps) {
+
+  // 1️⃣ États
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [tagline, setTagline] = useState('');
@@ -41,6 +43,10 @@ export function PosterGenerator({
   const [customPalette, setCustomPalette] = useState('');
   const [titleStyle, setTitleStyle] = useState('Choisir...');
 
+// 2️⃣ États UI dérivés (utilisés uniquement pour l’affichage)
+  const hasTitle = Boolean(title?.trim());
+  const hasSubtitle = Boolean(subtitle?.trim());
+  const hasTagline = Boolean(tagline?.trim());
 
   const { generatePrompt } = usePosterPrompt({
     title,
