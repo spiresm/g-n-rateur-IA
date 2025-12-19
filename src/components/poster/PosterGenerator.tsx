@@ -365,6 +365,8 @@ export function PosterGenerator({
   imageDimensions,
   onGetGenerateFunction
 }: PosterGeneratorProps) {
+
+  const poster = usePosterState(); // ✅ OBLIGATOIRE
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [tagline, setTagline] = useState('');
