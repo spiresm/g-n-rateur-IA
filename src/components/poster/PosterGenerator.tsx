@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Sparkles, Image as ImageIcon } from 'lucide-react';
 import { PosterParams, GenerationParams } from '../App';
 import { posterData } from './posterData';
+import { usePosterPrompt } from './usePosterPrompt';
 
 interface PosterGeneratorProps {
   onGenerate: (posterParams: PosterParams, genParams: GenerationParams) => void;
@@ -39,6 +40,28 @@ export function PosterGenerator({
   const [colorPalette, setColorPalette] = useState('');
   const [customPalette, setCustomPalette] = useState('');
   const [titleStyle, setTitleStyle] = useState('Choisir...');
+
+
+  const { generatePrompt } = usePosterPrompt({
+    title,
+    subtitle,
+    tagline,
+    occasion,
+    customOccasion,
+    ambiance,
+    customAmbiance,
+    mainCharacter,
+    characterDescription,
+    environment,
+    environmentDescription,
+    characterAction,
+    actionDescription,
+    additionalDetails,
+    colorPalette,
+    customPalette,
+    titleStyle,
+    onPromptGenerated
+  });
 
   const randomChoice = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
@@ -84,36 +107,7 @@ export function PosterGenerator({
   const palettes = ['Choisir...', ...posterData.palettes];
   const titleStyles = ['Choisir...', ...posterData.styles_titre];
 
-  const getFullVersion = useCallback((
-    shortLabel: string,
-    type: 'theme' | 'ambiance' | 'character' | 'environment' | 'action' | 'palette' | 'titleStyle'
-  ): string => {
-    const index = {
-      theme: posterData.themes.indexOf(shortLabel),
-      ambiance: posterData.ambiances.indexOf(shortLabel),
-      character: posterData.personnages.indexOf(shortLabel),
-      environment: posterData.environnements.indexOf(shortLabel),
-      action: posterData.actions.indexOf(shortLabel),
-      palette: posterData.palettes.indexOf(shortLabel),
-      titleStyle: posterData.styles_titre.indexOf(shortLabel)
-    }[type];
-
-    if (index === -1) return shortLabel;
-
-    return {
-      theme: posterData.themes_full[index],
-      ambiance: posterData.ambiances_full[index],
-      character: posterData.personnages_full[index],
-      environment: posterData.environnements_full[index],
-      action: posterData.actions_full[index],
-      palette: posterData.palettes_full[index],
-      titleStyle: posterData.styles_titre_full[index]
-    }[type] || shortLabel;
-  }, []);
-
-  const generatePrompt = useCallback(() => {
-    const hasTitle = Boolean(title.trim());
-    const hasSubtitle = Boolean(subtitle.trim());
+      const hasSubtitle = Boolean(subtitle.trim());
     const hasTagline = Boolean(tagline.trim());
 
     let textBlock = '';
