@@ -31,6 +31,14 @@ export function AppContent() {
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
 
+  /* =====================================================
+     ✅ IMAGE DIMENSIONS (SOURCE DE VÉRITÉ)
+     ===================================================== */
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 1080,
+    height: 1920, // ✅ PORTRAIT PAR DÉFAUT
+  });
+
   const [showAdminNotice, setShowAdminNotice] = useState(false);
 
   /* =====================================================
@@ -74,11 +82,19 @@ export function AppContent() {
         params: {
           final_prompt: generatedPrompt,
           user: user?.email,
+          width: imageDimensions.width,
+          height: imageDimensions.height,
         } as any,
         timestamp: new Date(),
       });
     }
-  }, [generatedImage, isGenerating, generatedPrompt, user?.email]);
+  }, [
+    generatedImage,
+    isGenerating,
+    generatedPrompt,
+    user?.email,
+    imageDimensions,
+  ]);
 
   /* =====================================================
      🚀 GENERATE HANDLER
@@ -87,10 +103,16 @@ export function AppContent() {
     async (params: any) => {
       if (isGenerating || !workflowToUse) return;
 
-      console.log('[APP] Generate →', workflowToUse, params);
-      await startGeneration(workflowToUse, params);
+      const finalParams = {
+        ...params,
+        width: imageDimensions.width,
+        height: imageDimensions.height,
+      };
+
+      console.log('[APP] Generate →', workflowToUse, finalParams);
+      await startGeneration(workflowToUse, finalParams);
     },
-    [startGeneration, workflowToUse, isGenerating]
+    [startGeneration, workflowToUse, isGenerating, imageDimensions]
   );
 
   /* =====================================================
@@ -147,6 +169,7 @@ export function AppContent() {
                 isGenerating={isGenerating}
                 onPromptGenerated={setGeneratedPrompt}
                 generatedPrompt={generatedPrompt}
+                imageDimensions={imageDimensions} // ✅ synchro
                 onGetGenerateFunction={registerPosterGenerateFn}
               />
             )}
@@ -179,6 +202,8 @@ export function AppContent() {
               currentImage={currentImage}
               savedGallery={savedGallery}
               isGenerating={isGenerating}
+              imageDimensions={imageDimensions}      // ✅
+              onChangeDimensions={setImageDimensions} // ✅ BOUTONS À DROITE
               onSelectImage={setCurrentImage}
               onSaveToGallery={(img) =>
                 setSavedGallery((prev) => [img, ...prev])
