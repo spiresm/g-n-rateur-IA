@@ -1,7 +1,7 @@
 {
   "25": {
     "inputs": {
-      "image": "character_input.png"
+      "image": "aaa.png"
     },
     "class_type": "LoadImage",
     "_meta": {
@@ -323,7 +323,7 @@
   },
   "65:35:21": {
     "inputs": {
-      "seed": 864993937066247,
+      "seed": 388621920936710,
       "steps": 4,
       "cfg": 1,
       "sampler_name": "euler",
@@ -482,7 +482,7 @@
   },
   "65:37:21": {
     "inputs": {
-      "seed": 405868421823137,
+      "seed": 209640665270994,
       "steps": 4,
       "cfg": 1,
       "sampler_name": "euler",
@@ -641,7 +641,7 @@
   },
   "65:39:21": {
     "inputs": {
-      "seed": 507933693362283,
+      "seed": 1003818760166899,
       "steps": 4,
       "cfg": 1,
       "sampler_name": "euler",
@@ -800,7 +800,7 @@
   },
   "65:42:21": {
     "inputs": {
-      "seed": 757958372345700,
+      "seed": 346191690870309,
       "steps": 4,
       "cfg": 1,
       "sampler_name": "euler",
@@ -959,7 +959,7 @@
   },
   "65:44:21": {
     "inputs": {
-      "seed": 495293742630408,
+      "seed": 1102814863802679,
       "steps": 4,
       "cfg": 1,
       "sampler_name": "euler",
@@ -1168,7 +1168,7 @@
   },
   "65:46:21": {
     "inputs": {
-      "seed": 941061162245235,
+      "seed": 1090964280298277,
       "steps": 4,
       "cfg": 1,
       "sampler_name": "euler",
@@ -1277,7 +1277,7 @@
   },
   "65:40:21": {
     "inputs": {
-      "seed": 202646758175812,
+      "seed": 786410454565323,
       "steps": 4,
       "cfg": 1,
       "sampler_name": "euler",
@@ -1436,7 +1436,7 @@
   },
   "65:33:21": {
     "inputs": {
-      "seed": 1106429432136498,
+      "seed": 966460993567490,
       "steps": 4,
       "cfg": 1,
       "sampler_name": "euler",
