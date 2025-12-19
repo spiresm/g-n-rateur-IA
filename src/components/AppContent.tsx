@@ -27,7 +27,6 @@ export function AppContent() {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
 
   const [imageDimensions] = useState({ width: 1080, height: 1920 });
-
   const [showAdminNotice, setShowAdminNotice] = useState(false);
 
   const posterGenerateFn = useRef<(() => void) | null>(null);
@@ -52,7 +51,7 @@ export function AppContent() {
       .then((data: any) => {
         const list = data?.workflows || [];
 
-        if (workflow === 'angles') {
+        if (workflow === 'camera_angles') {
           setWorkflowToUse('multiple-angles.json');
         } else {
           setWorkflowToUse(
@@ -62,7 +61,7 @@ export function AppContent() {
       })
       .catch(() => {
         setWorkflowToUse(
-          workflow === 'angles'
+          workflow === 'camera_angles'
             ? 'multiple-angles.json'
             : 'affiche.json'
         );
@@ -102,8 +101,8 @@ export function AppContent() {
       if (isGenerating || !workflowToUse) return;
 
       const finalParams =
-        workflow === 'angles'
-          ? params
+        workflow === 'camera_angles'
+          ? params // ✅ PAS de width/height pour camera angles
           : {
               ...params,
               width: imageDimensions.width,
@@ -118,7 +117,7 @@ export function AppContent() {
   );
 
   /* =====================================================
-     🧠 REGISTER GENERATORS
+     🧠 REGISTER GENERATORS (STABLE)
      ===================================================== */
   const registerPosterGenerateFn = useCallback((fn: () => void) => {
     posterGenerateFn.current = fn;
@@ -182,7 +181,7 @@ export function AppContent() {
               />
             )}
 
-            {workflow === 'angles' && (
+            {workflow === 'camera_angles' && (
               <CameraAnglesGenerator
                 onGenerate={handleGenerateAction}
                 isGenerating={isGenerating}
@@ -194,7 +193,7 @@ export function AppContent() {
           {/* RIGHT COLUMN */}
           <div
             className={`w-full md:w-1/2 ${
-              workflow === 'angles' ? 'bg-gray-900' : 'bg-black'
+              workflow === 'camera_angles' ? 'bg-gray-900' : 'bg-black'
             }`}
           >
             <PreviewPanel
@@ -209,10 +208,10 @@ export function AppContent() {
                 if (workflow === 'poster') posterGenerateFn.current?.();
                 else if (workflow === 'parameters')
                   parametersGenerateFn.current?.();
-                else if (workflow === 'angles')
+                else if (workflow === 'camera_angles')
                   cameraAnglesGenerateFn.current?.();
               }}
-              mode={workflow === 'angles' ? 'camera_angles' : 'poster'}
+              mode={workflow === 'camera_angles' ? 'camera_angles' : 'poster'}
             />
           </div>
         </div>
