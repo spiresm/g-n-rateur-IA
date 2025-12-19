@@ -19,20 +19,29 @@ export const api = {
    * 🔑 Génération image ComfyUI
    * params DOIT contenir :
    * - final_prompt (obligatoire)
-   * - width
-   * - height
+   * - image (obligatoire pour multiple-angles.json)
+   * - width / height / seed
    */
   async generateImage(workflow: string, params: any, token?: string) {
-    // ✅ Construction du FormData ICI (et pas ailleurs)
-    if (!params || !params.final_prompt) {
+    // ✅ Vérification du prompt
+    if (!params || (!params.final_prompt && !params.prompt)) {
       throw new Error(
         "final_prompt manquant (générateur d’affiches ludiques)"
       );
     }
 
     const formData = new FormData();
-    formData.append("final_prompt", params.final_prompt);
+    
+    // ✅ Injection du prompt (on accepte prompt ou final_prompt pour la flexibilité)
+    formData.append("final_prompt", params.final_prompt || params.prompt);
 
+    // ✅ AJOUT DE L'IMAGE (Crucial pour l'erreur 500/400 sur LoadImage)
+    // On vérifie si une image est présente dans les params (File ou Blob)
+    if (params.image) {
+      formData.append("image", params.image);
+    }
+
+    // ✅ Autres paramètres
     if (params.width) formData.append("width", String(params.width));
     if (params.height) formData.append("height", String(params.height));
     if (params.seed) formData.append("seed", String(params.seed));
@@ -40,6 +49,8 @@ export const api = {
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
+    // Note : On ne définit pas "Content-Type" manuellement, le navigateur le fait
+    // automatiquement pour le FormData avec le "boundary" correct.
     const response = await fetch(
       `${BACKEND_URL}/generate?workflow_name=${encodeURIComponent(workflow)}`,
       {
@@ -64,7 +75,6 @@ export const api = {
       );
     }
 
-    // attendu : { prompt_id, client_id }
     return data;
   },
 
