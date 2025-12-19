@@ -8,7 +8,7 @@ import type { GeneratedImage, WorkflowType } from '../App';
 import { Header } from './Header';
 import { WorkflowCarousel } from './WorkflowCarousel';
 import { GenerationParameters } from './GenerationParameters';
-import { PosterGenerator } from './PosterGenerator';
+import { PosterGenerator } from './poster';
 import { CameraAnglesGenerator } from './CameraAnglesGenerator';
 import { PreviewPanel } from './PreviewPanel';
 import { ProgressOverlay } from './ProgressOverlay';
