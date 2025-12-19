@@ -1,7 +1,13 @@
 import { ImageIcon, Sparkles } from 'lucide-react';
-import { GeneratedImage } from '../App';
 import { useEffect, useRef, useState } from 'react';
+import { GeneratedImage } from '../App';
 import { ImageLightbox } from './ImageLightbox';
+
+interface ImageDimensions {
+  width: number;
+  height: number;
+  label: 'Portrait' | 'Paysage' | 'Carré';
+}
 
 interface PreviewPanelProps {
   currentImage: GeneratedImage | null;
@@ -12,14 +18,14 @@ interface PreviewPanelProps {
   onStartGeneration?: () => void;
   mode?: 'poster' | 'cameraAngles';
 
-  /* ✅ AJOUTS */
-  imageDimensions: { width: number; height: number };
-  onChangeDimensions: (dims: { width: number; height: number }) => void;
+  /* ✅ FORMAT (piloté par AppContent) */
+  imageDimensions: ImageDimensions;
+  onChangeFormat: (dims: ImageDimensions) => void;
 }
 
-const IMAGE_FORMATS = [
-  { label: 'Paysage', width: 1920, height: 1080 },
+const IMAGE_FORMATS: ImageDimensions[] = [
   { label: 'Portrait', width: 1080, height: 1920 },
+  { label: 'Paysage', width: 1920, height: 1080 },
   { label: 'Carré', width: 1024, height: 1024 },
 ];
 
@@ -31,47 +37,50 @@ export function PreviewPanel({
   onSaveToGallery,
   onStartGeneration,
   imageDimensions,
-  onChangeDimensions,
+  onChangeFormat,
   mode = 'poster',
 }: PreviewPanelProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [lightboxImage, setLightboxImage] = useState<GeneratedImage | null>(null);
 
+  /* ✅ Scroll UNIQUEMENT après génération */
   useEffect(() => {
     if (currentImage && !isGenerating) {
       ref.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [currentImage, isGenerating]);
 
-  const isActiveFormat = (w: number, h: number) =>
-    imageDimensions.width === w && imageDimensions.height === h;
-
   return (
-    <div className={`p-6 h-full ${mode === 'cameraAngles' ? 'bg-gray-900' : 'bg-black'}`}>
+    <div
+      className={`p-6 h-full ${
+        mode === 'cameraAngles' ? 'bg-gray-900' : 'bg-black'
+      }`}
+    >
+      {/* HEADER */}
       <div className="flex items-center gap-2 mb-6">
         <ImageIcon className="w-5 h-5 text-purple-400" />
         <h2 className="text-white">Résultat & Prévisualisation</h2>
       </div>
 
-      {/* FORMATS → ACTIFS (COLONNE DE DROITE) */}
+      {/* FORMATS — COLONNE DE DROITE UNIQUEMENT */}
       {mode === 'poster' && (
         <div className="grid grid-cols-3 gap-3 mb-6">
-          {IMAGE_FORMATS.map(f => {
-            const active = isActiveFormat(f.width, f.height);
+          {IMAGE_FORMATS.map((format) => {
+            const isActive = imageDimensions.label === format.label;
 
             return (
               <button
-                key={f.label}
+                key={format.label}
                 type="button"
-                onClick={() => onChangeDimensions({ width: f.width, height: f.height })}
-                className={`py-2 rounded-lg text-sm transition-all border
+                onClick={() => onChangeFormat(format)}
+                className={`py-2 rounded-lg text-sm font-medium transition-all border
                   ${
-                    active
+                    isActive
                       ? 'bg-purple-600 border-purple-400 text-white'
                       : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
                   }`}
               >
-                {f.label}
+                {format.label}
               </button>
             );
           })}
@@ -81,6 +90,7 @@ export function PreviewPanel({
       {/* BOUTON GÉNÉRER */}
       {onStartGeneration && (
         <button
+          type="button"
           onClick={onStartGeneration}
           disabled={isGenerating}
           className="w-full mb-6 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-60"
@@ -105,6 +115,7 @@ export function PreviewPanel({
         )}
       </div>
 
+      {/* LIGHTBOX */}
       {lightboxImage && (
         <ImageLightbox
           open
