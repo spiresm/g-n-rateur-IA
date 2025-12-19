@@ -30,7 +30,11 @@ export function AppContent() {
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-
+  const [imageDimensions, setImageDimensions] = useState({
+  width: 1080,
+  height: 1920,
+  label: 'Portrait',
+});
   /* =====================================================
      ✅ IMAGE DIMENSIONS (SOURCE DE VÉRITÉ)
      ===================================================== */
