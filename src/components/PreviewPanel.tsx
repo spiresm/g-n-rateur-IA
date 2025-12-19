@@ -10,7 +10,9 @@ interface PreviewPanelProps {
   onSelectImage: (image: GeneratedImage) => void;
   onSaveToGallery: (image: GeneratedImage) => void;
   onStartGeneration?: () => void;
-  mode?: 'poster' | 'cameraAngles';
+
+  // ✅ NOM UNIFIÉ
+  mode?: 'poster' | 'camera_angles';
 }
 
 const IMAGE_FORMATS = [
@@ -38,16 +40,18 @@ export function PreviewPanel({
   }, [currentImage, isGenerating]);
 
   return (
-    <div className={`p-6 h-full ${mode === 'cameraAngles' ? 'bg-gray-900' : 'bg-black'}`}>
+    <div className={`p-6 h-full ${mode === 'camera_angles' ? 'bg-gray-900' : 'bg-black'}`}>
       {/* HEADER */}
       <div className="flex items-center gap-2 mb-6">
         <ImageIcon className="w-5 h-5 text-purple-400" />
         <h2 className="text-white">
-          {mode === 'cameraAngles' ? 'Aperçu – Angle de caméra' : 'Résultat & Prévisualisation'}
+          {mode === 'camera_angles'
+            ? 'Aperçu – Angle de caméra'
+            : 'Résultat & Prévisualisation'}
         </h2>
       </div>
 
-      {/* ✅ FORMATS — UNIQUEMENT POUR AFFICHE */}
+      {/* ✅ FORMATS — UNIQUEMENT POUR POSTER */}
       {mode === 'poster' && (
         <div className="grid grid-cols-3 gap-3 mb-6">
           {IMAGE_FORMATS.map(f => (
@@ -61,7 +65,7 @@ export function PreviewPanel({
         </div>
       )}
 
-      {/* BOUTON GÉNÉRER */}
+      {/* ✅ BOUTON GÉNÉRER */}
       {onStartGeneration && (
         <button
           onClick={onStartGeneration}
@@ -83,13 +87,14 @@ export function PreviewPanel({
           />
         ) : (
           <div className="w-full max-w-md aspect-square bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 text-sm">
-            {mode === 'cameraAngles'
-              ? 'Choisis un angle puis Générer'
+            {mode === 'camera_angles'
+              ? 'Choisis un angle puis clique sur Générer'
               : 'Aucune image générée'}
           </div>
         )}
       </div>
 
+      {/* LIGHTBOX */}
       {lightboxImage && (
         <ImageLightbox
           open
