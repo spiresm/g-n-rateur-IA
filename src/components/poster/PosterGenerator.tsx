@@ -1,5 +1,6 @@
 import { usePosterState } from './usePosterState';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { ImageIcon } from 'lucide-react';
 
 
 interface PosterGeneratorProps {
