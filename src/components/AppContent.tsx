@@ -14,6 +14,12 @@ import { PreviewPanel } from './PreviewPanel';
 import { ProgressOverlay } from './ProgressOverlay';
 import { AdminSetupNotice } from './AdminSetupNotice';
 
+type ImageDimensions = {
+  width: number;
+  height: number;
+  label: 'Portrait' | 'Paysage' | 'Carré';
+};
+
 export function AppContent() {
   const { user } = useAuth();
   const { isConfigured, isChecking } = useQuotaSystemStatus();
@@ -30,17 +36,14 @@ export function AppContent() {
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [imageDimensions, setImageDimensions] = useState({
-  width: 1080,
-  height: 1920,
-  label: 'Portrait',
-});
+
   /* =====================================================
      ✅ IMAGE DIMENSIONS (SOURCE DE VÉRITÉ)
      ===================================================== */
-  const [imageDimensions, setImageDimensions] = useState({
+  const [imageDimensions, setImageDimensions] = useState<ImageDimensions>({
     width: 1080,
-    height: 1920, // ✅ PORTRAIT PAR DÉFAUT
+    height: 1920,
+    label: 'Portrait',
   });
 
   const [showAdminNotice, setShowAdminNotice] = useState(false);
@@ -92,16 +95,10 @@ export function AppContent() {
         timestamp: new Date(),
       });
     }
-  }, [
-    generatedImage,
-    isGenerating,
-    generatedPrompt,
-    user?.email,
-    imageDimensions,
-  ]);
+  }, [generatedImage, isGenerating, generatedPrompt, user?.email, imageDimensions]);
 
   /* =====================================================
-     🚀 GENERATE HANDLER
+     🚀 GENERATE HANDLER (force width/height)
      ===================================================== */
   const handleGenerateAction = useCallback(
     async (params: any) => {
@@ -157,23 +154,18 @@ export function AppContent() {
       )}
 
       <div className="pt-32">
-        <WorkflowCarousel
-          selectedWorkflow={workflow}
-          onSelectWorkflow={setWorkflow}
-        />
+        <WorkflowCarousel selectedWorkflow={workflow} onSelectWorkflow={setWorkflow} />
 
         <div className="flex flex-col md:flex-row min-h-[calc(100vh-268px)]">
           {/* ================= LEFT COLUMN ================= */}
           <div className="w-full md:w-1/2 bg-gray-800 border-r border-gray-700">
             {workflow === 'poster' && (
               <PosterGenerator
-                onGenerate={(_, genParams) =>
-                  handleGenerateAction(genParams)
-                }
+                onGenerate={(_, genParams) => handleGenerateAction(genParams)}
                 isGenerating={isGenerating}
                 onPromptGenerated={setGeneratedPrompt}
                 generatedPrompt={generatedPrompt}
-                imageDimensions={imageDimensions} // ✅ synchro
+                imageDimensions={imageDimensions}
                 onGetGenerateFunction={registerPosterGenerateFn}
               />
             )}
@@ -206,18 +198,14 @@ export function AppContent() {
               currentImage={currentImage}
               savedGallery={savedGallery}
               isGenerating={isGenerating}
-              imageDimensions={imageDimensions}      // ✅
-              onChangeDimensions={setImageDimensions} // ✅ BOUTONS À DROITE
+              imageDimensions={imageDimensions}
+              onChangeFormat={setImageDimensions}
               onSelectImage={setCurrentImage}
-              onSaveToGallery={(img) =>
-                setSavedGallery((prev) => [img, ...prev])
-              }
+              onSaveToGallery={(img) => setSavedGallery((prev) => [img, ...prev])}
               onStartGeneration={() => {
                 if (workflow === 'poster') posterGenerateFn.current?.();
-                else if (workflow === 'parameters')
-                  parametersGenerateFn.current?.();
-                else if (workflow === 'cameraAngles')
-                  cameraAnglesGenerateFn.current?.();
+                else if (workflow === 'parameters') parametersGenerateFn.current?.();
+                else if (workflow === 'cameraAngles') cameraAnglesGenerateFn.current?.();
               }}
             />
           </div>
