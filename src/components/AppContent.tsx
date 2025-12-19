@@ -170,13 +170,18 @@ export function AppContent() {
   savedGallery={savedGallery}
   isGenerating={isGenerating}
   onSelectImage={setCurrentImage}
-  onSaveToGallery={(img) => setSavedGallery(prev => [img, ...prev])}
-  onStartGeneration={() => {
-    if (workflow === 'poster') posterGenerateFn.current?.();
-    else if (workflow === 'parameters') parametersGenerateFn.current?.();
-    else if (workflow === 'cameraAngles') cameraAnglesGenerateFn.current?.();
-  }}
-  mode={workflow === 'cameraAngles' ? 'cameraAngles' : 'poster'}
+  onSaveToGallery={(img) =>
+    setSavedGallery((prev) => [img, ...prev])
+  }
+  onStartGeneration={
+    workflow === 'poster' || workflow === 'parameters'
+      ? () => {
+          if (workflow === 'poster') posterGenerateFn.current?.();
+          else parametersGenerateFn.current?.();
+        }
+      : undefined // ✅ camera angles = PAS de bouton ici
+  }
+  mode={workflow === 'angles' ? 'camera_angles' : 'poster'}
 />
           </div>
         </div>
