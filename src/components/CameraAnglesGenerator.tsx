@@ -1,105 +1,122 @@
-import { useState, useEffect } from "react";
-import { Button } from "./ui/button";
+import { useState, useEffect } from 'react';
+import { Upload, Camera } from 'lucide-react';
 
 interface CameraAnglesGeneratorProps {
-  onGenerate: (params: {
-    image: File;
-    angle: CameraAngle;
-  }) => void;
+  onGenerate: (params: any) => void;
   isGenerating: boolean;
   onGetGenerateFunction?: (fn: () => void) => void;
 }
 
-type CameraAngle =
-  | "close_up"
-  | "wide"
-  | "45_right"
-  | "90_right"
-  | "aerial"
-  | "low"
-  | "45_left"
-  | "90_left";
+type CameraAngle = {
+  id: string;
+  label: string;
+  prompt: string;
+};
 
-const CAMERA_ANGLES: { id: CameraAngle; label: string }[] = [
-  { id: "close_up", label: "Close-up" },
-  { id: "wide", label: "Wide shot" },
-  { id: "45_right", label: "45° droite" },
-  { id: "90_right", label: "90° droite" },
-  { id: "aerial", label: "Vue aérienne" },
-  { id: "low", label: "Contre-plongée" },
-  { id: "45_left", label: "45° gauche" },
-  { id: "90_left", label: "90° gauche" },
+const CAMERA_ANGLES: CameraAngle[] = [
+  { id: 'close_up', label: 'Close-up', prompt: 'Turn the camera to a close-up.' },
+  { id: 'wide', label: 'Wide shot', prompt: 'Turn the camera to a wide-angle lens.' },
+  { id: 'right_45', label: '45° Right', prompt: 'Rotate the camera 45 degrees to the right.' },
+  { id: 'right_90', label: '90° Right', prompt: 'Rotate the camera 90 degrees to the right.' },
+  { id: 'aerial', label: 'Aerial view', prompt: 'Turn the camera to an aerial view.' },
+  { id: 'low', label: 'Low angle', prompt: 'Turn the camera to a low-angle view.' },
+  { id: 'left_45', label: '45° Left', prompt: 'Rotate the camera 45 degrees to the left.' },
+  { id: 'left_90', label: '90° Left', prompt: 'Rotate the camera 90 degrees to the left.' }
 ];
 
 export function CameraAnglesGenerator({
   onGenerate,
   isGenerating,
-  onGetGenerateFunction,
+  onGetGenerateFunction
 }: CameraAnglesGeneratorProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [selectedAngle, setSelectedAngle] =
-    useState<CameraAngle>("close_up");
+  const [selectedAngle, setSelectedAngle] = useState<CameraAngle | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // 🔁 Expose la fonction de génération au parent
+  // expose generate function to parent (PreviewPanel)
   useEffect(() => {
     if (!onGetGenerateFunction) return;
 
     onGetGenerateFunction(() => {
-      if (!imageFile) return;
+      if (!imageFile || !selectedAngle || isGenerating) return;
 
-      onGenerate({
-        image: imageFile,
-        angle: selectedAngle,
-      });
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      formData.append('final_prompt', selectedAngle.prompt);
+
+      onGenerate(formData);
     });
-  }, [imageFile, selectedAngle, onGenerate, onGetGenerateFunction]);
+  }, [imageFile, selectedAngle, isGenerating, onGenerate, onGetGenerateFunction]);
+
+  const handleImageUpload = (file: File) => {
+    setImageFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const canGenerate = !!imageFile && !!selectedAngle && !isGenerating;
 
   return (
-    <div className="p-6 space-y-6">
-      {/* UPLOAD IMAGE */}
+    <div className="p-6 space-y-6 bg-gray-800 h-full">
+      {/* Upload image */}
       <div>
         <label className="block text-sm text-gray-300 mb-2">
-          Image à transformer
+          Image source (obligatoire)
         </label>
-        <input
-          type="file"
-          accept="image/*"
-          disabled={isGenerating}
-          onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-          className="block w-full text-sm text-gray-300
-            file:mr-4 file:py-2 file:px-4
-            file:rounded-lg file:border-0
-            file:text-sm file:font-semibold
-            file:bg-purple-600 file:text-white
-            hover:file:bg-purple-700
-          "
-        />
+
+        <div className="relative border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-purple-500 transition">
+          <input
+            type="file"
+            accept="image/*"
+            className="absolute inset-0 opacity-0 cursor-pointer"
+            onChange={(e) => {
+              if (e.target.files?.[0]) {
+                handleImageUpload(e.target.files[0]);
+              }
+            }}
+            disabled={isGenerating}
+          />
+
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="max-h-48 mx-auto rounded-lg object-contain"
+            />
+          ) : (
+            <div className="flex flex-col items-center gap-2 text-gray-400">
+              <Upload className="w-6 h-6" />
+              <span className="text-sm">Cliquez pour uploader une image</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ANGLES */}
+      {/* Camera angles */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-200 mb-3">
+        <label className="block text-sm text-gray-300 mb-3">
           Angle de caméra
-        </h3>
+        </label>
 
         <div className="grid grid-cols-2 gap-3">
           {CAMERA_ANGLES.map((angle) => {
-            const active = selectedAngle === angle.id;
+            const isSelected = selectedAngle?.id === angle.id;
 
             return (
               <button
                 key={angle.id}
                 type="button"
                 disabled={isGenerating}
-                onClick={() => setSelectedAngle(angle.id)}
-                className={`p-3 rounded-lg border text-sm font-medium transition-all
+                onClick={() => setSelectedAngle(angle)}
+                className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition text-sm
                   ${
-                    active
-                      ? "border-purple-500 bg-purple-500/10 text-white"
-                      : "border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-400"
+                    isSelected
+                      ? 'border-purple-500 bg-purple-500/10 text-purple-300'
+                      : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500'
                   }
+                  ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
               >
+                <Camera className="w-4 h-4" />
                 {angle.label}
               </button>
             );
@@ -107,11 +124,11 @@ export function CameraAnglesGenerator({
         </div>
       </div>
 
-      {/* INFO */}
-      {!imageFile && (
-        <p className="text-xs text-gray-400 italic">
-          Sélectionne une image pour activer la génération
-        </p>
+      {/* Status */}
+      {!canGenerate && (
+        <div className="text-xs text-gray-400 pt-2">
+          ⛔ Image et angle requis pour lancer la génération
+        </div>
       )}
     </div>
   );
