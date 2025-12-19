@@ -1,32 +1,71 @@
-import { useEffect } from 'react';
-
 export function CameraAnglesGenerator({
   onGenerate,
-  onGetGenerateFunction,
   isGenerating,
+  onGetGenerateFunction,
 }: {
   onGenerate: (params: any) => void;
-  onGetGenerateFunction: (fn: () => void) => void;
   isGenerating: boolean;
+  onGetGenerateFunction: (fn: () => void) => void;
 }) {
+  const [selectedAngle, setSelectedAngle] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
+  // expose la fonction au parent
   useEffect(() => {
     onGetGenerateFunction(() => {
-      if (isGenerating) return;
+      if (!imageFile || !selectedAngle) return;
 
-      // 👇 TEST DIRECT
       onGenerate({
-        angle: 'close_up',
+        image: imageFile,
+        angle: selectedAngle,
       });
     });
-  }, [onGenerate, onGetGenerateFunction, isGenerating]);
+  }, [imageFile, selectedAngle, onGenerate, onGetGenerateFunction]);
 
   return (
-    <div className="p-6 text-white">
-      <h2 className="text-xl font-bold text-purple-400">Angles de caméra</h2>
-      <p className="text-gray-300 mt-2">
-        Test : clique sur Générer → close_up
-      </p>
+    <div className="p-6 text-white space-y-6">
+      <h2 className="text-xl font-bold text-purple-400">
+        Angle de caméra
+      </h2>
+
+      {/* Upload */}
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+      />
+
+      {/* Angles */}
+      <div className="grid grid-cols-2 gap-3">
+        {['close_up', 'wide_shot', '45_left', '45_right', '90_left', '90_right'].map(
+          (angle) => (
+            <button
+              key={angle}
+              onClick={() => setSelectedAngle(angle)}
+              className={`p-3 rounded-lg border ${
+                selectedAngle === angle
+                  ? 'border-purple-500 bg-purple-500/10'
+                  : 'border-gray-700'
+              }`}
+            >
+              {angle}
+            </button>
+          )
+        )}
+      </div>
+
+      {/* Bouton GÉNÉRER ICI */}
+      <button
+        disabled={!imageFile || !selectedAngle || isGenerating}
+        onClick={() => {
+          if (imageFile && selectedAngle) {
+            onGenerate({ image: imageFile, angle: selectedAngle });
+          }
+        }}
+        className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 py-3 rounded-lg font-bold"
+      >
+        Générer l’angle
+      </button>
     </div>
   );
 }
