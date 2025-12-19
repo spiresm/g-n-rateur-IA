@@ -119,6 +119,8 @@ export function AppContent() {
   /* =====================================================
      🧩 UI
      ===================================================== */
+  console.log('[DEBUG] workflow =', workflow);
+
   return (
     <>
       <Header />
