@@ -3,10 +3,8 @@ import { Button } from "./ui/button";
 
 interface CameraAnglesGeneratorProps {
   onGenerate: (params: {
-    final_prompt: string;
+    image: File;
     angle: CameraAngle;
-    width: number;
-    height: number;
   }) => void;
   isGenerating: boolean;
   onGetGenerateFunction?: (fn: () => void) => void;
@@ -22,19 +20,15 @@ type CameraAngle =
   | "45_left"
   | "90_left";
 
-const CAMERA_ANGLES: {
-  id: CameraAngle;
-  label: string;
-  description: string;
-}[] = [
-  { id: "close_up", label: "Close-up", description: "Plan serré sur le sujet" },
-  { id: "wide", label: "Wide shot", description: "Plan large / grand angle" },
-  { id: "45_right", label: "45° Right", description: "Rotation caméra 45° à droite" },
-  { id: "90_right", label: "90° Right", description: "Rotation caméra 90° à droite" },
-  { id: "aerial", label: "Aerial view", description: "Vue aérienne" },
-  { id: "low", label: "Low angle", description: "Contre-plongée" },
-  { id: "45_left", label: "45° Left", description: "Rotation caméra 45° à gauche" },
-  { id: "90_left", label: "90° Left", description: "Rotation caméra 90° à gauche" },
+const CAMERA_ANGLES: { id: CameraAngle; label: string }[] = [
+  { id: "close_up", label: "Close-up" },
+  { id: "wide", label: "Wide shot" },
+  { id: "45_right", label: "45° droite" },
+  { id: "90_right", label: "90° droite" },
+  { id: "aerial", label: "Vue aérienne" },
+  { id: "low", label: "Contre-plongée" },
+  { id: "45_left", label: "45° gauche" },
+  { id: "90_left", label: "90° gauche" },
 ];
 
 export function CameraAnglesGenerator({
@@ -42,44 +36,43 @@ export function CameraAnglesGenerator({
   isGenerating,
   onGetGenerateFunction,
 }: CameraAnglesGeneratorProps) {
-  const [selectedAngle, setSelectedAngle] = useState<CameraAngle>("close_up");
-  const [prompt, setPrompt] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [selectedAngle, setSelectedAngle] =
+    useState<CameraAngle>("close_up");
 
-  // 🔁 Expose la fonction de génération au parent (PreviewPanel)
+  // 🔁 Expose la fonction de génération au parent
   useEffect(() => {
     if (!onGetGenerateFunction) return;
 
     onGetGenerateFunction(() => {
-      handleGenerate();
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedAngle, prompt]);
+      if (!imageFile) return;
 
-  const handleGenerate = () => {
-    if (!prompt.trim()) return;
-
-    onGenerate({
-      final_prompt: prompt,
-      angle: selectedAngle,
-      width: 1024,
-      height: 1024,
+      onGenerate({
+        image: imageFile,
+        angle: selectedAngle,
+      });
     });
-  };
+  }, [imageFile, selectedAngle, onGenerate, onGetGenerateFunction]);
 
   return (
     <div className="p-6 space-y-6">
-      {/* PROMPT */}
+      {/* UPLOAD IMAGE */}
       <div>
         <label className="block text-sm text-gray-300 mb-2">
-          Description / intention
+          Image à transformer
         </label>
-        <textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Décris l’intention générale (le workflow s’occupe des angles)"
-          rows={4}
+        <input
+          type="file"
+          accept="image/*"
           disabled={isGenerating}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+          onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+          className="block w-full text-sm text-gray-300
+            file:mr-4 file:py-2 file:px-4
+            file:rounded-lg file:border-0
+            file:text-sm file:font-semibold
+            file:bg-purple-600 file:text-white
+            hover:file:bg-purple-700
+          "
         />
       </div>
 
@@ -91,7 +84,7 @@ export function CameraAnglesGenerator({
 
         <div className="grid grid-cols-2 gap-3">
           {CAMERA_ANGLES.map((angle) => {
-            const isActive = selectedAngle === angle.id;
+            const active = selectedAngle === angle.id;
 
             return (
               <button
@@ -99,34 +92,27 @@ export function CameraAnglesGenerator({
                 type="button"
                 disabled={isGenerating}
                 onClick={() => setSelectedAngle(angle.id)}
-                className={`p-3 rounded-lg border text-left transition-all
+                className={`p-3 rounded-lg border text-sm font-medium transition-all
                   ${
-                    isActive
+                    active
                       ? "border-purple-500 bg-purple-500/10 text-white"
                       : "border-gray-600 bg-gray-800 text-gray-300 hover:border-gray-400"
                   }
                 `}
               >
-                <div className="font-semibold text-sm">{angle.label}</div>
-                <div className="text-xs text-gray-400">
-                  {angle.description}
-                </div>
+                {angle.label}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* ACTION */}
-      <div className="pt-4">
-        <Button
-          onClick={handleGenerate}
-          disabled={isGenerating || !prompt.trim()}
-          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold"
-        >
-          Générer l’angle sélectionné
-        </Button>
-      </div>
+      {/* INFO */}
+      {!imageFile && (
+        <p className="text-xs text-gray-400 italic">
+          Sélectionne une image pour activer la génération
+        </p>
+      )}
     </div>
   );
 }
