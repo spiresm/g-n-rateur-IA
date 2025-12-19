@@ -284,7 +284,6 @@ console.log(
 const hasTitle = Boolean(title?.trim());
 const hasSubtitle = Boolean(subtitle?.trim());
 const hasTagline = Boolean(tagline?.trim());
-
   return (
     <div className="p-6">
       <div className="flex items-center gap-2 mb-6">
