@@ -1,0 +1,1 @@
+export { PosterGenerator } from './PosterGenerator';
