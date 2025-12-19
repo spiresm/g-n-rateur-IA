@@ -103,7 +103,7 @@ export function AppContent() {
 
       const finalParams =
         workflow === 'angles'
-          ? params // ✅ PAS de width/height pour camera angles
+          ? params
           : {
               ...params,
               width: imageDimensions.width,
@@ -212,6 +212,7 @@ export function AppContent() {
                 else if (workflow === 'angles')
                   cameraAnglesGenerateFn.current?.();
               }}
+              mode={workflow === 'angles' ? 'camera_angles' : 'poster'}
             />
           </div>
         </div>
