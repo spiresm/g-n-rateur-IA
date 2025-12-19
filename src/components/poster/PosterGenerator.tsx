@@ -1,4 +1,5 @@
 import { usePosterState } from './usePosterState';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 
 interface PosterGeneratorProps {
