@@ -1,4 +1,5 @@
-const poster = usePosterState();
+import { usePosterState } from './usePosterState';
+
 
 interface PosterGeneratorProps {
   onGenerate: (posterParams: PosterParams, genParams: GenerationParams) => void;
