@@ -17,31 +17,23 @@ export const api = {
 
   /**
    * 🔑 Génération image ComfyUI
-   * params DOIT contenir :
-   * - final_prompt (obligatoire)
-   * - image (obligatoire pour multiple-angles.json)
-   * - width / height / seed
    */
   async generateImage(workflow: string, params: any, token?: string) {
-    // ✅ Vérification du prompt
     if (!params || (!params.final_prompt && !params.prompt)) {
-      throw new Error(
-        "final_prompt manquant (générateur d’affiches ludiques)"
-      );
+      throw new Error("Le prompt est manquant pour la génération.");
     }
 
     const formData = new FormData();
     
-    // ✅ Injection du prompt (on accepte prompt ou final_prompt pour la flexibilité)
+    // Injection du prompt
     formData.append("final_prompt", params.final_prompt || params.prompt);
 
-    // ✅ AJOUT DE L'IMAGE (Crucial pour l'erreur 500/400 sur LoadImage)
-    // On vérifie si une image est présente dans les params (File ou Blob)
+    // Gestion de l'image (pour les angles ou l'affiche avec perso)
     if (params.image) {
       formData.append("image", params.image);
     }
 
-    // ✅ Autres paramètres
+    // Paramètres optionnels
     if (params.width) formData.append("width", String(params.width));
     if (params.height) formData.append("height", String(params.height));
     if (params.seed) formData.append("seed", String(params.seed));
@@ -49,8 +41,6 @@ export const api = {
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    // Note : On ne définit pas "Content-Type" manuellement, le navigateur le fait
-    // automatiquement pour le FormData avec le "boundary" correct.
     const response = await fetch(
       `${BACKEND_URL}/generate?workflow_name=${encodeURIComponent(workflow)}`,
       {
@@ -65,34 +55,53 @@ export const api = {
     try {
       data = await response.json();
     } catch {
-      // réponse vide ou non JSON
+      // Échec de lecture du JSON
     }
 
     if (!response.ok) {
       console.error("DEBUG SERVER ERROR:", data);
-      throw new Error(
-        data.error || `Erreur serveur (${response.status})`
-      );
+      throw new Error(data.error || `Erreur serveur (${response.status})`);
     }
 
-    return data;
+    return data; // Retourne le prompt_id
   },
 
   /**
-   * 🖼️ Récupération image finale
+   * 🖼️ Récupération image finale avec BOUCLE D'ATTENTE (Polling)
+   * Cette fonction réessaie jusqu'à ce que ComfyUI ait fini de générer.
    */
-  async getResult(promptId: string) {
-    const response = await fetch(
-      `${BACKEND_URL}/result/${promptId}`,
-      {
-        credentials: "include",
-      }
-    );
+  async getResult(promptId: string, maxAttempts = 60): Promise<{ image_base64: string }> {
+    console.log(`Démarrage de l'attente pour l'image : ${promptId}`);
+    
+    for (let i = 0; i < maxAttempts; i++) {
+      try {
+        const response = await fetch(`${BACKEND_URL}/result/${promptId}`, {
+          credentials: "include",
+        });
 
-    if (!response.ok) {
-      throw new Error("Image non prête");
+        if (response.ok) {
+          const data = await response.json();
+          if (data.image_base64) {
+            console.log("Image reçue avec succès !");
+            return data;
+          }
+        }
+        
+        // Si le serveur répond 404, l'image n'est pas encore prête
+        if (response.status === 404) {
+            console.log(`Tentative ${i + 1}/${maxAttempts} : L'image n'est pas encore prête...`);
+        } else if (response.status !== 200) {
+            console.warn("Réponse inattendue du serveur:", response.status);
+        }
+
+      } catch (err) {
+        console.error("Erreur lors de la récupération du résultat:", err);
+      }
+
+      // Attendre 2 secondes avant la prochaine tentative (Polling)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
-    return response.json(); // { image_base64 }
+    throw new Error("Temps d'attente dépassé. ComfyUI est trop lent ou a crashé.");
   },
 };
