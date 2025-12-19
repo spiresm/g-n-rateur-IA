@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useImageGeneration } from '../hooks/useImageGeneration';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuotaSystemStatus } from '../hooks/useQuotaSystemStatus';
-import { api } from '../services/api';
 
 import type { GeneratedImage, WorkflowType } from '../App';
 
@@ -19,19 +18,31 @@ export function AppContent() {
   const { user } = useAuth();
   const { isConfigured, isChecking } = useQuotaSystemStatus();
 
+  /* =====================================================
+     🔀 WORKFLOW STATE
+     ===================================================== */
   const [workflow, setWorkflow] = useState<WorkflowType>('poster');
-  const [workflowToUse, setWorkflowToUse] = useState<string>('affiche.json');
+  const [workflowToUse, setWorkflowToUse] = useState('affiche.json');
 
+  /* =====================================================
+     🖼️ IMAGE STATE
+     ===================================================== */
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
 
   const [showAdminNotice, setShowAdminNotice] = useState(false);
 
+  /* =====================================================
+     🎛️ GENERATE FUNCTIONS REFS
+     ===================================================== */
   const posterGenerateFn = useRef<(() => void) | null>(null);
   const parametersGenerateFn = useRef<(() => void) | null>(null);
   const cameraAnglesGenerateFn = useRef<(() => void) | null>(null);
 
+  /* =====================================================
+     ⚙️ IMAGE GENERATION HOOK
+     ===================================================== */
   const {
     startGeneration,
     isGenerating,
@@ -42,13 +53,11 @@ export function AppContent() {
   } = useImageGeneration();
 
   /* =====================================================
-     📦 WORKFLOW JSON SELECTION
+     📦 SELECT WORKFLOW JSON
      ===================================================== */
   useEffect(() => {
     if (workflow === 'cameraAngles') {
       setWorkflowToUse('multiple-angles.json');
-    } else if (workflow === 'poster') {
-      setWorkflowToUse('affiche.json');
     } else {
       setWorkflowToUse('affiche.json');
     }
@@ -72,7 +81,7 @@ export function AppContent() {
   }, [generatedImage, isGenerating, generatedPrompt, user?.email]);
 
   /* =====================================================
-     🚀 GENERATION HANDLER
+     🚀 GENERATE HANDLER
      ===================================================== */
   const handleGenerateAction = useCallback(
     async (params: any) => {
@@ -128,7 +137,7 @@ export function AppContent() {
         />
 
         <div className="flex flex-col md:flex-row min-h-[calc(100vh-268px)]">
-          {/* LEFT COLUMN */}
+          {/* ================= LEFT COLUMN ================= */}
           <div className="w-full md:w-1/2 bg-gray-800 border-r border-gray-700">
             {workflow === 'poster' && (
               <PosterGenerator
@@ -159,29 +168,29 @@ export function AppContent() {
             )}
           </div>
 
-          {/* RIGHT COLUMN */}
+          {/* ================= RIGHT COLUMN ================= */}
           <div
             className={`w-full md:w-1/2 ${
               workflow === 'cameraAngles' ? 'bg-gray-900' : 'bg-black'
             }`}
           >
-            PreviewPanel
-  mode={workflow === 'angles' ? 'camera_angles' : 'poster'}
-  currentImage={currentImage}
-  savedGallery={savedGallery}
-  isGenerating={isGenerating}
-  onSelectImage={setCurrentImage}
-  onSaveToGallery={(img) =>
-    setSavedGallery((prev) => [img, ...prev])
-  }
-  onStartGeneration={() => {
-    if (workflow === 'poster') posterGenerateFn.current?.();
-    else if (workflow === 'parameters')
-      parametersGenerateFn.current?.();
-    else if (workflow === 'angles')
-      cameraAnglesGenerateFn.current?.();
-  }}
-/>
+            <PreviewPanel
+              mode={workflow === 'cameraAngles' ? 'cameraAngles' : 'poster'}
+              currentImage={currentImage}
+              savedGallery={savedGallery}
+              isGenerating={isGenerating}
+              onSelectImage={setCurrentImage}
+              onSaveToGallery={(img) =>
+                setSavedGallery((prev) => [img, ...prev])
+              }
+              onStartGeneration={() => {
+                if (workflow === 'poster') posterGenerateFn.current?.();
+                else if (workflow === 'parameters')
+                  parametersGenerateFn.current?.();
+                else if (workflow === 'cameraAngles')
+                  cameraAnglesGenerateFn.current?.();
+              }}
+            />
           </div>
         </div>
       </div>
