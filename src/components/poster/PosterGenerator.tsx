@@ -350,20 +350,20 @@ const randomData = {
 };
 
 export function PosterGenerator({
-  onGenerate,
+onGenerate,
   isGenerating,
   onPromptGenerated,
   generatedPrompt: _generatedPrompt,
-  imageDimensions,
+  imageDimensions, // Reçu du parent (ex: {width: 1920, height: 1080})
   onGetGenerateFunction
 }: PosterGeneratorProps) {
 
-  const poster = usePosterState(); // ✅ OBLIGATOIRE
-  // ✅ Source unique des champs via usePosterState()
+  const poster = usePosterState();
   const {
     title, setTitle,
     subtitle, setSubtitle,
     tagline, setTagline,
+    // ... (extraire les autres setters si nécessaire, ou utiliser l'objet 'poster')
     occasion, setOccasion,
     customOccasion, setCustomOccasion,
     ambiance, setAmbiance,
@@ -454,22 +454,21 @@ export function PosterGenerator({
   }, []);
 
   const generatePrompt = useCallback(() => {
+    // ✅ FORCE LES MAJUSCULES DANS LE PROMPT
+    const finalTitle = title.trim().toUpperCase();
+    const finalSubtitle = subtitle.trim().toUpperCase();
+    const finalTagline = tagline.trim().toUpperCase();
 
-  // ✅ FORCER LES MAJUSCULES AVANT TOUT
-  const finalTitle = title.trim().toUpperCase();
-  const finalSubtitle = subtitle.trim().toUpperCase();
-  const finalTagline = tagline.trim().toUpperCase();
+    const hasTitle = Boolean(finalTitle);
+    const hasSubtitle = Boolean(finalSubtitle);
+    const hasTagline = Boolean(finalTagline);
 
-  const hasTitle = Boolean(finalTitle);
-  const hasSubtitle = Boolean(finalSubtitle);
-  const hasTagline = Boolean(finalTagline);
+    let textBlock = '';
 
-  let textBlock = '';
-
-  if (!hasTitle && !hasSubtitle && !hasTagline) {
-    textBlock = `
+    if (!hasTitle && !hasSubtitle && !hasTagline) {
+      textBlock = `
 NO TEXT MODE:
-The poster must contain ZERO text, letters, symbols or numbers.
+The poster must contain ZERO text., letters, symbols or numbers.
 Do not invent any title, subtitle or tagline.
 Avoid any shapes that resemble typography.
 `;
