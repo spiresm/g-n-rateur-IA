@@ -100,6 +100,7 @@ function getCurrentSize() {
   };
 }
 
+// Déduit un format textuel si besoin (optionnel)
 function inferFormatFromSize(w, h) {
   if (w === 1920 && h === 1080) return "horizontal";
   if (w === 1080 && h === 1920) return "vertical";
@@ -206,6 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // 🆕 INJECTION AUTOMATIQUE + QUICK FORMAT (FIX)
 // =========================================================
 document.addEventListener("DOMContentLoaded", () => {
+  // Injection styles de titre
   const styleSelect = document.getElementById("aff_style_titre");
   if (styleSelect) {
     STYLE_TITRE_OPTIONS.forEach(opt => {
@@ -216,6 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // ✅ QUICK FORMAT BUTTONS
   document.querySelectorAll(".fmt-icon").forEach(icon => {
     icon.addEventListener("click", () => {
       const w = icon.dataset.w;
@@ -228,6 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
         heightInput.value = h;
       }
 
+      // ✅ état visuel UNIQUE (active)
       document.querySelectorAll(".fmt-icon").forEach(i => i.classList.remove("active"));
       icon.classList.add("active");
 
@@ -312,70 +316,6 @@ function showProgressOverlay(show, label = "En attente…") {
 }
 
 // =========================================================
-// ✅ NEW: CONTAINER POUR MULTI-IMAGES (ANGLES)
-// =========================================================
-
-function ensureAnglesGrid() {
-  let grid = document.getElementById("angles-grid");
-  if (grid) return grid;
-
-  const resultArea = document.getElementById("result-area");
-  if (!resultArea) return null;
-
-  grid = document.createElement("div");
-  grid.id = "angles-grid";
-  grid.style.display = "grid";
-  grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(220px, 1fr))";
-  grid.style.gap = "12px";
-  grid.style.marginTop = "14px";
-
-  resultArea.appendChild(grid);
-  return grid;
-}
-
-function clearAnglesGrid() {
-  const grid = document.getElementById("angles-grid");
-  if (grid) grid.innerHTML = "";
-}
-
-function renderAnglesImages(imagesArray) {
-  const grid = ensureAnglesGrid();
-  if (!grid) return;
-
-  grid.innerHTML = "";
-
-  imagesArray.forEach((imgObj, idx) => {
-    const wrap = document.createElement("div");
-    wrap.style.borderRadius = "14px";
-    wrap.style.overflow = "hidden";
-    wrap.style.background = "rgba(15,23,42,0.35)";
-    wrap.style.border = "1px solid rgba(255,255,255,0.08)";
-    wrap.style.padding = "8px";
-
-    const img = document.createElement("img");
-    img.src = `data:image/png;base64,${imgObj.image_base64}`;
-    img.style.width = "100%";
-    img.style.borderRadius = "12px";
-    img.style.cursor = "pointer";
-    img.alt = imgObj.filename || `Angle ${idx + 1}`;
-
-    img.addEventListener("click", () => {
-      openImageModal(img.src);
-    });
-
-    const label = document.createElement("div");
-    label.style.marginTop = "6px";
-    label.style.fontSize = "12px";
-    label.style.opacity = "0.85";
-    label.textContent = imgObj.filename || `Angle ${idx + 1}`;
-
-    wrap.appendChild(img);
-    wrap.appendChild(label);
-    grid.appendChild(wrap);
-  });
-}
-
-// =========================================================
 // GPU STATUS (SIMPLIFIÉ)
 // =========================================================
 
@@ -409,9 +349,409 @@ async function refreshGPU() {
 }
 
 // =========================================================
-// ... (le reste de ton script ne change pas)
+// GESTION WORKFLOWS & CHECKPOINTS
 // =========================================================
 
+async function loadWorkflows() {
+  const container = document.getElementById("workflow-groups-container");
+  const hiddenInput = document.getElementById("workflow-select");
+
+  if (!container) return;
+
+  try {
+    const resp = await fetch(`${API_BASE_URL}/workflows`);
+    if (!resp.ok) throw new Error("Erreur chargement workflows");
+    const data = await resp.json();
+
+    const workflows = data.workflows || [];
+    log("Workflows reçus:", JSON.stringify(workflows));
+
+    container.innerHTML = "";
+
+    const groupsConfig = [
+      { label: "ComfyUI", filter: (name) => name.endsWith(".json") }
+    ];
+
+    let firstSelected = false;
+
+    for (const group of groupsConfig) {
+      const groupWfs = workflows.filter(group.filter);
+      if (!groupWfs.length) continue;
+
+      const wrap = document.createElement("div");
+      wrap.className = "workflow-group-wrapper";
+
+      const title = document.createElement("h4");
+      title.className = "workflow-group-label";
+      title.textContent = group.label;
+      wrap.appendChild(title);
+
+      const grid = document.createElement("div");
+      grid.className = "workflow-grid";
+
+      groupWfs.forEach(wf => {
+        const base = wf.replace(/\.json$/,"");
+        const v = document.createElement("div");
+        v.className = "workflow-vignette";
+        v.dataset.workflowName = wf;
+
+        v.innerHTML = `
+          <div class="workflow-thumb-wrapper">
+            <img class="workflow-thumb" src="./vignettes/${base}.png" onerror="this.src='./vignettes/default.png'">
+          </div>
+          <div class="vignette-label-only">${base}</div>
+        `;
+
+        v.addEventListener("click", () => selectWorkflow(wf));
+        grid.appendChild(v);
+      });
+
+      wrap.appendChild(grid);
+      container.appendChild(wrap);
+
+      if (!firstSelected && groupWfs.length > 0) {
+        selectWorkflow(groupWfs[0]);
+        firstSelected = true;
+      }
+    }
+
+    if (!firstSelected && workflows.length > 0) {
+      selectWorkflow(workflows[0]);
+    }
+
+  } catch (e) {
+    console.error("Erreur loadWorkflows:", e);
+    if (container) {
+      container.innerHTML = `<span style="font-size:12px;color:#f97373;">Erreur de chargement des workflows.</span>`;
+    }
+  }
+
+  try {
+    const resp = await fetch(`${API_BASE_URL}/checkpoints`);
+    const data = await resp.json();
+    const select = document.getElementById("checkpoint-select");
+    if (!select) return;
+
+    select.innerHTML = "";
+    const optEmpty = document.createElement("option");
+    optEmpty.value = "";
+    optEmpty.textContent = "Aucun (par défaut du workflow)";
+    select.appendChild(optEmpty);
+
+    (data.checkpoints || []).forEach(ckpt => {
+      const opt = document.createElement("option");
+      opt.value = ckpt;
+      opt.textContent = ckpt;
+      select.appendChild(opt);
+    });
+
+  } catch (e) {
+    console.warn("Erreur chargement checkpoints:", e);
+  }
+}
+
+function selectWorkflow(workflowName) {
+  const hiddenInput = document.getElementById("workflow-select");
+  if (hiddenInput) hiddenInput.value = workflowName;
+
+  const all = document.querySelectorAll(".workflow-vignette");
+  all.forEach(el => {
+    el.classList.toggle("selected", el.dataset.workflowName === workflowName);
+  });
+
+  log("Workflow sélectionné:", workflowName);
+
+  const groupSteps = document.getElementById("group-steps");
+  const groupCfg = document.getElementById("group-cfg");
+  const groupSampler = document.getElementById("group-sampler");
+  const seedSection = document.getElementById("group-seed");
+  const sdxlPanel = document.getElementById("sdxl-panel");
+  const afficheMenu = document.getElementById("affiche-menu");
+
+  if (workflowName === "affiche.json") {
+    if (afficheMenu) afficheMenu.style.display = "block";
+
+    // ✅ IMPORTANT: NE PAS écraser le format si l’utilisateur a déjà choisi
+    const current = getCurrentSize();
+    const hasUserChoice = current.width > 0 && current.height > 0;
+
+    // si aucun choix (ou champs vides), on met un défaut (vertical 9:16)
+    if (!hasUserChoice) {
+      const { wInput, hInput } = getSizeInputs();
+      if (wInput) wInput.value = "1080";
+      if (hInput) hInput.value = "1920";
+
+      // active l’icône correspondante si présente
+      document.querySelectorAll(".fmt-icon").forEach(i => {
+        const match = i.dataset.w === "1080" && i.dataset.h === "1920";
+        i.classList.toggle("active", match);
+      });
+    }
+
+    // Masquer options inutiles
+    if (groupSteps) groupSteps.style.display = "none";
+    if (groupCfg) groupCfg.style.display = "none";
+    if (groupSampler) groupSampler.style.display = "none";
+    if (seedSection) seedSection.style.display = "none";
+    if (sdxlPanel) sdxlPanel.style.display = "none";
+
+  } else {
+    if (afficheMenu) afficheMenu.style.display = "none";
+
+    if (groupSteps) groupSteps.style.display = "block";
+    if (groupCfg) groupCfg.style.display = "block";
+    if (groupSampler) groupSampler.style.display = "block";
+    if (seedSection) seedSection.style.display = "block";
+    if (sdxlPanel) sdxlPanel.style.display = "block";
+  }
+
+  const videoParamsSection = document.getElementById("video-params-section");
+  if (workflowName.includes("video")) {
+    if (videoParamsSection) videoParamsSection.style.display = "block";
+  } else {
+    if (videoParamsSection) videoParamsSection.style.display = "none";
+  }
+}
+
+// =========================================================
+// OUTILS POUR LES CHAMPS
+// =========================================================
+
+function setValue(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = val;
+}
+
+function mergeSelectAndCustom(selectId, customId) {
+  const s = document.getElementById(selectId)?.value.trim() || "";
+  const c = document.getElementById(customId)?.value.trim() || "";
+  if (c) return c;
+  if (s) return s;
+  return "";
+}
+
+// =========================================================
+// GÉNÉRATION DU PROMPT POUR LE MODE AFFICHE (FINAL)
+// =========================================================
+
+function generateAffichePrompt() {
+  const titre = document.getElementById("aff_titre")?.value.trim() || "";
+  const sousTitre = document.getElementById("aff_sous_titre")?.value.trim() || "";
+  const tagline = document.getElementById("aff_tagline")?.value.trim() || "";
+  const details = document.getElementById("aff_details")?.value.trim() || "";
+  const randomSeed = document.getElementById("aff_random_seed")?.value.trim() || "";
+
+  const theme = mergeSelectAndCustom("aff_theme", "aff_theme_custom");
+  const ambiance = mergeSelectAndCustom("aff_ambiance", "aff_ambiance_custom");
+  const perso = mergeSelectAndCustom("aff_perso_sugg", "aff_perso_desc");
+  const env = mergeSelectAndCustom("aff_env_sugg", "aff_env_desc");
+  const action = mergeSelectAndCustom("aff_action_sugg", "aff_action_desc");
+  const palette = mergeSelectAndCustom("aff_palette", "aff_palette_custom");
+
+  let styleTitre = mergeSelectAndCustom("aff_style_titre", "aff_style_titre_custom");
+
+  if (styleTitre === "" || styleTitre === "aleatoire") {
+    const styleSelect = document.getElementById("aff_style_titre");
+    const options = styleSelect ? Array.from(styleSelect.options) : [];
+    const relevantOptions = options.filter(opt => opt.value && opt.value !== 'aleatoire');
+
+    if (relevantOptions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * relevantOptions.length);
+      styleTitre = relevantOptions[randomIndex].value;
+      styleSelect.value = styleTitre;
+      log(`Style de titre aléatoire sélectionné : ${relevantOptions[randomIndex].textContent}`);
+    } else {
+      styleTitre = "cinematic, elegant contrast";
+    }
+  }
+
+  const hasTitle = Boolean(titre);
+  const hasSubtitle = Boolean(sousTitre);
+  const hasTagline = Boolean(tagline);
+
+  let textBlock = "";
+
+  if (hasTitle || hasSubtitle || hasTagline) {
+    textBlock = `
+ALLOWED TEXT ONLY:
+
+${hasTitle ? `TITLE: "${titre}" (top area, clean, sharp, readable, no distortion)` : ""}
+${hasSubtitle ? `SUBTITLE: "${sousTitre}" (under title, smaller, crisp, readable)` : ""}
+${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ""}
+
+ONLY ONE INSTANCE OF EACH TEXT ELEMENT.
+
+TEXT STYLE / MATERIAL (APPLIES ONLY TO LETTERING):
+${styleTitre}
+`;
+  }
+
+  const visualElements = [
+    theme, ambiance, perso, env, action, palette
+  ].filter(item => item.trim() !== "").join(', ');
+
+  let prompt = `
+Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
+
+${textBlock}
+
+Visual elements:
+${visualElements}
+
+Extra details:
+${details || "cinematic particles, depth fog, volumetric light"}
+
+Image style:
+Premium poster design, professional layout, ultra high resolution, visually striking.
+  `.trim().replace(/\n\s*\n/g, '\n').replace(/\s{2,}/g, ' ');
+
+  if (randomSeed) {
+    prompt += `, --seed: ${randomSeed}`;
+  }
+
+  const promptArea = document.getElementById("prompt");
+  if (promptArea) promptArea.value = prompt;
+
+  log("🎨 Prompt affiche généré et prêt à être envoyé.");
+  return prompt;
+}
+
+// =========================================================
+// PROGRESSION FAKE + DÉTECTION AUTO /result
+// =========================================================
+
+async function pollProgress(promptId) {
+  if (!promptId) return;
+
+  fakeProgress = 0;
+  pollingFailureCount = 0;
+  showProgressOverlay(true, "Génération en cours…");
+
+  if (pollingProgressInterval) clearInterval(pollingProgressInterval);
+
+  const percentSpan = document.getElementById("progress-percent");
+  const innerBar = document.getElementById("progress-inner");
+  const statusPill = document.getElementById("job-status-pill");
+
+  if (statusPill) {
+    statusPill.textContent = "RUNNING";
+    statusPill.classList.remove("pill-green", "pill-danger", "pill-warning");
+    statusPill.classList.add("pill");
+  }
+
+  pollingProgressInterval = setInterval(async () => {
+    fakeProgress = Math.min(fakeProgress + 7, 92);
+
+    if (percentSpan) percentSpan.textContent = fakeProgress + "%";
+    if (innerBar) innerBar.style.width = fakeProgress + "%";
+
+    try {
+      const resCheck = await fetch(`${API_BASE_URL}/progress/${promptId}`, { headers: { ...authHeaders() } });
+
+      if (resCheck.ok) {
+        pollingFailureCount = 0;
+        const data = await resCheck.json();
+
+        if (data.status && data.status.completed) {
+          clearInterval(pollingProgressInterval);
+          pollingProgressInterval = null;
+          handleCompletion(promptId);
+          return;
+        }
+      } else {
+        pollingFailureCount++;
+        log(`[POLL ERROR] HTTP non OK: ${resCheck.status}. Tentative d'arrêt ${pollingFailureCount}/${MAX_POLLING_FAILURES}`);
+
+        if (pollingFailureCount >= MAX_POLLING_FAILURES) {
+          clearInterval(pollingProgressInterval);
+          pollingProgressInterval = null;
+          showProgressOverlay(false);
+          setError(`La tâche ${promptId} a été perdue par le serveur (HTTP ${resCheck.status}).`);
+          return;
+        }
+      }
+
+    } catch (e) {
+      pollingFailureCount++;
+      log(`[POLL ERROR] Erreur réseau/JSON: ${e.message}.`);
+
+      if (pollingFailureCount >= MAX_POLLING_FAILURES) {
+        clearInterval(pollingProgressInterval);
+        pollingProgressInterval = null;
+        showProgressOverlay(false);
+        setError(`Échec de la connexion au serveur API (${API_BASE_URL}).`);
+        return;
+      }
+    }
+
+  }, POLLING_INTERVAL_MS);
+}
+
+// =========================================================
+// GESTIONNAIRE DE COMPLÉTION AVEC RETRY
+// =========================================================
+
+async function handleCompletion(promptId) {
+  const statusPill = document.getElementById("job-status-pill");
+  const percentSpan = document.getElementById("progress-percent");
+  const innerBar = document.getElementById("progress-inner");
+
+  if (statusPill) {
+    statusPill.textContent = "FETCHING";
+    statusPill.classList.remove("pill", "pill-green", "pill-danger");
+    statusPill.classList.add("pill-warning");
+  }
+  if (percentSpan) percentSpan.textContent = "92%";
+  if (innerBar) innerBar.style.width = "92%";
+
+  const MAX_FETCH_ATTEMPTS = 10;
+  const RETRY_DELAY_MS = 2000;
+
+  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
+    log(`[FETCH RESULT] Tentative ${attempt}/${MAX_FETCH_ATTEMPTS} pour ${promptId}...`);
+
+    try {
+      const resp = await fetch(`${API_BASE_URL}/result/${promptId}`, { headers: { ...authHeaders() } });
+
+      if (resp.ok) {
+        const data = await resp.json();
+
+        if (percentSpan) percentSpan.textContent = "100%";
+        if (innerBar) innerBar.style.width = "100%";
+        showProgressOverlay(false);
+        if (statusPill) {
+          statusPill.textContent = "DONE";
+          statusPill.classList.remove("pill", "pill-danger", "pill-warning");
+          statusPill.classList.add("pill-green");
+        }
+
+        displayImageAndMetadata(data);
+        setError("");
+        return;
+      }
+
+      log(`[FETCH RESULT] HTTP non OK: ${resp.status}. Ré-essai dans ${RETRY_DELAY_MS / 1000}s.`);
+
+      if (attempt === MAX_FETCH_ATTEMPTS) {
+        throw new Error(`Échec de la récupération du résultat après ${MAX_FETCH_ATTEMPTS} tentatives.`);
+      }
+
+      await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+
+    } catch (e) {
+      console.error("Erreur fetchResult/handleCompletion:", e);
+      showProgressOverlay(false);
+      setError(e.message || "Erreur lors de la récupération de l’image générée.");
+      if (statusPill) {
+        statusPill.textContent = "FAILED";
+        statusPill.classList.remove("pill", "pill-green", "pill-warning");
+        statusPill.classList.add("pill-danger");
+      }
+      return;
+    }
+  }
+}
 
 // =========================================================
 // IMAGE MODAL — OUVERTURE CENTRALISÉE
@@ -437,43 +777,19 @@ function openImageModal(src) {
 }
 
 // =========================================================
-// ✅ AFFICHAGE DU RÉSULTAT (FIX POUR MULTI-IMAGES)
+// AFFICHAGE DU RÉSULTAT ET DES METADATAS
 // =========================================================
 
 function displayImageAndMetadata(data) {
+  const base64 = data.image_base64;
+
   const resultArea = document.getElementById("result-area");
   const placeholder = document.getElementById("result-placeholder");
-  if (!resultArea) return;
 
   if (placeholder) placeholder.style.display = "none";
 
-  // Nettoyage
   const imgExisting = resultArea.querySelector("img.result-image");
   if (imgExisting) imgExisting.remove();
-  clearAnglesGrid();
-
-  // ✅ CAS 1 : MULTI IMAGES (Angles)
-  if (data.images && Array.isArray(data.images) && data.images.length > 0) {
-    log(`✅ Résultat angles reçu : ${data.images.length} images`);
-    renderAnglesImages(data.images);
-
-    // status time
-    if (lastGenerationStartTime) {
-      const diffMs = Date.now() - lastGenerationStartTime;
-      const sec = (diffMs / 1000).toFixed(1);
-      const timeTakenEl = document.getElementById("time-taken");
-      if (timeTakenEl) timeTakenEl.textContent = `${sec}s`;
-    }
-
-    return;
-  }
-
-  // ✅ CAS 2 : SINGLE IMAGE (Affiche / autres)
-  const base64 = data.image_base64;
-  if (!base64) {
-    setError("Résultat invalide : aucune image reçue.");
-    return;
-  }
 
   const img = document.createElement("img");
   img.className = "result-image mj-img mj-blur clickable";
@@ -490,12 +806,15 @@ function displayImageAndMetadata(data) {
   };
 
   img.addEventListener("click", () => {
-    openImageModal(img.src);
+    const modal = document.getElementById("image-modal");
+    const modalImg = document.getElementById("image-modal-img");
+    if (!modal || !modalImg) return;
+    modalImg.src = img.src;
+    modal.style.display = "flex";
   });
 
   resultArea.appendChild(img);
 
-  // reset metas
   const metaSeed = document.getElementById("meta-seed");
   const metaSteps = document.getElementById("meta-steps");
   const metaCfg = document.getElementById("meta-cfg");
@@ -515,6 +834,463 @@ function displayImageAndMetadata(data) {
 }
 
 // =========================================================
-// ✅ IMPORTANT: le reste est identique à ton fichier original
-// (pollProgress / startGeneration / init etc.)
+// ENVOI DU FORMULAIRE → /generate (FIX WIDTH/HEIGHT)
 // =========================================================
+
+async function startGeneration(e) {
+  e.preventDefault();
+
+  setError("");
+
+  const formEl = document.getElementById("generation-form");
+  if (!formEl) return;
+
+  const generateBtn = document.getElementById("generate-button");
+  const currentBtn = generateBtn;
+
+  if (currentBtn) {
+    currentBtn.disabled = true;
+    currentBtn.querySelector(".dot").style.background = "#fbbf24";
+    currentBtn.innerHTML = `<span class="dot"></span>Initialisation…`;
+  }
+
+  lastGenerationStartTime = Date.now();
+  showProgressOverlay(true, "Initialisation…");
+  fakeProgress = 0;
+
+  const statusPill = document.getElementById("job-status-pill");
+  if (statusPill) {
+    statusPill.textContent = "PENDING";
+    statusPill.classList.remove("pill-green", "pill-danger", "pill-warning");
+    statusPill.classList.add("pill");
+  }
+
+  let success = false;
+  let finalPromptId = null;
+  let formData;
+  let finalPromptText = "";
+
+  try {
+    const wfName = document.getElementById("workflow-select")?.value;
+
+    if (!wfName) {
+      setError("Veuillez sélectionner un workflow.");
+      throw new Error("No workflow selected.");
+    }
+
+    // ✅ FormData initial
+    formData = new FormData(formEl);
+
+    // ✅ prompt affiche
+    if (wfName === "affiche.json") {
+      log("Workflow Affiche détecté. Génération automatique et injection du prompt.");
+      const generatedPrompt = generateAffichePrompt();
+      formData.set('prompt', generatedPrompt);
+      finalPromptText = generatedPrompt;
+    } else {
+      finalPromptText = formData.get('prompt') || "Prompt par défaut si vide";
+    }
+
+    // ✅ FIX CRITIQUE: injecter width/height (toujours) dans le FormData
+    const { width, height } = getCurrentSize();
+
+    // Valeurs par défaut si champ vide
+    const safeW = width || 1080;
+    const safeH = height || 1080;
+
+    formData.set("width", String(safeW));
+    formData.set("height", String(safeH));
+
+    // Optionnel: format déduit (utile si tu veux côté backend)
+    const fmt = inferFormatFromSize(safeW, safeH);
+    if (fmt) formData.set("format", fmt);
+
+    log(`📐 Resolution envoyée: ${safeW}x${safeH}`);
+    log(`Contenu du prompt envoyé: "${String(finalPromptText).substring(0, 80)}..."`);
+
+    log("Début de la séquence de génération réelle...");
+    if (currentBtn) currentBtn.innerHTML = `<span class="dot"></span>Génération en cours…`;
+
+    const maxAttempts = 3;
+    let attempt = 0;
+
+    while (attempt < maxAttempts && !success) {
+      attempt++;
+      try {
+        log(`[Tentative ${attempt}/${maxAttempts}] Envoi de la requête de génération.`);
+
+        const resp = await fetch(`${API_BASE_URL}/generate?workflow_name=${encodeURIComponent(wfName)}`, {
+          method: "POST",
+          headers: { ...authHeaders() },
+          body: formData
+        });
+
+        if (!resp.ok) {
+          log(`Tentative ${attempt} → HTTP ${resp.status}`);
+          if (attempt < maxAttempts) {
+            await new Promise(r => setTimeout(r, 5000));
+            continue;
+          } else {
+            throw new Error(`Échec après plusieurs tentatives. (HTTP ${resp.status})`);
+          }
+        }
+
+        const data = await resp.json();
+        if (!data.prompt_id) {
+          throw new Error("Réponse invalide de /generate (missing prompt_id)");
+        }
+
+        success = true;
+        finalPromptId = data.prompt_id;
+
+      } catch (err) {
+        console.error(`Erreur tentative ${attempt}:`, err);
+        log(`Tentative ${attempt}/${maxAttempts} : Échec.`);
+
+        if (attempt >= maxAttempts) {
+          setError(`❌ Échec de l’envoi initial de la tâche au serveur API.`);
+        }
+
+        await new Promise(r => setTimeout(r, 5000));
+      }
+    }
+
+    if (success && finalPromptId) {
+      currentPromptId = finalPromptId;
+      log("Prompt ID final:", finalPromptId);
+      pollProgress(finalPromptId);
+    } else {
+      showProgressOverlay(false);
+    }
+
+  } catch (globalErr) {
+    console.warn("Generation stopped early:", globalErr.message);
+    if (!document.getElementById("error-box")?.textContent) {
+      setError(`Erreur d'initialisation : ${globalErr.message}`);
+    }
+    showProgressOverlay(false);
+
+  } finally {
+    if (currentBtn) {
+      currentBtn.disabled = false;
+      currentBtn.querySelector(".dot").style.background = "rgba(15,23,42,0.9)";
+      currentBtn.innerHTML = `<span class="dot"></span>Démarrer la génération`;
+    }
+  }
+}
+
+// =========================================================
+// RANDOM AFFICHE — CHARGEMENT + GÉNÉRATION AUTOMATIQUE
+// =========================================================
+
+let RANDOM_AFFICHE_DATA = null;
+
+async function loadRandomAfficheJSON() {
+  if (RANDOM_AFFICHE_DATA) return RANDOM_AFFICHE_DATA;
+
+  try {
+    const resp = await fetch("random_affiche_data.json");
+    if (!resp.ok) {
+      console.error("❌ Fichier random_affiche_data.json introuvable !");
+      return null;
+    }
+
+    RANDOM_AFFICHE_DATA = await resp.json();
+    console.log("📁 random_affiche_data.json chargé !");
+    return RANDOM_AFFICHE_DATA;
+
+  } catch (e) {
+    console.error("Erreur lors du chargement JSON random :", e);
+    return null;
+  }
+}
+
+function pickRandom(arr) {
+  if (!arr || !arr.length) return "";
+  const idx = Math.floor(Math.random() * arr.length);
+  return arr[idx];
+}
+
+function fillAfficheFieldsFromRandom(randomObj) {
+  if (!randomObj) return;
+
+  setValue("aff_titre", randomObj.titre || "");
+  setValue("aff_sous_titre", randomObj.sous_titre || "");
+  setValue("aff_tagline", randomObj.tagline || "");
+
+  if (randomObj.theme) {
+    setValue("aff_theme_custom", randomObj.theme);
+    const s = document.getElementById("aff_theme");
+    if (s) s.value = "";
+  }
+
+  if (randomObj.ambiance) {
+    setValue("aff_ambiance_custom", randomObj.ambiance);
+    const s = document.getElementById("aff_ambiance");
+    if (s) s.value = "";
+  }
+
+  if (randomObj.personnage) {
+    setValue("aff_perso_desc", randomObj.personnage);
+    const s = document.getElementById("aff_perso_sugg");
+    if (s) s.value = "";
+  }
+
+  if (randomObj.environnement) {
+    setValue("aff_env_desc", randomObj.environnement);
+    const s = document.getElementById("aff_env_sugg");
+    if (s) s.value = "";
+  }
+
+  if (randomObj.action) {
+    setValue("aff_action_desc", randomObj.action);
+    const s = document.getElementById("aff_action_sugg");
+    if (s) s.value = "";
+  }
+
+  if (randomObj.details) {
+    setValue("aff_details", randomObj.details);
+  }
+
+  if (randomObj.palette) {
+    setValue("aff_palette_custom", randomObj.palette);
+    const s = document.getElementById("aff_palette");
+    if (s) s.value = "";
+  }
+
+  if (randomObj.style_titre) {
+    setValue("aff_style_titre_custom", randomObj.style_titre);
+    const s = document.getElementById("aff_style_titre");
+    if (s) s.value = "";
+  }
+}
+
+// =========================================================
+// INIT GLOBAL (DOMContentLoaded)
+// =========================================================
+
+function autoClearOnSelect(selectId, customId) {
+  const sel = document.getElementById(selectId);
+  const custom = document.getElementById(customId);
+
+  if (!sel || !custom) return;
+
+  sel.addEventListener("change", () => {
+    if (sel.value && custom.value.trim() !== "") {
+      custom.value = "";
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // LOGOUT
+  const logoutBtn = document.getElementById("logout-btn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      console.log("🔓 Déconnexion utilisateur");
+      localStorage.removeItem("google_id_token");
+      window.location.replace("login.html");
+    });
+  }
+
+  // AUTO-CLEAR
+  autoClearOnSelect("aff_style_titre", "aff_style_titre_custom");
+  autoClearOnSelect("aff_theme", "aff_theme_custom");
+  autoClearOnSelect("aff_ambiance", "aff_ambiance_custom");
+  autoClearOnSelect("aff_perso_sugg", "aff_perso_desc");
+  autoClearOnSelect("aff_env_sugg", "aff_env_desc");
+  autoClearOnSelect("aff_action_sugg", "aff_action_desc");
+  autoClearOnSelect("aff_palette", "aff_palette_custom");
+
+  // SUBMIT
+  const formEl = document.getElementById("generation-form");
+  if (formEl) {
+    formEl.addEventListener("submit", startGeneration);
+  }
+
+  // modal close
+  const modal = document.getElementById("image-modal");
+  const modalClose = document.querySelector(".modal-close-btn");
+
+  if (modalClose && modal) {
+    modalClose.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+  }
+
+  if (modal) {
+    modal.addEventListener("click", (ev) => {
+      if (ev.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  }
+
+  // Header user
+  const userInfo = document.getElementById("user-info");
+  const userName = document.getElementById("user-name");
+  const userAvatar = document.getElementById("user-avatar");
+
+  const user = decodeGoogleToken();
+  console.log("👤 decoded user:", user);
+
+  if (user && userInfo && userName && userAvatar) {
+    userName.textContent = user.given_name || user.name || "Utilisateur";
+    userAvatar.src = user.picture || "";
+    userAvatar.alt = user.name || "Avatar Google";
+    userInfo.style.display = "flex";
+    console.log("✅ Header user affiché");
+  }
+
+  const copyBtn = document.getElementById("copy-params-btn");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", () => {
+      const wfName = document.getElementById("workflow-select")?.value || "–";
+      const width = document.getElementById("width-input")?.value || "–";
+      const height = document.getElementById("height-input")?.value || "–";
+      const steps = document.getElementById("steps-slider")?.value || "–";
+      const cfg = document.getElementById("cfg_scale-slider")?.value || "–";
+      const sampler = document.getElementById("sampler")?.value || "–";
+      const seed = document.getElementById("seed-input")?.value || "–";
+
+      const txt = `Workflow: ${wfName}\nResolution: ${width}x${height}\nSteps: ${steps}\nCFG: ${cfg}\nSampler: ${sampler}\nSeed: ${seed}`;
+      navigator.clipboard.writeText(txt).then(() => {
+        log("Paramètres copiés dans le presse-papiers.");
+      });
+    });
+  }
+
+  // RANDOM AFFICHE
+  const randomBtn = document.getElementById("affiche-random-btn");
+  if (randomBtn && formEl) {
+    randomBtn.addEventListener("click", async () => {
+      console.log("🎲 Clic random détecté !");
+
+      const data = await loadRandomAfficheJSON();
+      if (!data) return;
+
+      const theme = pickRandom(data.themes);
+      const ambiance = pickRandom(data.ambiances);
+      const perso = pickRandom(data.personnages);
+      const env = pickRandom(data.environnements);
+      const action = pickRandom(data.actions);
+      const palette = pickRandom(data.palettes);
+      const styleTitre = pickRandom(data.styles_titre);
+      const details = pickRandom(data.details);
+      const titre = pickRandom(data.titres);
+      const sousTitre = pickRandom(data.sous_titres);
+      const tagline = pickRandom(data.taglines || []);
+
+      const randomObj = {
+        titre,
+        sous_titre: sousTitre,
+        tagline,
+        theme,
+        ambiance,
+        personnage: perso,
+        environnement: env,
+        action,
+        palette,
+        style_titre: styleTitre,
+        details
+      };
+
+      fillAfficheFieldsFromRandom(randomObj);
+      generateAffichePrompt();
+
+      randomBtn.classList.add("clicked");
+      randomBtn.innerHTML = "🎲 Champs remplis !";
+      setTimeout(() => {
+        randomBtn.classList.remove("clicked");
+        randomBtn.innerHTML = "🎲 Aléatoire";
+      }, 600);
+
+      console.log("🎲 Champs affiche remplis aléatoirement:", randomObj);
+    });
+  }
+
+  // PROMPT ONLY
+  const btnPrompt = document.getElementById("affiche-generate-btn");
+  if (btnPrompt && formEl) {
+    btnPrompt.addEventListener("click", () => {
+      generateAffichePrompt();
+      btnPrompt.classList.add("clicked");
+      btnPrompt.innerHTML = "✨ Prompt généré !";
+      setTimeout(() => {
+        btnPrompt.classList.remove("clicked");
+        btnPrompt.innerHTML = "✨ Générer le prompt de l’affiche";
+      }, 600);
+    });
+  }
+
+  // MODES
+  const modeCards = document.querySelectorAll(".mode-card");
+  const afficheMenu = document.getElementById("affiche-menu");
+  const generateButton = document.getElementById("generate-button");
+  const afficheGenerateBtnWrapper = document.getElementById("affiche-generate-button-wrapper");
+
+  modeCards.forEach(card => {
+    card.addEventListener("click", () => {
+      const mode = card.dataset.mode;
+
+      modeCards.forEach(c => c.classList.remove("active-mode"));
+      card.classList.add("active-mode");
+
+      if (mode === "affiche") {
+        if (afficheMenu) afficheMenu.style.display = "block";
+        selectWorkflow("affiche.json");
+
+        if (generateButton) generateButton.style.display = "block";
+        if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = "block";
+      } else {
+        if (afficheMenu) afficheMenu.style.display = "none";
+
+        if (generateButton) generateButton.style.display = "block";
+        if (afficheGenerateBtnWrapper) afficheGenerateBtnWrapper.style.display = "none";
+      }
+    });
+  });
+
+  // default mode
+  const defaultModeCard = document.querySelector(".mode-card.active-mode");
+  if (defaultModeCard) {
+    defaultModeCard.dispatchEvent(new Event("click"));
+  }
+
+  // GPU
+  refreshGPU();
+  setInterval(refreshGPU, 10000);
+
+  // Données
+  loadWorkflows();
+  loadCarrouselGallery();
+
+  // GALLERY MODAL close
+  const galleryModal = document.getElementById("image-modal");
+  const galleryModalImg = document.getElementById("image-modal-img");
+  const galleryModalClose = document.querySelector(".image-modal-close");
+
+  if (galleryModal) {
+    if (galleryModalClose) {
+      galleryModalClose.addEventListener("click", (e) => {
+        e.stopPropagation();
+        galleryModal.style.display = "none";
+        if (galleryModalImg) galleryModalImg.src = "";
+      });
+    }
+
+    galleryModal.addEventListener("click", (e) => {
+      if (e.target === galleryModal) {
+        galleryModal.style.display = "none";
+        if (galleryModalImg) galleryModalImg.src = "";
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && galleryModal.style.display === "flex") {
+        galleryModal.style.display = "none";
+        if (galleryModalImg) galleryModalImg.src = "";
+      }
+    });
+  }
+});
