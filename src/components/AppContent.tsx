@@ -890,7 +890,6 @@ Premium poster design, professional layout, ultra high resolution, visually stri
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
                 rows={3}
                 disabled={isGenerating}
-                export { PosterGenerator as AppContent };
               />
             </div>
           </div>
@@ -899,3 +898,4 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     </div>
   );
 }
+export { PosterGenerator as AppContent };
