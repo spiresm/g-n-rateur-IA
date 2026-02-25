@@ -1,13 +1,33 @@
 import { usePosterState } from './usePosterState';
-import { useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ImageIcon, Sparkles } from 'lucide-react';
 import type { PosterParams, GenerationParams } from '../App';
+
+// -----------------------------
+// CONFIG BACKEND
+// -----------------------------
+const BACKEND_URL: string =
+  // Vite
+  (import.meta as any)?.env?.VITE_BACKEND_URL ||
+  // fallback local
+  'http://127.0.0.1:8010';
+
+// Choisis ici le workflow ComfyUI côté bridge
+const DEFAULT_WORKFLOW = 'affiche.json';
 
 // ✅ Compatible avec AppContent (accepte label optionnel)
 type ImageDimensions = {
   width: number;
   height: number;
   label?: 'Portrait' | 'Paysage' | 'Carré';
+};
+
+type GeneratedImage = {
+  id: string;
+  imageUrl: string;
+  prompt: string;
+  createdAt: number;
+  generationMs?: number;
 };
 
 interface PosterGeneratorProps {
@@ -18,6 +38,225 @@ interface PosterGeneratorProps {
   imageDimensions?: ImageDimensions;
   onGetGenerateFunction?: (fn: () => void) => void;
 }
+
+// -----------------------------
+// APP CONTENT (Header + Carousel + PosterGenerator)
+// -----------------------------
+export function AppContent() {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedPrompt, setGeneratedPrompt] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [images, setImages] = useState<GeneratedImage[]>([]);
+
+  const generateFnRef = useRef<null | (() => void)>(null);
+
+  const fetchJson = useCallback(async (url: string, init?: RequestInit) => {
+    const res = await fetch(url, init);
+    const text = await res.text();
+    let data: any = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      data = text;
+    }
+    if (!res.ok) {
+      const msg =
+        (data && (data.detail || data.error || data.message)) ||
+        `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    return data;
+  }, []);
+
+  const waitForCompletion = useCallback(
+    async (promptId: string) => {
+      const start = Date.now();
+      while (true) {
+        const p = await fetchJson(`${BACKEND_URL}/progress/${promptId}`);
+        const completed = !!(p?.completed ?? p?.status?.completed);
+        if (completed) return Date.now() - start;
+        await new Promise((r) => setTimeout(r, 900));
+      }
+    },
+    [fetchJson]
+  );
+
+  const fetchResultImage = useCallback(
+    async (promptId: string) => {
+      const r = await fetchJson(`${BACKEND_URL}/result/${promptId}`);
+      const b64 = r?.image_base64;
+      if (!b64) throw new Error('Aucune image retournée par /result');
+      return `data:image/png;base64,${b64}` as const;
+    },
+    [fetchJson]
+  );
+
+  const onGenerate = useCallback(
+    async (posterParams: PosterParams, genParams: GenerationParams) => {
+      setError(null);
+      setIsGenerating(true);
+
+      try {
+        const body = new URLSearchParams();
+
+        // Champs “communs”
+        body.set('prompt', genParams.final_prompt || '');
+        body.set('negativePrompt', genParams.negativePrompt ?? '');
+        body.set('steps', String(genParams.steps ?? 20));
+        body.set('cfg', String(genParams.cfg ?? 7));
+        body.set('seed', String(genParams.seed ?? 0));
+        body.set('sampler', String(genParams.sampler ?? 'euler'));
+        body.set('scheduler', String(genParams.scheduler ?? 'normal'));
+        body.set('denoise', String(genParams.denoise ?? 1));
+        body.set('width', String(genParams.width ?? 768));
+        body.set('height', String(genParams.height ?? 1024));
+
+        // Champs “affiche” (si ton workflow les utilise)
+        body.set('title', posterParams.title ?? '');
+        body.set('subtitle', posterParams.subtitle ?? '');
+        body.set('tagline', posterParams.tagline ?? '');
+        body.set('occasion', posterParams.occasion ?? '');
+        body.set('ambiance', posterParams.ambiance ?? '');
+        body.set('mainCharacter', posterParams.mainCharacter ?? '');
+        body.set('characterDescription', posterParams.characterDescription ?? '');
+        body.set('environment', posterParams.environment ?? '');
+        body.set('environmentDescription', posterParams.environmentDescription ?? '');
+        body.set('characterAction', posterParams.characterAction ?? '');
+        body.set('actionDescription', posterParams.actionDescription ?? '');
+        body.set('additionalDetails', posterParams.additionalDetails ?? '');
+        body.set('colorPalette', posterParams.colorPalette ?? '');
+        body.set('titleStyle', posterParams.titleStyle ?? '');
+
+        // 1) /generate
+        const gen = await fetchJson(
+          `${BACKEND_URL}/generate?workflow_name=${encodeURIComponent(DEFAULT_WORKFLOW)}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body,
+          }
+        );
+
+        const promptId = gen?.prompt_id || gen?.promptId || gen?.id;
+        if (!promptId) throw new Error('Réponse /generate invalide (prompt_id manquant)');
+
+        // 2) poll /progress
+        const generationMs = await waitForCompletion(promptId);
+
+        // 3) /result
+        const imageUrl = await fetchResultImage(promptId);
+
+        setImages((prev) => [
+          {
+            id: String(promptId),
+            imageUrl,
+            prompt: genParams.final_prompt || '',
+            createdAt: Date.now(),
+            generationMs,
+          },
+          ...prev,
+        ]);
+      } catch (e: any) {
+        setError(e?.message || String(e));
+      } finally {
+        setIsGenerating(false);
+      }
+    },
+    [fetchJson, fetchResultImage, waitForCompletion]
+  );
+
+  const headerSubtitle = useMemo(() => {
+    try {
+      return `Backend: ${new URL(BACKEND_URL).host} · Workflow: ${DEFAULT_WORKFLOW}`;
+    } catch {
+      return `Backend: ${BACKEND_URL} · Workflow: ${DEFAULT_WORKFLOW}`;
+    }
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-white">
+      {/* HEADER (tu récupères ton header ici) */}
+      <div className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur border-b border-gray-800">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-700 flex items-center justify-center">
+              <ImageIcon className="w-5 h-5 text-purple-300" />
+            </div>
+            <div>
+              <div className="font-semibold leading-tight">G-n-rateur IA</div>
+              <div className="text-xs text-gray-400">{headerSubtitle}</div>
+            </div>
+          </div>
+
+          <div className="text-xs text-gray-400">
+            {isGenerating ? '⏳ Génération…' : '✅ Prêt'}
+          </div>
+        </div>
+      </div>
+
+      {/* CONTENU (carousel + formulaire) */}
+      <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* CAROUSEL (tu récupères ton carousel ici) */}
+        <div className="bg-gray-800/40 border border-gray-700 rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="font-semibold">Galerie</div>
+            <div className="text-xs text-gray-400">{images.length} image(s)</div>
+          </div>
+
+          {error && (
+            <div className="mb-3 text-sm text-red-300 bg-red-900/20 border border-red-800 rounded-lg px-3 py-2">
+              {error}
+            </div>
+          )}
+
+          {images.length === 0 ? (
+            <div className="text-sm text-gray-400 border border-dashed border-gray-600 rounded-xl p-6">
+              Aucune image générée pour l’instant.
+              <div className="mt-2 text-xs text-gray-500">
+                Lance une génération à droite pour remplir le carousel.
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {images.map((img) => (
+                <div
+                  key={img.id}
+                  className="min-w-[220px] max-w-[220px] bg-gray-900/40 border border-gray-700 rounded-xl overflow-hidden"
+                >
+                  <img src={img.imageUrl} alt={img.id} className="w-full h-56 object-cover" />
+                  <div className="p-3">
+                    <div className="text-xs text-gray-300 line-clamp-2">{img.prompt}</div>
+                    <div className="mt-2 text-[11px] text-gray-500">
+                      {img.generationMs ? `${Math.round(img.generationMs / 1000)}s` : ''} ·{' '}
+                      {new Date(img.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* POSTER GENERATOR */}
+        <div className="bg-gray-800/40 border border-gray-700 rounded-2xl">
+          <PosterGenerator
+            onGenerate={onGenerate}
+            isGenerating={isGenerating}
+            onPromptGenerated={setGeneratedPrompt}
+            generatedPrompt={generatedPrompt}
+            onGetGenerateFunction={(fn) => {
+              generateFnRef.current = fn;
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------
+// POSTER GENERATOR (ton composant)
+// -----------------------------
 
 // Données aléatoires pour génération d'affiches
 const randomData = {
@@ -31,330 +270,33 @@ const randomData = {
     "L'Aube des Héros",
     "Crépuscule Magique",
     "Dernier Refuge",
-    "Échappée Sauvage",
-    "Les Gardiens de l'Ombre",
-    "Renaissance",
-    "Le Pacte des Mondes",
-    "Horizon Perdu",
-    "L'Enfant de Lumière"
+    "Échos de l'Infini"
   ],
-  sous_titres: [
-    "Une aventure épique",
-    "Le chapitre final",
+  sousTitres: [
+    "Une aventure extraordinaire",
+    "Un conte fantastique",
+    "Une légende oubliée",
     "L'histoire commence",
-    "Édition collector",
-    "Version remasterisée",
-    "Le retour",
-    "Nouvelle génération",
-    "Saga complète",
-    "Origines",
-    "La légende continue",
-    "Chroniques inédites",
-    "Adaptation officielle",
-    "Univers étendu",
-    "Deuxième partie",
-    "Trilogie ultime"
+    "Au-delà des frontières",
+    "Dans un monde parallèle",
+    "Quand tout bascule",
+    "Le destin vous appelle"
   ],
-  taglines: [
-    "L'aventure ne fait que commencer",
-    "Rien ne sera plus jamais pareil",
-    "Le destin frappe à votre porte",
-    "Une expérience inoubliable",
-    "Préparez-vous à l'impossible",
-    "Découvrez l'invisible",
-    "Quand la magie rencontre le réel",
-    "Chaque seconde compte",
-    "Au-delà de l'imagination",
-    "Ils sont de retour",
-    "La fin n'est que le début",
-    "Ensemble, tout devient possible",
-    "Un monde à découvrir",
-    "Plus grand que nature",
-    "Laissez-vous transporter"
+  slogans: [
+    "Osez rêver plus grand",
+    "Le pouvoir est en vous",
+    "Découvrez l'inconnu",
+    "L'aventure vous attend",
+    "L'impossible devient réel",
+    "Vivez l'expérience ultime"
   ],
-  themes: [
-    "Epic fantasy adventure",
-    "Sci-fi space opera",
-    "Dark horror atmosphere",
-    "Romantic fairy tale",
-    "Action-packed thriller",
-    "Mysterious noir detective",
-    "Superhero origin story",
-    "Post-apocalyptic survival",
-    "Period drama historical",
-    "Magical Christmas wonder",
-    "Halloween spooky fun",
-    "Summer blockbuster",
-    "Cyberpunk neon future",
-    "Western frontier",
-    "Underwater exploration"
-  ],
-  ambiances: [
-    "Epic cinematic",
-    "Dark moody",
-    "Bright vibrant",
-    "Soft dreamy",
-    "Intense action",
-    "Mysterious foggy",
-    "Warm nostalgic",
-    "Cold winter",
-    "Neon cyberpunk",
-    "Magical enchanted",
-    "Gritty realistic",
-    "Whimsical playful",
-    "Elegant luxury",
-    "Raw rustic",
-    "Futuristic metallic"
-  ],
-  personnages: [
-    "Heroic warrior",
-    "Hooded figure",
-    "Young adventurer",
-    "Powerful sorceress",
-    "Space explorer",
-    "Elegant princess",
-    "Battle soldier",
-    "Curious child",
-    "Wise mentor",
-    "Female fighter",
-    "Charming rogue",
-    "Noble knight",
-    "Cybernetic android",
-    "Creature guardian",
-    "Determined survivor"
-  ],
-  environnements: [
-    "Castle ruins",
-    "Alien planet",
-    "Abandoned city",
-    "Enchanted forest",
-    "Space station",
-    "Snowy mountain",
-    "Tropical island",
-    "Crystal cavern",
-    "Medieval village",
-    "Cyberpunk alley",
-    "Desert wasteland",
-    "Underwater ruins",
-    "Sky islands",
-    "Volcanic eruption",
-    "Mystical temple"
-  ],
-  actions: [
-    "Heroic stance",
-    "Running motion",
-    "Looking back",
-    "Reaching out",
-    "Leaping air",
-    "Facing enemy",
-    "Casting spell",
-    "High speed",
-    "Climbing cliff",
-    "Romantic embrace",
-    "Combat stance",
-    "Discovering artifact",
-    "Protecting someone",
-    "Emerging explosion",
-    "Dramatic silhouette"
-  ],
-  palettes: [
-    "Warm sunset",
-    "Cool blue",
-    "Purple pink",
-    "Golden black",
-    "Emerald silver",
-    "Blood red",
-    "Pastel rainbow",
-    "Monochrome blue",
-    "Bronze copper",
-    "Neon electric",
-    "Earth tones",
-    "Icy white",
-    "Royal purple",
-    "Crimson black",
-    "Seafoam coral"
-  ],
-  styles_titre: [
-    "Dripping horror",
-    "Neon tubes",
-    "Frosted glass",
-    "Carved wood",
-    "Engraved steel",
-    "Bubbly cartoon",
-    "Jagged blood",
-    "Gemstone facets",
-    "Weathered stone",
-    "Burning fire",
-    "Water texture",
-    "Polished gold",
-    "Spray paint",
-    "Holographic digital",
-    "Gothic metal",
-    "Molded clay",
-    "Paper cut",
-    "Cosmic nebula",
-    "Steampunk brass",
-    "Glitch corrupted"
-  ],
-  details: [
-    "Light rays",
-    "Dust particles",
-    "Magic sparkles",
-    "Falling snow",
-    "Swirling mist",
-    "Lens flares",
-    "Fire embers",
-    "Glowing runes",
-    "Paper leaves",
-    "Atmospheric smoke",
-    "Light streaks",
-    "Heat distortion",
-    "Crystal reflections",
-    "Ghostly wisps",
-    "Motion blur"
-  ],
-  themes_full: [
-    "Epic fantasy adventure",
-    "Sci-fi space opera",
-    "Dark horror atmosphere",
-    "Romantic fairy tale",
-    "Action-packed thriller",
-    "Mysterious noir detective",
-    "Superhero origin story",
-    "Post-apocalyptic survival",
-    "Period drama historical",
-    "Magical Christmas wonder",
-    "Halloween spooky fun",
-    "Summer blockbuster",
-    "Cyberpunk neon future",
-    "Western frontier",
-    "Underwater exploration"
-  ],
-  ambiances_full: [
-    "epic dramatic cinematic lighting",
-    "dark moody atmospheric shadows",
-    "bright colorful vibrant energy",
-    "soft dreamy ethereal glow",
-    "intense action-packed dynamic",
-    "mysterious foggy suspenseful",
-    "warm golden nostalgic",
-    "cold blue winter frost",
-    "neon-lit cyberpunk night",
-    "magical sparkles enchanted",
-    "gritty realistic texture",
-    "whimsical playful cartoon",
-    "elegant sophisticated luxury",
-    "raw rustic natural",
-    "futuristic sleek metallic"
-  ],
-  personnages_full: [
-    "heroic warrior in armor",
-    "mysterious hooded figure",
-    "young adventurer with backpack",
-    "powerful sorceress casting spell",
-    "rugged space explorer",
-    "elegant princess in gown",
-    "battle-worn soldier",
-    "curious child protagonist",
-    "wise old mentor",
-    "fierce female fighter",
-    "charming rogue thief",
-    "noble knight on horseback",
-    "cybernetic android",
-    "mystical creature guardian",
-    "determined survivor"
-  ],
-  environnements_full: [
-    "ancient castle ruins at sunset",
-    "vast alien planet landscape",
-    "dark abandoned city streets",
-    "enchanted forest with glowing trees",
-    "futuristic space station interior",
-    "snowy mountain peak",
-    "tropical island paradise",
-    "underground cavern with crystals",
-    "medieval village marketplace",
-    "neon-lit cyberpunk alley",
-    "desert wasteland with ruins",
-    "underwater city ruins",
-    "floating sky islands",
-    "volcanic eruption background",
-    "mystical temple entrance"
-  ],
-  actions_full: [
-    "standing heroically with weapon raised",
-    "running towards camera in slow motion",
-    "looking back over shoulder dramatically",
-    "reaching out hand towards viewer",
-    "leaping through the air",
-    "facing off against unseen enemy",
-    "casting magical spell with glowing hands",
-    "riding vehicle at high speed",
-    "climbing dangerous cliff",
-    "embracing in romantic pose",
-    "wielding dual weapons in combat stance",
-    "discovering ancient artifact",
-    "protecting someone behind them",
-    "emerging from explosion",
-    "silhouetted against dramatic sky"
-  ],
-  palettes_full: [
-    "warm orange and red sunset tones",
-    "cool blue and teal night palette",
-    "vibrant purple and pink gradient",
-    "golden yellow and deep black contrast",
-    "emerald green and silver highlights",
-    "blood red and dark grey shadows",
-    "pastel rainbow soft colors",
-    "monochromatic blue scale",
-    "bronze and copper metallic",
-    "neon cyan and magenta electric",
-    "earth tones brown and beige",
-    "icy white and pale blue",
-    "royal purple and gold luxury",
-    "crimson red and pitch black",
-    "seafoam green and coral pink"
-  ],
-  styles_titre_full: [
-    "dripping horror lettering, torn edges, glossy red liquid texture, glowing sinister vibe",
-    "bright neon tube letters, electric glow, slight chromatic aberration, futuristic vaporwave look",
-    "frosted glass letters, icy texture, translucent frozen edges, cold blue inner glow",
-    "hand-carved wooden lettering, deep grooves, warm grain texture, rustic fantasy aesthetic",
-    "polished engraved steel letters, sharp reflections, industrial sci-fi shine",
-    "rounded bubbly cartoon letters, colorful shading, outlined comic look",
-    "sharp jagged letters, blood splatter texture, rough grain, violent horror tone",
-    "faceted gemstone letters, prism reflections, diamond-like clarity, luminous highlights",
-    "weathered carved stone letters, cracks, moss details, archaeological fantasy mood",
-    "burning fire lettering, glowing embers, smoke trails, intense heat distortion",
-    "transparent water-textured letters, droplets, soft reflections, fluid organic movement",
-    "polished gold lettering, embossed texture, warm specular highlights, luxury vibe",
-    "spray-painted lettering, rough outlines, dripping paint, street-art graffiti style",
-    "holographic translucent letters, digital flicker, refraction effects, sci-fi projection",
-    "blackletter-inspired carved metal, dark engraved texture, dramatic gothic atmosphere",
-    "hand-molded clay letters, fingerprint texture, soft studio lighting, claymation charm",
-    "layered paper-cut letters, soft shadows, handcrafted collage feel",
-    "letters filled with nebula textures, stars, glowing cosmic colors, ethereal space vibe",
-    "aged brass letters, rivets, gears, Victorian industrial steampunk detailing",
-    "distorted corrupted letters, RGB glitch separation, pixel noise, digital malfunction look"
-  ],
-  details_full: [
-    "volumetric light rays",
-    "floating dust particles",
-    "magical sparkles and glitter",
-    "falling snow or rain",
-    "swirling mist and fog",
-    "lens flares and light leaks",
-    "fire embers rising",
-    "glowing runes or symbols",
-    "scattered paper or leaves",
-    "atmospheric smoke",
-    "trailing light streaks",
-    "shimmering heat distortion",
-    "crystalline reflections",
-    "ethereal ghostly wisps",
-    "dynamic motion blur"
-  ]
+  ambiances: ["Fantasy", "Sci-Fi", "Cyberpunk", "Noir", "Épique", "Enchanteur", "Mystique", "Post-apo"],
+  palettes: ["Néon", "Pastel", "Monochrome", "Or & Noir", "Rouge intense", "Bleu glacé", "Vert jungle", "Violet cosmique"],
 };
+
+function pick<T>(arr: T[]) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 export function PosterGenerator({
   onGenerate,
@@ -364,8 +306,6 @@ export function PosterGenerator({
   imageDimensions,
   onGetGenerateFunction
 }: PosterGeneratorProps) {
-
-  const poster = usePosterState();
   const {
     title, setTitle,
     subtitle, setSubtitle,
@@ -383,202 +323,39 @@ export function PosterGenerator({
     additionalDetails, setAdditionalDetails,
     colorPalette, setColorPalette,
     customPalette, setCustomPalette,
-    titleStyle, setTitleStyle
-  } = poster;
+    titleStyle, setTitleStyle,
+  } = usePosterState();
 
-  const randomChoice = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
-
-  const generateRandomPoster = () => {
-    const randomTitle = randomChoice(randomData.titres);
-    const randomSubtitle = randomChoice(randomData.sous_titres);
-    const randomTagline = randomChoice(randomData.taglines);
-    const randomTheme = randomChoice(randomData.themes_full);
-    const randomAmbiance = randomChoice(randomData.ambiances_full);
-    const randomPersonnage = randomChoice(randomData.personnages_full);
-    const randomEnvironnement = randomChoice(randomData.environnements_full);
-    const randomAction = randomChoice(randomData.actions_full);
-    const randomPalette = randomChoice(randomData.palettes_full);
-    const randomTitleStyle = randomChoice(randomData.styles_titre);
-    const randomDetails = randomChoice(randomData.details_full);
-
-    setTitle(randomTitle);
-    setSubtitle(randomSubtitle);
-    setTagline(randomTagline);
-    setOccasion('');
-    setCustomOccasion(randomTheme);
-    setAmbiance('');
-    setCustomAmbiance(randomAmbiance);
-    setMainCharacter('');
-    setCharacterDescription(randomPersonnage);
-    setEnvironment('');
-    setEnvironmentDescription(randomEnvironnement);
-    setCharacterAction('');
-    setActionDescription(randomAction);
-    setAdditionalDetails(randomDetails);
-    setColorPalette('');
-    setCustomPalette(randomPalette);
-    setTitleStyle(randomTitleStyle);
-
-    console.log('[POSTER_GENERATOR] 🎲 Affiche aléatoire générée (champs remplis uniquement)');
-  };
-
-  const occasions = ['Choisir...', ...randomData.themes];
-  const ambiances = ['Choisir...', ...randomData.ambiances];
-  const characters = ['Choisir...', ...randomData.personnages];
-  const environments = ['Choisir...', ...randomData.environnements];
-  const actions = ['Choisir...', ...randomData.actions];
-  const palettes = ['Choisir...', ...randomData.palettes];
-  const titleStyles = ['Choisir...', ...randomData.styles_titre];
-
-  const getFullVersion = useCallback((
-    shortLabel: string,
-    type: 'theme' | 'ambiance' | 'character' | 'environment' | 'action' | 'palette' | 'titleStyle'
-  ): string => {
-    const index = {
-      theme: randomData.themes.indexOf(shortLabel),
-      ambiance: randomData.ambiances.indexOf(shortLabel),
-      character: randomData.personnages.indexOf(shortLabel),
-      environment: randomData.environnements.indexOf(shortLabel),
-      action: randomData.actions.indexOf(shortLabel),
-      palette: randomData.palettes.indexOf(shortLabel),
-      titleStyle: randomData.styles_titre.indexOf(shortLabel)
-    }[type];
-
-    if (index === -1) return shortLabel;
-
-    return {
-      theme: randomData.themes_full[index],
-      ambiance: randomData.ambiances_full[index],
-      character: randomData.personnages_full[index],
-      environment: randomData.environnements_full[index],
-      action: randomData.actions_full[index],
-      palette: randomData.palettes_full[index],
-      titleStyle: randomData.styles_titre_full[index]
-    }[type] || shortLabel;
-  }, []);
-
-  const generatePrompt = useCallback(() => {
-    // ✅ FORCE LES MAJUSCULES DANS LE PROMPT
-    const finalTitle = title.trim().toUpperCase();
-    const finalSubtitle = subtitle.trim().toUpperCase();
-    const finalTagline = tagline.trim().toUpperCase();
-
-    const hasTitle = Boolean(finalTitle);
-    const hasSubtitle = Boolean(finalSubtitle);
-    const hasTagline = Boolean(finalTagline);
-
-    let textBlock = '';
-
-    if (!hasTitle && !hasSubtitle && !hasTagline) {
-      textBlock = `
-NO TEXT MODE:
-The poster must contain ZERO text, letters, symbols or numbers.
-Do not invent any title, subtitle or tagline.
-Avoid any shapes that resemble typography.
-`;
-    } else {
-      textBlock = `
-ALLOWED TEXT ONLY (MODEL MUST NOT INVENT ANYTHING ELSE):
-
-${hasTitle ? `TITLE: "${finalTitle}" (top area, clean, sharp, readable, no distortion)` : ''}
-${hasSubtitle ? `SUBTITLE: "${finalSubtitle}" (under title, smaller, crisp, readable)` : ''}
-${hasTagline ? `TAGLINE: "${finalTagline}" (bottom area, subtle, readable)` : ''}
-
-RULES FOR TEXT:
-- Only the items above are permitted. No additional text, no hallucinated wording.
-- **TEXT STYLE/MATERIAL (APPLIES ONLY TO LETTERING)**: ${
-        titleStyle === 'Choisir...' || !titleStyle
-          ? 'cinematic, elegant contrast'
-          : getFullVersion(titleStyle, 'titleStyle')
-      }.
-- **CRITICAL INSTRUCTION: DO NOT APPLY** the text style (e.g., 'dripping horror', 'neon', 'frosted') to the **characters, environment, lighting, or overall rendering**. The main image's mood and style must be defined exclusively by the 'Visual elements' below.
-`;
-    }
-
-    const visualParts: string[] = [];
-
-    const selectedOccasion = occasion === 'Choisir...' ? '' : occasion;
-    const finalOccasion = selectedOccasion || customOccasion;
-    if (finalOccasion) visualParts.push(getFullVersion(finalOccasion, 'theme'));
-
-    const selectedAmbiance = ambiance === 'Choisir...' ? '' : ambiance;
-    const finalAmbiance = selectedAmbiance || customAmbiance;
-    if (finalAmbiance) visualParts.push(getFullVersion(finalAmbiance, 'ambiance'));
-
-    const selectedCharacter = mainCharacter === 'Choisir...' ? '' : mainCharacter;
-    const finalCharacter = characterDescription || selectedCharacter;
-    if (finalCharacter) visualParts.push(getFullVersion(finalCharacter, 'character'));
-
-    const selectedEnvironment = environment === 'Choisir...' ? '' : environment;
-    const finalEnvironment = environmentDescription || selectedEnvironment;
-    if (finalEnvironment) visualParts.push(getFullVersion(finalEnvironment, 'environment'));
-
-    const selectedAction = characterAction === 'Choisir...' ? '' : characterAction;
-    const finalAction = actionDescription || selectedAction;
-    if (finalAction) visualParts.push(getFullVersion(finalAction, 'action'));
-
-    const selectedPalette = colorPalette === 'Choisir...' ? '' : colorPalette;
-    const finalPalette = selectedPalette || customPalette;
-    if (finalPalette) visualParts.push(getFullVersion(finalPalette, 'palette'));
-
-    const visualElements = visualParts.join(', ');
-
-    const prompt = `
-Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
-
-${textBlock}
-
-Visual elements:
-${visualElements || 'epic cinematic scene'}
-
-Extra details:
-${additionalDetails || 'cinematic particles, depth fog, volumetric light'}
-
-Image style:
-Premium poster design, professional layout, ultra high resolution, visually striking.
-    `
-      .trim()
-      .replace(/\n\s*\n/g, '\n')
-      .replace(/\s{2,}/g, ' ');
-
-    onPromptGenerated(prompt);
-    return prompt;
+  // Exemple: génération aléatoire (comme dans ton fichier)
+  const generateRandomPoster = useCallback(() => {
+    setTitle(pick(randomData.titres).toUpperCase());
+    setSubtitle(pick(randomData.sousTitres));
+    setTagline(pick(randomData.slogans));
+    setAmbiance(pick(randomData.ambiances));
+    setColorPalette(pick(randomData.palettes));
+    setMainCharacter("Héros mystérieux");
+    setEnvironment("Ville futuriste");
+    setCharacterAction("En pleine action");
+    setAdditionalDetails("Lumières dramatiques");
   }, [
-    title,
-    subtitle,
-    tagline,
-    occasion,
-    customOccasion,
-    ambiance,
-    customAmbiance,
-    mainCharacter,
-    characterDescription,
-    environment,
-    environmentDescription,
-    characterAction,
-    actionDescription,
-    additionalDetails,
-    colorPalette,
-    customPalette,
-    titleStyle,
-    getFullVersion,
-    onPromptGenerated
+    setTitle, setSubtitle, setTagline, setAmbiance, setColorPalette,
+    setMainCharacter, setEnvironment, setCharacterAction, setAdditionalDetails
   ]);
 
-  // ✅ Fonction de génération stable (pas de callback obsolète)
-  const handleStartGeneration = useCallback(() => {
-    const prompt = generatePrompt();
-    if (!prompt) {
-      console.warn('[POSTER_GENERATOR] Prompt vide – génération annulée');
-      return;
-    }
+  // Expose une fonction au parent si besoin
+  useEffect(() => {
+    onGetGenerateFunction?.(() => {
+      // tu peux déclencher un generate automatique ici si tu veux
+    });
+  }, [onGetGenerateFunction]);
 
+  const handleGenerate = useCallback(() => {
     const posterParams: PosterParams = {
       title,
       subtitle,
       tagline,
-      occasion: occasion === 'Choisir...' ? customOccasion : occasion,
-      ambiance: ambiance === 'Choisir...' ? customAmbiance : ambiance,
+      occasion: customOccasion || occasion,
+      ambiance: customAmbiance || ambiance,
       mainCharacter,
       characterDescription,
       environment,
@@ -586,71 +363,60 @@ Premium poster design, professional layout, ultra high resolution, visually stri
       characterAction,
       actionDescription,
       additionalDetails,
-      colorPalette: colorPalette === 'Choisir...' ? customPalette : colorPalette,
-      titleStyle
+      colorPalette: customPalette || colorPalette,
+      titleStyle,
     };
 
-    // ✅ FORMAT PAR DÉFAUT: 1080x1920 (Portrait)
-    const finalWidth = imageDimensions?.width ?? 1080;
-    const finalHeight = imageDimensions?.height ?? 1920;
+    const final_prompt = [
+      `Movie poster`,
+      title ? `Title: ${title}` : '',
+      subtitle ? `Subtitle: ${subtitle}` : '',
+      tagline ? `Tagline: ${tagline}` : '',
+      (customOccasion || occasion) ? `Occasion: ${customOccasion || occasion}` : '',
+      (customAmbiance || ambiance) ? `Ambiance: ${customAmbiance || ambiance}` : '',
+      mainCharacter ? `Main character: ${mainCharacter}` : '',
+      characterDescription ? `Character details: ${characterDescription}` : '',
+      environment ? `Environment: ${environment}` : '',
+      environmentDescription ? `Environment details: ${environmentDescription}` : '',
+      characterAction ? `Action: ${characterAction}` : '',
+      actionDescription ? `Action details: ${actionDescription}` : '',
+      additionalDetails ? `Extra: ${additionalDetails}` : '',
+      (customPalette || colorPalette) ? `Color palette: ${customPalette || colorPalette}` : '',
+      titleStyle ? `Title style: ${titleStyle}` : '',
+      `high quality, sharp, cinematic lighting`,
+    ].filter(Boolean).join(', ');
 
+    onPromptGenerated(final_prompt);
+
+    const dims = imageDimensions ?? { width: 768, height: 1024 };
     const genParams: GenerationParams = {
-      prompt,
-      negativePrompt: 'low quality, blurry, distorted text, bad anatomy',
-      steps: 9,
-      cfg: 1,
+      final_prompt,
+      negativePrompt: '',
+      steps: 20,
+      cfg: 7,
       seed: Math.floor(Math.random() * 1_000_000),
-      sampler: 'res_multistep',
-      scheduler: 'simple',
-      denoise: 1.0,
-      width: finalWidth,
-      height: finalHeight,
+      sampler: 'euler',
+      scheduler: 'normal',
+      denoise: 1,
+      width: dims.width,
+      height: dims.height,
     };
 
-    console.log(
-      '[POSTER_GENERATOR] 🖼️ FORMAT UTILISÉ:',
-      finalWidth,
-      'x',
-      finalHeight
-    );
-
-    console.log('[POSTER_GENERATOR] 🚀 Génération avec prompt:', prompt.slice(0, 120) + '...');
-
-    if (typeof onGenerate === 'function') {
-      onGenerate(posterParams, genParams);
-    } else {
-      console.warn('[POSTER_GENERATOR] onGenerate invalide', onGenerate);
-    }
+    onGenerate(posterParams, genParams);
   }, [
-    generatePrompt,
-    title,
-    subtitle,
-    tagline,
-    occasion,
-    customOccasion,
-    ambiance,
-    customAmbiance,
-    mainCharacter,
-    characterDescription,
-    environment,
-    environmentDescription,
-    characterAction,
-    actionDescription,
+    title, subtitle, tagline,
+    occasion, customOccasion,
+    ambiance, customAmbiance,
+    mainCharacter, characterDescription,
+    environment, environmentDescription,
+    characterAction, actionDescription,
     additionalDetails,
-    colorPalette,
-    customPalette,
+    colorPalette, customPalette,
     titleStyle,
     imageDimensions,
-    onGenerate
+    onGenerate,
+    onPromptGenerated
   ]);
-    
-  // ✅ Exposer la fonction de génération au parent (toujours à jour)
-  useEffect(() => {
-    if (typeof onGetGenerateFunction === 'function') {
-      console.log('[POSTER_GENERATOR] Envoi (ou mise à jour) de la fonction de génération au parent');
-      onGetGenerateFunction(handleStartGeneration);
-    }
-  }, [onGetGenerateFunction, handleStartGeneration]);
 
   return (
     <div className="p-6">
@@ -674,118 +440,37 @@ Premium poster design, professional layout, ultra high resolution, visually stri
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-4">
-            {/* ✅ Titre - Majuscules automatiques à la saisie */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Titre de l'affiche
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Titre de l'affiche</label>
               <input
                 type="text"
                 value={title}
                 onChange={e => setTitle(e.target.value.toUpperCase())}
                 placeholder="TITRE DE L'AFFICHE"
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
-                           text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
-                           focus:border-transparent text-sm uppercase"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                 disabled={isGenerating}
               />
             </div>
 
-            {/* ✅ Sous-titre - Majuscules automatiques à la saisie */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Sous-titre
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Sous-titre</label>
               <input
                 type="text"
                 value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value.toUpperCase())}
-                placeholder="ÉDITION SPÉCIALE"
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
-                           text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
-                           focus:border-transparent text-sm uppercase"
+                onChange={e => setSubtitle(e.target.value)}
+                placeholder="Sous-titre"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                 disabled={isGenerating}
               />
             </div>
 
-            {/* ✅ Accroche - Majuscules automatiques à la saisie */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Accroche
-              </label>
+              <label className="block text-sm text-gray-300 mb-2">Slogan</label>
               <input
                 type="text"
                 value={tagline}
-                onChange={(e) => setTagline(e.target.value.toUpperCase())}
-                placeholder="UNE AVENTURE…"
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
-                           text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
-                           focus:border-transparent text-sm uppercase"
-                disabled={isGenerating}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-300 mb-2">Occasion / Thème</label>
-              <select
-                value={occasion}
-                onChange={(e) => setOccasion(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
-                disabled={isGenerating}
-              >
-                {occasions.map((o) => (
-                  <option key={o} value={o}>{o}</option>
-                ))}
-              </select>
-              <input
-                type="text"
-                value={customOccasion}
-                onChange={(e) => setCustomOccasion(e.target.value)}
-                placeholder="Ou thème personnalisé..."
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                disabled={isGenerating}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-300 mb-2">Ambiance</label>
-              <select
-                value={ambiance}
-                onChange={(e) => setAmbiance(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
-                disabled={isGenerating}
-              >
-                {ambiances.map((a) => (
-                  <option key={a} value={a}>{a}</option>
-                ))}
-              </select>
-              <input
-                type="text"
-                value={customAmbiance}
-                onChange={(e) => setCustomAmbiance(e.target.value)}
-                placeholder="Ou ambiance personnalisée..."
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-                disabled={isGenerating}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-300 mb-2">Personnage</label>
-              <select
-                value={mainCharacter}
-                onChange={(e) => setMainCharacter(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
-                disabled={isGenerating}
-              >
-                {characters.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-              <input
-                type="text"
-                value={characterDescription}
-                onChange={(e) => setCharacterDescription(e.target.value)}
-                placeholder="Description personnelle..."
+                onChange={e => setTagline(e.target.value)}
+                placeholder="Ex: Osez rêver plus grand"
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                 disabled={isGenerating}
               />
@@ -794,91 +479,117 @@ Premium poster design, professional layout, ultra high resolution, visually stri
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Environnement</label>
-              <select
-                value={environment}
-                onChange={(e) => {
-                  setEnvironment(e.target.value);
-                  setEnvironmentDescription('');
-                }}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
-                disabled={isGenerating}
-              >
-                {environments.map((e1) => (
-                  <option key={e1} value={e1}>{e1}</option>
-                ))}
-              </select>
+              <label className="block text-sm text-gray-300 mb-2">Ambiance</label>
               <input
                 type="text"
-                value={environmentDescription}
-                onChange={(e) => {
-                  setEnvironmentDescription(e.target.value);
-                  setEnvironment('Choisir...');
-                }}
-                placeholder="Description personnelle..."
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
-                           text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
-                           focus:border-transparent text-sm"
-                disabled={isGenerating}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-300 mb-2">Action</label>
-              <select
-                value={characterAction}
-                onChange={(e) => setCharacterAction(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
-                disabled={isGenerating}
-              >
-                {actions.map((a) => (
-                  <option key={a} value={a}>{a}</option>
-                ))}
-              </select>
-              <input
-                type="text"
-                value={actionDescription}
-                onChange={(e) => setActionDescription(e.target.value)}
-                placeholder="Description personnelle..."
+                value={customAmbiance || ambiance}
+                onChange={(e) => setCustomAmbiance(e.target.value)}
+                placeholder="Ex: Cyberpunk"
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                 disabled={isGenerating}
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Palette de Couleurs</label>
-              <select
-                value={colorPalette}
-                onChange={(e) => setColorPalette(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
-                disabled={isGenerating}
-              >
-                {palettes.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
+              <label className="block text-sm text-gray-300 mb-2">Palette de couleurs</label>
               <input
                 type="text"
-                value={customPalette}
+                value={customPalette || colorPalette}
                 onChange={(e) => setCustomPalette(e.target.value)}
-                placeholder="Ou palette personnalisée..."
+                placeholder="Ex: Néon violet"
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                 disabled={isGenerating}
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Style du Titre</label>
-              <select
+              <label className="block text-sm text-gray-300 mb-2">Style du titre</label>
+              <input
+                type="text"
                 value={titleStyle}
                 onChange={(e) => setTitleStyle(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                placeholder="Ex: 80s bold"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                 disabled={isGenerating}
-              >
-                {titleStyles.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Personnage principal</label>
+              <input
+                type="text"
+                value={mainCharacter}
+                onChange={(e) => setMainCharacter(e.target.value)}
+                placeholder="Ex: Alien turbo"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Description personnage</label>
+              <textarea
+                value={characterDescription}
+                onChange={(e) => setCharacterDescription(e.target.value)}
+                placeholder="Ex: armure brillante, casque..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
+                rows={3}
+                disabled={isGenerating}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Environnement</label>
+              <input
+                type="text"
+                value={environment}
+                onChange={(e) => setEnvironment(e.target.value)}
+                placeholder="Ex: vaisseau spatial"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Description environnement</label>
+              <textarea
+                value={environmentDescription}
+                onChange={(e) => setEnvironmentDescription(e.target.value)}
+                placeholder="Ex: néons, pluie..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
+                rows={3}
+                disabled={isGenerating}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Action</label>
+              <input
+                type="text"
+                value={characterAction}
+                onChange={(e) => setCharacterAction(e.target.value)}
+                placeholder="Ex: fonce vers la caméra"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                disabled={isGenerating}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">Détails de l'action</label>
+              <textarea
+                value={actionDescription}
+                onChange={(e) => setActionDescription(e.target.value)}
+                placeholder="Ex: explosion derrière..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
+                rows={3}
+                disabled={isGenerating}
+              />
             </div>
 
             <div>
@@ -892,6 +603,15 @@ Premium poster design, professional layout, ultra high resolution, visually stri
                 disabled={isGenerating}
               />
             </div>
+
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={isGenerating}
+              className="w-full mt-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg transition-colors text-sm"
+            >
+              {isGenerating ? 'Génération…' : 'Générer'}
+            </button>
           </div>
         </div>
       </div>
