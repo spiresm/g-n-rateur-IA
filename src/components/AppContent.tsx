@@ -898,4 +898,16 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     </div>
   );
 }
-export { PosterGenerator as AppContent };
+// ✅ AppContent = layout complet (header + carousel + generator)
+export function AppContent() {
+  return (
+    <div className="min-h-screen bg-gray-900 text-white">
+      {/* TODO: remets ici ton Header */}
+      {/* TODO: remets ici ton Carousel */}
+      <PosterGenerator />
+    </div>
+  );
+}
+
+// Garde PosterGenerator exporté si tu en as besoin ailleurs
+export { PosterGenerator };
