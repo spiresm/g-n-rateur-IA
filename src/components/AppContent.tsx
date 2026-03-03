@@ -196,22 +196,22 @@ const randomData = {
     "Steampunk brass",
     "Glitch corrupted"
   ],
-  details_full: [
-    "volumetric light rays",
-    "floating dust particles",
-    "magical sparkles and glitter",
-    "falling snow or rain",
-    "swirling mist and fog",
-    "lens flares and light leaks",
-    "fire embers rising",
-    "glowing runes or symbols",
-    "scattered paper or leaves",
-    "atmospheric smoke",
-    "trailing light streaks",
-    "shimmering heat distortion",
-    "crystalline reflections",
-    "ethereal ghostly wisps",
-    "dynamic motion blur"
+  details: [
+    "Light rays",
+    "Dust particles",
+    "Magic sparkles",
+    "Falling snow",
+    "Swirling mist",
+    "Lens flares",
+    "Fire embers",
+    "Glowing runes",
+    "Paper leaves",
+    "Atmospheric smoke",
+    "Light streaks",
+    "Heat distortion",
+    "Crystal reflections",
+    "Ghostly wisps",
+    "Motion blur"
   ],
   themes_full: [
     "Epic fantasy adventure",
@@ -337,6 +337,23 @@ const randomData = {
     "aged brass letters, rivets, gears, Victorian industrial steampunk detailing",
     "distorted corrupted letters, RGB glitch separation, pixel noise, digital malfunction look"
   ],
+  details_full: [
+    "volumetric light rays",
+    "floating dust particles",
+    "magical sparkles and glitter",
+    "falling snow or rain",
+    "swirling mist and fog",
+    "lens flares and light leaks",
+    "fire embers rising",
+    "glowing runes or symbols",
+    "scattered paper or leaves",
+    "atmospheric smoke",
+    "trailing light streaks",
+    "shimmering heat distortion",
+    "crystalline reflections",
+    "ethereal ghostly wisps",
+    "dynamic motion blur"
+  ]
 };
 
 export function PosterGenerator({
@@ -349,7 +366,6 @@ export function PosterGenerator({
 }: PosterGeneratorProps) {
 
   const poster = usePosterState();
-
   const {
     title, setTitle,
     subtitle, setSubtitle,
@@ -367,14 +383,12 @@ export function PosterGenerator({
     additionalDetails, setAdditionalDetails,
     colorPalette, setColorPalette,
     customPalette, setCustomPalette,
-    titleStyle, setTitleStyle,
-    setPoster,
+    titleStyle, setTitleStyle
   } = poster;
 
-  const randomChoice = <T,>(arr: T[]): T =>
-    arr[Math.floor(Math.random() * arr.length)];
+  const randomChoice = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
-  const generateRandomPoster = useCallback(() => {
+  const generateRandomPoster = () => {
     const randomTitle = randomChoice(randomData.titres);
     const randomSubtitle = randomChoice(randomData.sous_titres);
     const randomTagline = randomChoice(randomData.taglines);
@@ -387,30 +401,26 @@ export function PosterGenerator({
     const randomTitleStyle = randomChoice(randomData.styles_titre);
     const randomDetails = randomChoice(randomData.details_full);
 
-    // ✅ update massif en 1 setState (moins de re-renders)
-    setPoster((prev) => ({
-      ...prev,
-      title: randomTitle,
-      subtitle: randomSubtitle,
-      tagline: randomTagline,
-      occasion: '',
-      customOccasion: randomTheme,
-      ambiance: '',
-      customAmbiance: randomAmbiance,
-      mainCharacter: '',
-      characterDescription: randomPersonnage,
-      environment: '',
-      environmentDescription: randomEnvironnement,
-      characterAction: '',
-      actionDescription: randomAction,
-      additionalDetails: randomDetails,
-      colorPalette: '',
-      customPalette: randomPalette,
-      titleStyle: randomTitleStyle,
-    }));
+    setTitle(randomTitle);
+    setSubtitle(randomSubtitle);
+    setTagline(randomTagline);
+    setOccasion('');
+    setCustomOccasion(randomTheme);
+    setAmbiance('');
+    setCustomAmbiance(randomAmbiance);
+    setMainCharacter('');
+    setCharacterDescription(randomPersonnage);
+    setEnvironment('');
+    setEnvironmentDescription(randomEnvironnement);
+    setCharacterAction('');
+    setActionDescription(randomAction);
+    setAdditionalDetails(randomDetails);
+    setColorPalette('');
+    setCustomPalette(randomPalette);
+    setTitleStyle(randomTitleStyle);
 
     console.log('[POSTER_GENERATOR] 🎲 Affiche aléatoire générée (champs remplis uniquement)');
-  }, [setPoster]);
+  };
 
   const occasions = ['Choisir...', ...randomData.themes];
   const ambiances = ['Choisir...', ...randomData.ambiances];
@@ -431,22 +441,20 @@ export function PosterGenerator({
       environment: randomData.environnements.indexOf(shortLabel),
       action: randomData.actions.indexOf(shortLabel),
       palette: randomData.palettes.indexOf(shortLabel),
-      titleStyle: randomData.styles_titre.indexOf(shortLabel),
+      titleStyle: randomData.styles_titre.indexOf(shortLabel)
     }[type];
 
-    if (index < 0) return shortLabel;
+    if (index === -1) return shortLabel;
 
-    return (
-      {
-        theme: randomData.themes_full[index],
-        ambiance: randomData.ambiances_full[index],
-        character: randomData.personnages_full[index],
-        environment: randomData.environnements_full[index],
-        action: randomData.actions_full[index],
-        palette: randomData.palettes_full[index],
-        titleStyle: randomData.styles_titre_full[index],
-      }[type] ?? shortLabel
-    );
+    return {
+      theme: randomData.themes_full[index],
+      ambiance: randomData.ambiances_full[index],
+      character: randomData.personnages_full[index],
+      environment: randomData.environnements_full[index],
+      action: randomData.actions_full[index],
+      palette: randomData.palettes_full[index],
+      titleStyle: randomData.styles_titre_full[index]
+    }[type] || shortLabel;
   }, []);
 
   const generatePrompt = useCallback(() => {
@@ -478,43 +486,42 @@ ${hasTagline ? `TAGLINE: "${finalTagline}" (bottom area, subtle, readable)` : ''
 
 RULES FOR TEXT:
 - Only the items above are permitted. No additional text, no hallucinated wording.
-- TEXT STYLE/MATERIAL (APPLIES ONLY TO LETTERING): ${
+- **TEXT STYLE/MATERIAL (APPLIES ONLY TO LETTERING)**: ${
         titleStyle === 'Choisir...' || !titleStyle
           ? 'cinematic, elegant contrast'
           : getFullVersion(titleStyle, 'titleStyle')
       }.
-- CRITICAL: DO NOT APPLY the text style (e.g., 'dripping horror', 'neon', 'frosted') to the characters, environment, lighting, or overall rendering. The main image's mood and style must be defined exclusively by the 'Visual elements' below.
+- **CRITICAL INSTRUCTION: DO NOT APPLY** the text style (e.g., 'dripping horror', 'neon', 'frosted') to the **characters, environment, lighting, or overall rendering**. The main image's mood and style must be defined exclusively by the 'Visual elements' below.
 `;
     }
 
     const visualParts: string[] = [];
 
-    // ✅ on n’utilise getFullVersion QUE si c’est un label du select
     const selectedOccasion = occasion === 'Choisir...' ? '' : occasion;
-    if (selectedOccasion) visualParts.push(getFullVersion(selectedOccasion, 'theme'));
-    if (customOccasion?.trim()) visualParts.push(customOccasion.trim());
+    const finalOccasion = selectedOccasion || customOccasion;
+    if (finalOccasion) visualParts.push(getFullVersion(finalOccasion, 'theme'));
 
     const selectedAmbiance = ambiance === 'Choisir...' ? '' : ambiance;
-    if (selectedAmbiance) visualParts.push(getFullVersion(selectedAmbiance, 'ambiance'));
-    if (customAmbiance?.trim()) visualParts.push(customAmbiance.trim());
+    const finalAmbiance = selectedAmbiance || customAmbiance;
+    if (finalAmbiance) visualParts.push(getFullVersion(finalAmbiance, 'ambiance'));
 
     const selectedCharacter = mainCharacter === 'Choisir...' ? '' : mainCharacter;
-    if (selectedCharacter) visualParts.push(getFullVersion(selectedCharacter, 'character'));
-    if (characterDescription?.trim()) visualParts.push(characterDescription.trim());
+    const finalCharacter = characterDescription || selectedCharacter;
+    if (finalCharacter) visualParts.push(getFullVersion(finalCharacter, 'character'));
 
     const selectedEnvironment = environment === 'Choisir...' ? '' : environment;
-    if (selectedEnvironment) visualParts.push(getFullVersion(selectedEnvironment, 'environment'));
-    if (environmentDescription?.trim()) visualParts.push(environmentDescription.trim());
+    const finalEnvironment = environmentDescription || selectedEnvironment;
+    if (finalEnvironment) visualParts.push(getFullVersion(finalEnvironment, 'environment'));
 
     const selectedAction = characterAction === 'Choisir...' ? '' : characterAction;
-    if (selectedAction) visualParts.push(getFullVersion(selectedAction, 'action'));
-    if (actionDescription?.trim()) visualParts.push(actionDescription.trim());
+    const finalAction = actionDescription || selectedAction;
+    if (finalAction) visualParts.push(getFullVersion(finalAction, 'action'));
 
     const selectedPalette = colorPalette === 'Choisir...' ? '' : colorPalette;
-    if (selectedPalette) visualParts.push(getFullVersion(selectedPalette, 'palette'));
-    if (customPalette?.trim()) visualParts.push(customPalette.trim());
+    const finalPalette = selectedPalette || customPalette;
+    if (finalPalette) visualParts.push(getFullVersion(finalPalette, 'palette'));
 
-    const visualElements = visualParts.filter(Boolean).join(', ');
+    const visualElements = visualParts.join(', ');
 
     const prompt = `
 Ultra detailed cinematic poster, dramatic lighting, depth, atmospheric effects.
@@ -525,7 +532,7 @@ Visual elements:
 ${visualElements || 'epic cinematic scene'}
 
 Extra details:
-${additionalDetails?.trim() || 'cinematic particles, depth fog, volumetric light'}
+${additionalDetails || 'cinematic particles, depth fog, volumetric light'}
 
 Image style:
 Premium poster design, professional layout, ultra high resolution, visually striking.
@@ -600,10 +607,20 @@ Premium poster design, professional layout, ultra high resolution, visually stri
       height: finalHeight,
     };
 
-    console.log('[POSTER_GENERATOR] 🖼️ FORMAT UTILISÉ:', finalWidth, 'x', finalHeight);
+    console.log(
+      '[POSTER_GENERATOR] 🖼️ FORMAT UTILISÉ:',
+      finalWidth,
+      'x',
+      finalHeight
+    );
+
     console.log('[POSTER_GENERATOR] 🚀 Génération avec prompt:', prompt.slice(0, 120) + '...');
 
-    onGenerate(posterParams, genParams);
+    if (typeof onGenerate === 'function') {
+      onGenerate(posterParams, genParams);
+    } else {
+      console.warn('[POSTER_GENERATOR] onGenerate invalide', onGenerate);
+    }
   }, [
     generatePrompt,
     title,
@@ -626,7 +643,7 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     imageDimensions,
     onGenerate
   ]);
-
+    
   // ✅ Exposer la fonction de génération au parent (toujours à jour)
   useEffect(() => {
     if (typeof onGetGenerateFunction === 'function') {
