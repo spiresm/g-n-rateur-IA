@@ -1,66 +1,107 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+
+type PosterState = {
+  title: string;
+  subtitle: string;
+  tagline: string;
+
+  occasion: string;
+  customOccasion: string;
+
+  ambiance: string;
+  customAmbiance: string;
+
+  mainCharacter: string;
+  characterDescription: string;
+
+  environment: string;
+  environmentDescription: string;
+
+  characterAction: string;
+  actionDescription: string;
+
+  additionalDetails: string;
+
+  colorPalette: string;
+  customPalette: string;
+
+  titleStyle: string;
+};
+
+const initialState: PosterState = {
+  title: '',
+  subtitle: '',
+  tagline: '',
+
+  occasion: '',
+  customOccasion: '',
+
+  ambiance: '',
+  customAmbiance: '',
+
+  mainCharacter: '',
+  characterDescription: '',
+
+  environment: '',
+  environmentDescription: '',
+
+  characterAction: '',
+  actionDescription: '',
+
+  additionalDetails: '',
+
+  colorPalette: '',
+  customPalette: '',
+
+  titleStyle: 'Choisir...',
+};
 
 export function usePosterState() {
-  const [title, setTitle] = useState('');
-  const [subtitle, setSubtitle] = useState('');
-  const [tagline, setTagline] = useState('');
+  const [poster, setPoster] = useState<PosterState>(initialState);
 
-  const [occasion, setOccasion] = useState('');
-  const [customOccasion, setCustomOccasion] = useState('');
+  // Helper pour générer des setters compatibles avec ton composant actuel
+  const setters = useMemo(() => {
+    const makeSetter =
+      <K extends keyof PosterState>(key: K) =>
+      (value: PosterState[K]) =>
+        setPoster((p) => ({ ...p, [key]: value }));
 
-  const [ambiance, setAmbiance] = useState('');
-  const [customAmbiance, setCustomAmbiance] = useState('');
+    return {
+      setTitle: makeSetter('title'),
+      setSubtitle: makeSetter('subtitle'),
+      setTagline: makeSetter('tagline'),
 
-  const [mainCharacter, setMainCharacter] = useState('');
-  const [characterDescription, setCharacterDescription] = useState('');
+      setOccasion: makeSetter('occasion'),
+      setCustomOccasion: makeSetter('customOccasion'),
 
-  const [environment, setEnvironment] = useState('');
-  const [environmentDescription, setEnvironmentDescription] = useState('');
+      setAmbiance: makeSetter('ambiance'),
+      setCustomAmbiance: makeSetter('customAmbiance'),
 
-  const [characterAction, setCharacterAction] = useState('');
-  const [actionDescription, setActionDescription] = useState('');
+      setMainCharacter: makeSetter('mainCharacter'),
+      setCharacterDescription: makeSetter('characterDescription'),
 
-  const [additionalDetails, setAdditionalDetails] = useState('');
+      setEnvironment: makeSetter('environment'),
+      setEnvironmentDescription: makeSetter('environmentDescription'),
 
-  const [colorPalette, setColorPalette] = useState('');
-  const [customPalette, setCustomPalette] = useState('');
+      setCharacterAction: makeSetter('characterAction'),
+      setActionDescription: makeSetter('actionDescription'),
 
-  const [titleStyle, setTitleStyle] = useState('Choisir...');
+      setAdditionalDetails: makeSetter('additionalDetails'),
 
+      setColorPalette: makeSetter('colorPalette'),
+      setCustomPalette: makeSetter('customPalette'),
+
+      setTitleStyle: makeSetter('titleStyle'),
+    };
+  }, []);
+
+  const resetPoster = () => setPoster(initialState);
+
+  // On garde exactement la forme attendue par ton PosterGenerator (title + setTitle etc.)
   return {
-    title,
-    setTitle,
-    subtitle,
-    setSubtitle,
-    tagline,
-    setTagline,
-    occasion,
-    setOccasion,
-    customOccasion,
-    setCustomOccasion,
-    ambiance,
-    setAmbiance,
-    customAmbiance,
-    setCustomAmbiance,
-    mainCharacter,
-    setMainCharacter,
-    characterDescription,
-    setCharacterDescription,
-    environment,
-    setEnvironment,
-    environmentDescription,
-    setEnvironmentDescription,
-    characterAction,
-    setCharacterAction,
-    actionDescription,
-    setActionDescription,
-    additionalDetails,
-    setAdditionalDetails,
-    colorPalette,
-    setColorPalette,
-    customPalette,
-    setCustomPalette,
-    titleStyle,
-    setTitleStyle,
+    ...poster,
+    ...setters,
+    setPoster, // utile si tu veux faire un update massif d’un coup
+    resetPoster,
   };
 }
