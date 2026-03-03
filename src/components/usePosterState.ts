@@ -1,115 +1,105 @@
-import { useCallback } from 'react';
-import { posterData } from './posterData';
+import { useMemo, useState } from 'react';
 
-export function usePosterPrompt(params: any) {
-  const getFullVersion = useCallback((shortLabel: string, type: string) => {
-    const indexMap: any = {
-      theme: posterData.themes,
-      ambiance: posterData.ambiances,
-      character: posterData.personnages,
-      environment: posterData.environnements,
-      action: posterData.actions,
-      palette: posterData.palettes,
-      titleStyle: posterData.styles_titre
+type PosterState = {
+  title: string;
+  subtitle: string;
+  tagline: string;
+
+  occasion: string;
+  customOccasion: string;
+
+  ambiance: string;
+  customAmbiance: string;
+
+  mainCharacter: string;
+  characterDescription: string;
+
+  environment: string;
+  environmentDescription: string;
+
+  characterAction: string;
+  actionDescription: string;
+
+  additionalDetails: string;
+
+  colorPalette: string;
+  customPalette: string;
+
+  titleStyle: string;
+};
+
+const initialState: PosterState = {
+  title: '',
+  subtitle: '',
+  tagline: '',
+
+  occasion: '',
+  customOccasion: '',
+
+  ambiance: '',
+  customAmbiance: '',
+
+  mainCharacter: '',
+  characterDescription: '',
+
+  environment: '',
+  environmentDescription: '',
+
+  characterAction: '',
+  actionDescription: '',
+
+  additionalDetails: '',
+
+  colorPalette: '',
+  customPalette: '',
+
+  titleStyle: 'Choisir...',
+};
+
+export function usePosterState() {
+  const [poster, setPoster] = useState<PosterState>(initialState);
+
+  const setters = useMemo(() => {
+    const makeSetter =
+      <K extends keyof PosterState>(key: K) =>
+      (value: PosterState[K]) =>
+        setPoster((p) => ({ ...p, [key]: value }));
+
+    return {
+      setTitle: makeSetter('title'),
+      setSubtitle: makeSetter('subtitle'),
+      setTagline: makeSetter('tagline'),
+
+      setOccasion: makeSetter('occasion'),
+      setCustomOccasion: makeSetter('customOccasion'),
+
+      setAmbiance: makeSetter('ambiance'),
+      setCustomAmbiance: makeSetter('customAmbiance'),
+
+      setMainCharacter: makeSetter('mainCharacter'),
+      setCharacterDescription: makeSetter('characterDescription'),
+
+      setEnvironment: makeSetter('environment'),
+      setEnvironmentDescription: makeSetter('environmentDescription'),
+
+      setCharacterAction: makeSetter('characterAction'),
+      setActionDescription: makeSetter('actionDescription'),
+
+      setAdditionalDetails: makeSetter('additionalDetails'),
+
+      setColorPalette: makeSetter('colorPalette'),
+      setCustomPalette: makeSetter('customPalette'),
+
+      setTitleStyle: makeSetter('titleStyle'),
     };
-
-    const index = indexMap[type]?.indexOf(shortLabel);
-    if (index === -1 || index === undefined) return shortLabel;
-
-    const fullMap: any = {
-      theme: posterData.themes_full,
-      ambiance: posterData.ambiances_full,
-      character: posterData.personnages_full,
-      environment: posterData.environnements_full,
-      action: posterData.actions_full,
-      palette: posterData.palettes_full,
-      titleStyle: posterData.styles_titre_full
-    };
-
-    return fullMap[type]?.[index] || shortLabel;
   }, []);
 
-  const generatePrompt = useCallback(() => {
-    const {
-      title,
-      subtitle,
-      tagline,
-      occasion,
-      customOccasion,
-      ambiance,
-      customAmbiance,
-      mainCharacter,
-      characterDescription,
-      environment,
-      environmentDescription,
-      characterAction,
-      actionDescription,
-      additionalDetails,
-      colorPalette,
-      customPalette,
-      titleStyle,
-      onPromptGenerated
-    } = params;
+  const resetPoster = () => setPoster(initialState);
 
-    const hasTitle = Boolean(title?.trim());
-    const hasSubtitle = Boolean(subtitle?.trim());
-    const hasTagline = Boolean(tagline?.trim());
-
-    let textBlock = '';
-
-    if (!hasTitle && !hasSubtitle && !hasTagline) {
-      textBlock = `
-NO TEXT MODE:
-The poster must contain ZERO text.
-`;
-    } else {
-      textBlock = `
-TITLE: "${title}"
-SUBTITLE: "${subtitle}"
-TAGLINE: "${tagline}"
-TEXT STYLE: ${
-        titleStyle === 'Choisir...'
-          ? 'cinematic, elegant contrast'
-          : getFullVersion(titleStyle, 'titleStyle')
-      }
-`;
-    }
-
-    const visualParts: string[] = [];
-
-    const finalOccasion = occasion !== 'Choisir...' ? occasion : customOccasion;
-    if (finalOccasion) visualParts.push(getFullVersion(finalOccasion, 'theme'));
-
-    const finalAmbiance = ambiance !== 'Choisir...' ? ambiance : customAmbiance;
-    if (finalAmbiance) visualParts.push(getFullVersion(finalAmbiance, 'ambiance'));
-
-    const finalCharacter = characterDescription || mainCharacter;
-    if (finalCharacter) visualParts.push(getFullVersion(finalCharacter, 'character'));
-
-    const finalEnvironment = environmentDescription || environment;
-    if (finalEnvironment) visualParts.push(getFullVersion(finalEnvironment, 'environment'));
-
-    const finalAction = actionDescription || characterAction;
-    if (finalAction) visualParts.push(getFullVersion(finalAction, 'action'));
-
-    const finalPalette = colorPalette !== 'Choisir...' ? colorPalette : customPalette;
-    if (finalPalette) visualParts.push(getFullVersion(finalPalette, 'palette'));
-
-    const prompt = `
-Ultra detailed cinematic poster.
-
-${textBlock}
-
-Visual elements:
-${visualParts.join(', ')}
-
-Extra details:
-${additionalDetails || 'cinematic atmosphere'}
-`.trim();
-
-    onPromptGenerated(prompt);
-    return prompt;
-  }, [params, getFullVersion]);
-
-  return { generatePrompt };
+  return {
+    ...poster,
+    ...setters,
+    setPoster,
+    resetPoster,
+  };
 }
