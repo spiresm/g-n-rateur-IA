@@ -1,7 +1,21 @@
-import { usePosterState } from './usePosterState';
-import { useEffect, useCallback } from 'react';
-import { ImageIcon, Sparkles } from 'lucide-react';
-import type { PosterParams, GenerationParams } from '../App';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import AppContent from './components/AppContent'; // ✅ import default
+import { ErrorBoundary } from './components/ErrorBoundary';
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <AuthProvider>
+        <ProtectedRoute>
+          <AppContent />
+        </ProtectedRoute>
+      </AuthProvider>
+    </ErrorBoundary>
+  );
+}
+
+export default App;
 
 // ✅ Compatible avec AppContent (accepte label optionnel)
 type ImageDimensions = {
