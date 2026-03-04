@@ -594,18 +594,18 @@ Premium poster design, professional layout, ultra high resolution, visually stri
     const finalWidth = imageDimensions?.width ?? 1080;
     const finalHeight = imageDimensions?.height ?? 1920;
 
-    const genParams: GenerationParams = {
-      prompt,
-      negativePrompt: 'low quality, blurry, distorted text, bad anatomy',
-      steps: 9,
-      cfg: 1,
-      seed: Math.floor(Math.random() * 1_000_000),
-      sampler: 'res_multistep',
-      scheduler: 'simple',
-      denoise: 1.0,
-      width: finalWidth,
-      height: finalHeight,
-    };
+const genParams: GenerationParams = {
+  final_prompt: prompt,
+  negativePrompt: 'low quality, blurry, distorted text, bad anatomy',
+  steps: 9,
+  cfg: 1,
+  seed: Math.floor(Math.random() * 1_000_000),
+  sampler: 'res_multistep',
+  scheduler: 'simple',
+  denoise: 1.0,
+  width: finalWidth,
+  height: finalHeight,
+};
 
     console.log(
       '[POSTER_GENERATOR] 🖼️ FORMAT UTILISÉ:',
