@@ -1,5 +1,5 @@
 import { usePosterState } from "../poster/usePosterState";
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { ImageIcon, Sparkles } from 'lucide-react';
 import type { PosterParams, GenerationParams } from '../App';
 
@@ -892,6 +892,122 @@ const genParams: GenerationParams = {
                 disabled={isGenerating}
               />
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// -------------------------------
+// App-level wrapper expected by src/App.tsx
+// -------------------------------
+export function AppContent() {
+  const [generatedPrompt, setGeneratedPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Optional: keep a tiny "gallery" so the UI doesn't feel empty.
+  const [images, setImages] = useState<Array<{ id: string; imageUrl: string }>>([]);
+
+  const [generateFn, setGenerateFn] = useState<(() => void) | null>(null);
+
+  const handleGenerate = async (posterParams: PosterParams, genParams: GenerationParams) => {
+    setError(null);
+    setIsGenerating(true);
+
+    // NOTE: adapt this endpoint to your backend.
+    const baseUrl = (import.meta as any)?.env?.VITE_BACKEND_URL;
+    const url = baseUrl ? `${baseUrl.replace(/\/$/, '')}/generate` : '/generate';
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ posterParams, genParams }),
+      });
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        throw new Error(`Backend error ${res.status}: ${body || res.statusText}`);
+      }
+
+      const data = await res.json().catch(() => ({} as any));
+      // Expected: { id, imageUrl } (adapt if your backend returns another shape)
+      if (data?.imageUrl) {
+        setImages((prev) => [{ id: data.id ?? String(Date.now()), imageUrl: data.imageUrl }, ...prev].slice(0, 12));
+      } else {
+        // If backend returns something else, at least keep the prompt visible.
+        console.warn('[AppContent] No imageUrl in response:', data);
+      }
+    } catch (e: any) {
+      console.error('[AppContent] Generation failed:', e);
+      setError(e?.message ?? 'Generation failed');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-6">
+      <header className="flex items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-xl font-semibold text-white">Générateur IA</h1>
+          <p className="text-sm text-gray-300">
+            {error ? <span className="text-red-300">{error}</span> : 'Paramètres + génération d’affiches.'}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => generateFn?.()}
+          disabled={!generateFn || isGenerating}
+          className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isGenerating ? 'Génération…' : 'Générer'}
+        </button>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-gray-800/40 border border-gray-700 rounded-xl">
+          <PosterGenerator
+            onGenerate={handleGenerate}
+            isGenerating={isGenerating}
+            onPromptGenerated={setGeneratedPrompt}
+            generatedPrompt={generatedPrompt}
+            onGetGenerateFunction={setGenerateFn}
+          />
+        </div>
+
+        <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-4">
+          <h2 className="text-white mb-3">Aperçu</h2>
+
+          <div className="mb-4">
+            <div className="text-sm text-gray-300 mb-1">Prompt</div>
+            <div className="text-xs text-gray-200 bg-gray-900/60 border border-gray-700 rounded-lg p-3 whitespace-pre-wrap">
+              {generatedPrompt || '—'}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm text-gray-300 mb-2">Galerie</div>
+            {images.length === 0 ? (
+              <div className="text-sm text-gray-400">Aucune image pour l’instant.</div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {images.map((img) => (
+                  <a key={img.id} href={img.imageUrl} target="_blank" rel="noreferrer" className="block">
+                    <img
+                      src={img.imageUrl}
+                      alt="Generated"
+                      className="w-full h-40 object-cover rounded-lg border border-gray-700"
+                      loading="lazy"
+                    />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
