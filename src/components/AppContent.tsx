@@ -1,4 +1,4 @@
-import { usePosterState } from "../poster/usePosterState";
+import { usePosterState } from "./poster/usePosterState";
 import { useEffect, useCallback, useState } from 'react';
 import { ImageIcon, Sparkles } from 'lucide-react';
 import type { PosterParams, GenerationParams } from '../App';
