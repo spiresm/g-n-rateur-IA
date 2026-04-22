@@ -1062,3 +1062,225 @@ header {
     display: none; /* trop lourd pour mobile */
   }
 }
+
+/* =========================================================
+   WORKFLOW CAROUSEL — STYLES MANQUANTS
+========================================================= */
+
+.workflow-carousel-wrapper {
+  position: relative;
+  overflow: hidden;
+  padding: 0 32px; /* espace pour les boutons ‹ › */
+}
+
+.workflow-groups-flex {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 6px 2px;
+  scrollbar-width: none; /* Firefox */
+}
+
+.workflow-groups-flex::-webkit-scrollbar {
+  display: none;
+}
+
+.workflow-group-wrapper {
+  /* conteneur d'un groupe (ex: "ComfyUI") */
+}
+
+.workflow-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin: 0 0 8px 0;
+}
+
+.workflow-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workflow-vignette {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border);
+  background-color: var(--bg-alt);
+  width: 86px;
+  transition: border-color 0.2s, background-color 0.2s, transform 0.15s;
+}
+
+.workflow-vignette:hover {
+  border-color: #666;
+  background-color: var(--panel-alt);
+  transform: translateY(-2px);
+}
+
+.workflow-vignette.selected {
+  border-color: var(--accent);
+  background-color: var(--accent-soft);
+  box-shadow: 0 0 10px rgba(212,175,55,0.2);
+}
+
+.workflow-thumb-wrapper {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #1e1e1e;
+}
+
+.workflow-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.vignette-label-only {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted);
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.2;
+  width: 100%;
+}
+
+/* Boutons ‹ › de navigation du carousel */
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 18px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.carousel-btn.left  { left: 0; }
+.carousel-btn.right { right: 0; }
+
+.carousel-btn:hover {
+  background-color: #333;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* =========================================================
+   LOG BOX
+========================================================= */
+
+.log-box {
+  max-height: 70px;
+  overflow-y: auto;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  margin-top: 12px;
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--muted);
+  scrollbar-width: thin;
+}
+
+.log-line {
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.log-line:last-child {
+  border-bottom: none;
+}
+
+/* =========================================================
+   WORKFLOW POPOVER
+========================================================= */
+
+.workflow-popover {
+  display: none;
+  position: absolute;
+  z-index: 100;
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  width: 200px;
+  box-shadow: var(--shadow-soft);
+}
+
+.popover-content h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--accent-strong);
+}
+
+.popover-content p {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.workflow-image-wrapper img {
+  width: 100%;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.popover-tip {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* =========================================================
+   ERREUR & ÉTATS IMAGE
+========================================================= */
+
+.error-text {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(255,79,79,0.1);
+  border: 1px solid rgba(255,79,79,0.3);
+  border-radius: var(--radius-md);
+}
+
+.mj-blur { filter: blur(8px); transition: filter 0.4s ease; }
+.mj-ready { filter: none; }
+
+/* Bouton random affiche */
+.btn-random-aff.clicked {
+  background-color: #4CAF50;
+  border-color: #4CAF50;
+  color: #fff;
+}
+
+/* custom-field (champ titre affiche) */
+.custom-field {
+  font-weight: 600;
+}
