@@ -1083,6 +1083,32 @@ function autoClearOnSelect(selectId, customId) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // ✅ CAROUSEL SCROLL (boutons ‹ et ›)
+  const carouselContainer = document.getElementById("workflow-groups-container");
+  const carouselLeft  = document.getElementById("workflow-carousel-left");
+  const carouselRight = document.getElementById("workflow-carousel-right");
+
+  if (carouselContainer && carouselLeft && carouselRight) {
+    const SCROLL_STEP = 200;
+
+    carouselLeft.addEventListener("click", () => {
+      carouselContainer.scrollBy({ left: -SCROLL_STEP, behavior: "smooth" });
+    });
+
+    carouselRight.addEventListener("click", () => {
+      carouselContainer.scrollBy({ left: SCROLL_STEP, behavior: "smooth" });
+    });
+
+    // Afficher/masquer les boutons selon la position de scroll
+    function updateCarouselBtns() {
+      carouselLeft.style.opacity  = carouselContainer.scrollLeft > 0 ? "1" : "0.3";
+      carouselRight.style.opacity = (carouselContainer.scrollLeft + carouselContainer.clientWidth) < carouselContainer.scrollWidth ? "1" : "0.3";
+    }
+
+    carouselContainer.addEventListener("scroll", updateCarouselBtns);
+    updateCarouselBtns();
+  }
+
   // LOGOUT
   const logoutBtn = document.getElementById("logout-btn");
   if (logoutBtn) {
