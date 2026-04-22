@@ -1,5 +1,5 @@
 import { usePosterState } from "./poster/usePosterState";
-import { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { ImageIcon, Sparkles } from 'lucide-react';
 import type { PosterParams, GenerationParams } from '../App';
 
@@ -900,117 +900,304 @@ const genParams: GenerationParams = {
 }
 
 
-// -------------------------------
+// ─────────────────────────────────────────────
+// CSS variables (inline) — palette or/noir
+// ─────────────────────────────────────────────
+const C = {
+  bg:         '#0b0b0b',
+  bgAlt:      '#131313',
+  panel:      '#181818',
+  panelAlt:   '#222',
+  border:     '#2a2a2a',
+  accent:     '#d4af37',
+  accentSoft: 'rgba(212,175,55,0.15)',
+  accentStrg: '#f4d47c',
+  text:       '#f2f2f2',
+  muted:      '#aaaaaa',
+  danger:     '#ff4f4f',
+  green:      '#4CAF50',
+  radius:     '16px',
+  radiusMd:   '12px',
+  shadow:     '0 18px 50px rgba(0,0,0,0.55)',
+} as const;
+
+// ─────────────────────────────────────────────
 // App-level wrapper expected by src/App.tsx
-// -------------------------------
+// ─────────────────────────────────────────────
 export function AppContent() {
-  const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Optional: keep a tiny "gallery" so the UI doesn't feel empty.
-  const [images, setImages] = useState<Array<{ id: string; imageUrl: string }>>([]);
+  const [mode, setMode]                         = useState<'image' | 'affiche'>('affiche');
+  const [generatedPrompt, setGeneratedPrompt]   = useState('');
+  const [isGenerating, setIsGenerating]         = useState(false);
+  const [error, setError]                       = useState<string | null>(null);
+  const [images, setImages]                     = useState<Array<{ id: string; imageUrl: string }>>([]);
+  const [generateFn, setGenerateFn]             = useState<(() => void) | null>(null);
+  const [modalSrc, setModalSrc]                 = useState<string | null>(null);
+  const [imgDim, setImgDim]                     = useState<ImageDimensions>({ width: 1080, height: 1920, label: 'Portrait' });
+  const [workflows, setWorkflows]               = useState<string[]>([]);
+  const [selectedWorkflow, setSelectedWorkflow] = useState('');
+  const [gpu, setGpu]                           = useState({ name: '–', util: '0%', mem: '– / – Go', temp: '– °C' });
+  const [user, setUser]                         = useState({ name: '', avatar: '' });
+  const [statusPill, setStatusPill]             = useState({ label: 'PRÊT', color: '#4CAF50' });
 
-  const [generateFn, setGenerateFn] = useState<(() => void) | null>(null);
+  const baseUrl = (() => {
+    try { return (import.meta as any).env.VITE_BACKEND_URL ?? ''; } catch { return ''; }
+  })();
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('google_id_token');
+      if (!token) return;
+      const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(b64));
+      setUser({ name: payload.given_name || payload.name || '', avatar: payload.picture || '' });
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    const fetchGPU = async () => {
+      try {
+        const r = await fetch(`${baseUrl}/gpu_status`);
+        if (!r.ok) return;
+        const d = await r.json();
+        setGpu({ name: d.name || 'NVIDIA GPU', util: (d.load ?? 0) + '%', mem: `${d.memory_used ?? 0} / ${d.memory_total ?? 0} Go`, temp: (d.temperature ?? 0) + ' °C' });
+      } catch {}
+    };
+    fetchGPU();
+    const id = setInterval(fetchGPU, 10_000);
+    return () => clearInterval(id);
+  }, [baseUrl]);
+
+  useEffect(() => {
+    const fetchWF = async () => {
+      try {
+        const r = await fetch(`${baseUrl}/workflows`);
+        if (!r.ok) return;
+        const d = await r.json();
+        const wfs: string[] = (d.workflows || []).filter((w: string) => w.endsWith('.json'));
+        setWorkflows(wfs);
+        if (wfs.length) setSelectedWorkflow(wfs[0]);
+      } catch {}
+    };
+    fetchWF();
+  }, [baseUrl]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('google_id_token');
+    window.location.replace('/login.html');
+  };
 
   const handleGenerate = async (posterParams: PosterParams, genParams: GenerationParams) => {
     setError(null);
     setIsGenerating(true);
-
-    // NOTE: adapt this endpoint to your backend.
-    const baseUrl = (import.meta as any)?.env?.VITE_BACKEND_URL;
+    setStatusPill({ label: 'RUNNING', color: '#d4af37' });
     const url = baseUrl ? `${baseUrl.replace(/\/$/, '')}/generate` : '/generate';
-
     try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ posterParams, genParams }),
-      });
-
-      if (!res.ok) {
-        const body = await res.text().catch(() => '');
-        throw new Error(`Backend error ${res.status}: ${body || res.statusText}`);
-      }
-
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ posterParams, genParams }) });
+      if (!res.ok) { const body = await res.text().catch(() => ''); throw new Error(`Backend error ${res.status}: ${body || res.statusText}`); }
       const data = await res.json().catch(() => ({} as any));
-      // Expected: { id, imageUrl } (adapt if your backend returns another shape)
       if (data?.imageUrl) {
-        setImages((prev) => [{ id: data.id ?? String(Date.now()), imageUrl: data.imageUrl }, ...prev].slice(0, 12));
-      } else {
-        // If backend returns something else, at least keep the prompt visible.
-        console.warn('[AppContent] No imageUrl in response:', data);
+        setImages(prev => [{ id: data.id ?? String(Date.now()), imageUrl: data.imageUrl }, ...prev].slice(0, 12));
+        setStatusPill({ label: 'DONE', color: '#4CAF50' });
       }
     } catch (e: any) {
-      console.error('[AppContent] Generation failed:', e);
       setError(e?.message ?? 'Generation failed');
+      setStatusPill({ label: 'FAILED', color: '#ff4f4f' });
     } finally {
       setIsGenerating(false);
     }
   };
 
-  return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      <header className="flex items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-white">Générateur IA</h1>
-          <p className="text-sm text-gray-300">
-            {error ? <span className="text-red-300">{error}</span> : 'Paramètres + génération d’affiches.'}
-          </p>
-        </div>
+  const scrollCarousel = (dir: 'left' | 'right') => {
+    const el = document.getElementById('wf-scroll');
+    if (el) el.scrollBy({ left: dir === 'left' ? -200 : 200, behavior: 'smooth' });
+  };
 
-        <button
-          type="button"
-          onClick={() => generateFn?.()}
-          disabled={!generateFn || isGenerating}
-          className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isGenerating ? 'Génération…' : 'Générer'}
-        </button>
+  const panelStyle: React.CSSProperties = { background: C.panel, borderRadius: C.radius, padding: 20, boxShadow: C.shadow, display: 'flex', flexDirection: 'column' };
+  const labelStyle: React.CSSProperties = { display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 5, color: C.text };
+
+  return (
+    <div style={{ maxWidth: 1400, margin: '0 auto', padding: 30, background: C.bg, minHeight: '100vh', color: C.text, fontFamily: '"Inter", system-ui, sans-serif' }}>
+
+      {/* HEADER */}
+      <header style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', marginBottom: 24, background: C.panel, borderRadius: C.radius, border: `1px solid ${C.border}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <div style={{ background: '#0f172a', padding: '6px 10px', borderRadius: 8, fontWeight: 800, fontSize: 18, color: C.accent, letterSpacing: 3 }}>RUBENS</div>
+          <button onClick={handleLogout} title="Déconnexion" style={{ background: C.panelAlt, border: `1px solid ${C.border}`, borderRadius: 8, color: C.muted, padding: '5px 9px', cursor: 'pointer', fontSize: 15 }}>🔓</button>
+          <div>
+            <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text, lineHeight: 1 }}>Générateur de Contenu IA</h1>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 4, fontSize: 11, fontWeight: 600, background: C.accentSoft, color: C.accentStrg, padding: '3px 8px', borderRadius: 6 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: C.accent, display: 'inline-block' }} />
+              Connecté
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
+          {user.name && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {user.avatar && <img src={user.avatar} alt="avatar" style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)' }} />}
+              <div>
+                <div style={{ fontSize: 10, color: C.muted, fontWeight: 600 }}>Connecté en tant que</div>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>{user.name}</div>
+              </div>
+            </div>
+          )}
+          <div style={{ background: C.panelAlt, border: `1px solid ${C.border}`, borderRadius: C.radiusMd, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 15 }}>
+            <div>
+              <div style={{ fontSize: 10, color: C.muted, fontWeight: 600 }}>CARTE GRAPHIQUE</div>
+              <strong style={{ fontSize: 14, display: 'block', marginTop: 2 }}>{gpu.name}</strong>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <span style={{ fontSize: 10, color: C.muted }}>{gpu.util} • Utilisation</span>
+                <span style={{ fontSize: 10, color: C.muted }}>{gpu.mem}</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: C.green }} />
+              <span style={{ fontSize: 14, fontWeight: 600 }}>{gpu.temp}</span>
+            </div>
+          </div>
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-gray-800/40 border border-gray-700 rounded-xl">
-          <PosterGenerator
-            onGenerate={handleGenerate}
-            isGenerating={isGenerating}
-            onPromptGenerated={setGeneratedPrompt}
-            generatedPrompt={generatedPrompt}
-            onGetGenerateFunction={setGenerateFn}
-          />
+      {/* MODE SELECTOR */}
+      <div style={{ display: 'flex', gap: 20, marginBottom: 24 }}>
+        {(['image', 'affiche'] as const).map((m) => (
+          <div key={m} onClick={() => setMode(m)} style={{ flex: 1, height: 180, borderRadius: C.radius, border: `2px solid ${mode === m ? C.accent : C.border}`, background: C.panel, cursor: 'pointer', overflow: 'hidden', transform: mode === m ? 'translateY(-4px)' : 'none', boxShadow: mode === m ? '0 0 20px rgba(212,175,55,0.25)' : 'none', transition: 'all 0.2s' }}>
+            <img src={`/vignettes/vignette-${m}.png`} alt={m} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          </div>
+        ))}
+      </div>
+
+      {/* MAIN LAYOUT */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 24 }}>
+
+        {/* LEFT PANEL */}
+        <div style={panelStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 20 }}>⚙️</span>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 600 }}>Paramètres de Génération</div>
+                <div style={{ fontSize: 12, color: C.muted }}>Sélectionnez un flux de travail, puis ajustez le prompt et les paramètres.</div>
+              </div>
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 12, background: C.panelAlt, color: C.muted }}>Mode: Flux de travail uniquement</span>
+          </div>
+
+          {mode === 'image' && (
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>Flux de travail (requis)</label>
+              <div style={{ position: 'relative', padding: '0 32px' }}>
+                <button onClick={() => scrollCarousel('left')} style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', background: C.panelAlt, border: `1px solid ${C.border}`, borderRadius: '50%', width: 26, height: 26, cursor: 'pointer', color: C.text, fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, zIndex: 10 }}>‹</button>
+                <button onClick={() => scrollCarousel('right')} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', background: C.panelAlt, border: `1px solid ${C.border}`, borderRadius: '50%', width: 26, height: 26, cursor: 'pointer', color: C.text, fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, zIndex: 10 }}>›</button>
+                <div id="wf-scroll" style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollBehavior: 'smooth', padding: '6px 2px', scrollbarWidth: 'none' }}>
+                  {workflows.length === 0
+                    ? <span style={{ fontSize: 12, color: '#9ca3af' }}>Chargement des flux de travail…</span>
+                    : workflows.map((wf) => {
+                        const base = wf.replace(/\.json$/, '');
+                        const sel = selectedWorkflow === wf;
+                        return (
+                          <div key={wf} onClick={() => setSelectedWorkflow(wf)} style={{ flex: '0 0 auto', width: 86, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, cursor: 'pointer', padding: 6, borderRadius: C.radiusMd, border: `2px solid ${sel ? C.accent : C.border}`, background: sel ? C.accentSoft : C.bgAlt, transition: 'all 0.2s' }}>
+                            <div style={{ width: '100%', aspectRatio: '1', overflow: 'hidden', borderRadius: 8, background: '#1e1e1e' }}>
+                              <img src={`/vignettes/${base}.png`} onError={(e) => { (e.target as HTMLImageElement).src = '/vignettes/default.png'; }} alt={base} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                            </div>
+                            <span style={{ fontSize: 10, color: C.muted, textAlign: 'center', wordBreak: 'break-word', lineHeight: 1.2 }}>{base}</span>
+                          </div>
+                        );
+                      })
+                  }
+                </div>
+              </div>
+            </div>
+          )}
+
+          {mode === 'affiche' && (
+            <PosterGenerator
+              onGenerate={handleGenerate}
+              isGenerating={isGenerating}
+              onPromptGenerated={setGeneratedPrompt}
+              generatedPrompt={generatedPrompt}
+              imageDimensions={imgDim}
+              onGetGenerateFunction={setGenerateFn}
+            />
+          )}
         </div>
 
-        <div className="bg-gray-800/40 border border-gray-700 rounded-xl p-4">
-          <h2 className="text-white mb-3">Aperçu</h2>
+        {/* RIGHT PANEL */}
+        <div style={panelStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 20 }}>🖼️</span>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 600 }}>Résultat & Prévisualisation</div>
+                <div style={{ fontSize: 12, color: C.muted }}>Prévisualisation en temps réel et image finale.</div>
+              </div>
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 12, background: 'rgba(76,175,80,0.15)', color: statusPill.color }}>{statusPill.label}</span>
+          </div>
 
-          <div className="mb-4">
-            <div className="text-sm text-gray-300 mb-1">Prompt</div>
-            <div className="text-xs text-gray-200 bg-gray-900/60 border border-gray-700 rounded-lg p-3 whitespace-pre-wrap">
-              {generatedPrompt || '—'}
+          {/* Format rapide */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ ...labelStyle, fontSize: 13 }}>Format Rapide</label>
+            <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+              {([
+                { w: 1920, h: 1080, icon: '🖥️', label: 'Paysage'  as const },
+                { w: 1080, h: 1920, icon: '📱', label: 'Portrait' as const },
+                { w: 1080, h: 1080, icon: '⬛', label: 'Carré'    as const },
+              ]).map(({ w, h, icon, label }) => {
+                const active = imgDim.width === w && imgDim.height === h;
+                return (
+                  <span key={label} title={label} onClick={() => setImgDim({ width: w, height: h, label })} style={{ padding: '8px 12px', background: active ? C.accentSoft : C.panelAlt, border: `1px solid ${active ? C.accent : C.border}`, borderRadius: C.radiusMd, cursor: 'pointer', fontSize: 18, boxShadow: active ? '0 0 10px rgba(212,175,55,0.2)' : 'none', transition: 'all 0.2s' }}>{icon}</span>
+                );
+              })}
             </div>
           </div>
 
-          <div>
-            <div className="text-sm text-gray-300 mb-2">Galerie</div>
-            {images.length === 0 ? (
-              <div className="text-sm text-gray-400">Aucune image pour l’instant.</div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {/* Generate button */}
+          <div style={{ marginBottom: 12 }}>
+            <button type="button" onClick={() => generateFn?.()} disabled={isGenerating} style={{ width: '100%', padding: 12, background: C.accent, color: C.bg, border: 'none', borderRadius: C.radiusMd, fontSize: 15, fontWeight: 600, cursor: isGenerating ? 'not-allowed' : 'pointer', opacity: isGenerating ? 0.7 : 1 }}>
+              {isGenerating ? '⏳ Génération en cours…' : "✨ Générer le Prompt d'Affiche"}
+            </button>
+          </div>
+
+          {/* Result area */}
+          <div style={{ minHeight: 200, maxHeight: '38vh', background: C.bgAlt, borderRadius: C.radiusMd, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10, marginBottom: 12, overflow: 'hidden' }}>
+            {images.length > 0
+              ? <img src={images[0].imageUrl} alt="Résultat" onClick={() => setModalSrc(images[0].imageUrl)} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 10, cursor: 'zoom-in' }} />
+              : <p style={{ fontSize: 12, color: C.muted, textAlign: 'center' }}>Aucune image encore générée. Configurez votre flux de travail à gauche et cliquez sur <strong>"Générer"</strong>.</p>
+            }
+          </div>
+
+          {error && <div style={{ color: C.danger, fontSize: 13, padding: '8px 12px', background: 'rgba(255,79,79,0.1)', border: '1px solid rgba(255,79,79,0.3)', borderRadius: C.radiusMd, marginBottom: 12 }}>{error}</div>}
+
+          {/* Prompt textarea */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>Prompt</label>
+            <textarea value={generatedPrompt} onChange={(e) => setGeneratedPrompt(e.target.value)} placeholder="Décrivez précisément l'image à générer…" style={{ width: '100%', minHeight: 100, padding: '10px 12px', background: C.bgAlt, border: `1px solid ${C.border}`, borderRadius: C.radiusMd, color: C.text, fontSize: 14, resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+          </div>
+
+          {/* Gallery */}
+          {images.length > 0 && (
+            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: C.muted, marginBottom: 10 }}>Galerie</div>
+              <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '10px 4px', scrollbarWidth: 'thin' }}>
                 {images.map((img) => (
-                  <a key={img.id} href={img.imageUrl} target="_blank" rel="noreferrer" className="block">
-                    <img
-                      src={img.imageUrl}
-                      alt="Generated"
-                      className="w-full h-40 object-cover rounded-lg border border-gray-700"
-                      loading="lazy"
-                    />
-                  </a>
+                  <img key={img.id} src={img.imageUrl} alt="Généré" onClick={() => setModalSrc(img.imageUrl)} style={{ flex: '0 0 auto', width: 90, aspectRatio: '9/16', objectFit: 'cover', borderRadius: 8, cursor: 'zoom-in', border: `1px solid ${C.border}` }} />
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* IMAGE MODAL */}
+      {modalSrc && (
+        <div onClick={() => setModalSrc(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, cursor: 'zoom-out' }}>
+          <button onClick={() => setModalSrc(null)} style={{ position: 'absolute', top: 16, right: 20, fontSize: 32, color: 'white', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+          <img src={modalSrc} alt="Aperçu" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 12 }} />
+          <a href={modalSrc} download style={{ position: 'absolute', bottom: 24, background: C.panelAlt, color: C.text, border: `1px solid ${C.border}`, borderRadius: C.radiusMd, padding: '8px 16px', textDecoration: 'none', fontSize: 14 }}>⬇ Télécharger</a>
+        </div>
+      )}
     </div>
   );
 }
