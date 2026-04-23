@@ -50,7 +50,7 @@ export const WorkflowCarousel = memo(function WorkflowCarousel({
     },
     parameters: {
       title: 'CRÉATION LIBRE',
-      desc: 'Génération d'image basée sur un prompt positif et négatif avec ajustements précis des paramètres.',
+      desc: "Génération d'image basée sur un prompt positif et négatif avec ajustements précis des paramètres.",
       icon: Settings2,
     },
   };
