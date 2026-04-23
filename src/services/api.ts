@@ -1,4 +1,4 @@
-const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://g-n-rateur-backend-1.onrender.com").replace(/\/$/, "");
+const BACKEND_URL = "https://g-n-rateur-backend-1.onrender.com";
 
 export const api = {
   // Utilisé par le hook pour le WebSocket
