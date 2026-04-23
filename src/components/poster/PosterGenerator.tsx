@@ -1,14 +1,21 @@
-import { usePosterState } from './usePosterState';
-import { useEffect, useCallback } from 'react';
+import { usePosterState } from "./poster/usePosterState";
+import { useEffect, useCallback, useState } from 'react';
 import { ImageIcon, Sparkles } from 'lucide-react';
+import type { PosterParams, GenerationParams } from '../App';
 
+// ✅ Compatible avec AppContent (accepte label optionnel)
+type ImageDimensions = {
+  width: number;
+  height: number;
+  label?: 'Portrait' | 'Paysage' | 'Carré';
+};
 
 interface PosterGeneratorProps {
   onGenerate: (posterParams: PosterParams, genParams: GenerationParams) => void;
   isGenerating: boolean;
   onPromptGenerated: (prompt: string) => void;
   generatedPrompt: string;
-  imageDimensions?: { width: number; height: number };
+  imageDimensions?: ImageDimensions;
   onGetGenerateFunction?: (fn: () => void) => void;
 }
 
@@ -350,11 +357,11 @@ const randomData = {
 };
 
 export function PosterGenerator({
-onGenerate,
+  onGenerate,
   isGenerating,
   onPromptGenerated,
   generatedPrompt: _generatedPrompt,
-  imageDimensions, // Reçu du parent (ex: {width: 1920, height: 1080})
+  imageDimensions,
   onGetGenerateFunction
 }: PosterGeneratorProps) {
 
@@ -363,7 +370,6 @@ onGenerate,
     title, setTitle,
     subtitle, setSubtitle,
     tagline, setTagline,
-    // ... (extraire les autres setters si nécessaire, ou utiliser l'objet 'poster')
     occasion, setOccasion,
     customOccasion, setCustomOccasion,
     ambiance, setAmbiance,
@@ -379,8 +385,6 @@ onGenerate,
     customPalette, setCustomPalette,
     titleStyle, setTitleStyle
   } = poster;
-
-
 
   const randomChoice = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
@@ -468,7 +472,7 @@ onGenerate,
     if (!hasTitle && !hasSubtitle && !hasTagline) {
       textBlock = `
 NO TEXT MODE:
-The poster must contain ZERO text., letters, symbols or numbers.
+The poster must contain ZERO text, letters, symbols or numbers.
 Do not invent any title, subtitle or tagline.
 Avoid any shapes that resemble typography.
 `;
@@ -476,9 +480,9 @@ Avoid any shapes that resemble typography.
       textBlock = `
 ALLOWED TEXT ONLY (MODEL MUST NOT INVENT ANYTHING ELSE):
 
-${hasTitle ? `TITLE: "${title}" (top area, clean, sharp, readable, no distortion)` : ''}
-${hasSubtitle ? `SUBTITLE: "${subtitle}" (under title, smaller, crisp, readable)` : ''}
-${hasTagline ? `TAGLINE: "${tagline}" (bottom area, subtle, readable)` : ''}
+${hasTitle ? `TITLE: "${finalTitle}" (top area, clean, sharp, readable, no distortion)` : ''}
+${hasSubtitle ? `SUBTITLE: "${finalSubtitle}" (under title, smaller, crisp, readable)` : ''}
+${hasTagline ? `TAGLINE: "${finalTagline}" (bottom area, subtle, readable)` : ''}
 
 RULES FOR TEXT:
 - Only the items above are permitted. No additional text, no hallucinated wording.
@@ -563,32 +567,32 @@ Premium poster design, professional layout, ultra high resolution, visually stri
 
   // ✅ Fonction de génération stable (pas de callback obsolète)
   const handleStartGeneration = useCallback(() => {
-  const prompt = generatePrompt();
-  if (!prompt) {
-    console.warn('[POSTER_GENERATOR] Prompt vide – génération annulée');
-    return;
-  }
+    const prompt = generatePrompt();
+    if (!prompt) {
+      console.warn('[POSTER_GENERATOR] Prompt vide – génération annulée');
+      return;
+    }
 
-  const posterParams: PosterParams = {
-    title,
-    subtitle,
-    tagline,
-    occasion: occasion === 'Choisir...' ? customOccasion : occasion,
-    ambiance: ambiance === 'Choisir...' ? customAmbiance : ambiance,
-    mainCharacter,
-    characterDescription,
-    environment,
-    environmentDescription,
-    characterAction,
-    actionDescription,
-    additionalDetails,
-    colorPalette: colorPalette === 'Choisir...' ? customPalette : colorPalette,
-    titleStyle
-  };
+    const posterParams: PosterParams = {
+      title,
+      subtitle,
+      tagline,
+      occasion: occasion === 'Choisir...' ? customOccasion : occasion,
+      ambiance: ambiance === 'Choisir...' ? customAmbiance : ambiance,
+      mainCharacter,
+      characterDescription,
+      environment,
+      environmentDescription,
+      characterAction,
+      actionDescription,
+      additionalDetails,
+      colorPalette: colorPalette === 'Choisir...' ? customPalette : colorPalette,
+      titleStyle
+    };
 
-    // ✅ On utilise maintenant les dimensions (pilotées par les boutons à droite via imageDimensions)
-  const finalWidth = imageDimensions?.width ?? 1080;
-  const finalHeight = imageDimensions?.height ?? 1920;
+    // ✅ FORMAT PAR DÉFAUT: 1080x1920 (Portrait)
+    const finalWidth = imageDimensions?.width ?? 1080;
+    const finalHeight = imageDimensions?.height ?? 1920;
 
 const genParams: GenerationParams = {
   final_prompt: prompt,
@@ -603,42 +607,42 @@ const genParams: GenerationParams = {
   height: finalHeight,
 };
 
-console.log(
-  '[POSTER_GENERATOR] 🖼️ FORMAT UTILISÉ:',
-  finalWidth,
-  'x',
-  finalHeight
-);
+    console.log(
+      '[POSTER_GENERATOR] 🖼️ FORMAT UTILISÉ:',
+      finalWidth,
+      'x',
+      finalHeight
+    );
 
-  console.log('[POSTER_GENERATOR] 🚀 Génération avec prompt ACTUEL:', prompt.slice(0, 120) + '...');
+    console.log('[POSTER_GENERATOR] 🚀 Génération avec prompt:', prompt.slice(0, 120) + '...');
 
-  if (typeof onGenerate === 'function') {
-    onGenerate(posterParams, genParams);
-  } else {
-    console.warn('[POSTER_GENERATOR] onGenerate invalide', onGenerate);
-  }
-}, [
-  generatePrompt,
-  title,
-  subtitle,
-  tagline,
-  occasion,
-  customOccasion,
-  ambiance,
-  customAmbiance,
-  mainCharacter,
-  characterDescription,
-  environment,
-  environmentDescription,
-  characterAction,
-  actionDescription,
-  additionalDetails,
-  colorPalette,
-  customPalette,
-  titleStyle,
-  imageDimensions,
-  onGenerate
-]);
+    if (typeof onGenerate === 'function') {
+      onGenerate(posterParams, genParams);
+    } else {
+      console.warn('[POSTER_GENERATOR] onGenerate invalide', onGenerate);
+    }
+  }, [
+    generatePrompt,
+    title,
+    subtitle,
+    tagline,
+    occasion,
+    customOccasion,
+    ambiance,
+    customAmbiance,
+    mainCharacter,
+    characterDescription,
+    environment,
+    environmentDescription,
+    characterAction,
+    actionDescription,
+    additionalDetails,
+    colorPalette,
+    customPalette,
+    titleStyle,
+    imageDimensions,
+    onGenerate
+  ]);
     
   // ✅ Exposer la fonction de génération au parent (toujours à jour)
   useEffect(() => {
@@ -668,54 +672,56 @@ console.log(
       </div>
 
       <div className="space-y-4">
-  <div className="grid grid-cols-2 gap-4">
-    <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
+            {/* ✅ Titre - Majuscules automatiques à la saisie */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Titre de l'affiche
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={e => setTitle(e.target.value.toUpperCase())}
+                placeholder="TITRE DE L'AFFICHE"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+                           text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
+                           focus:border-transparent text-sm uppercase"
+                disabled={isGenerating}
+              />
+            </div>
 
-      <div>
-        <label className="block text-sm text-gray-300 mb-2">
-          Titre de l'affiche
-        </label>
-        <input
-          type="text"
-          value={poster.title}
-          onChange={e => poster.setTitle(e.target.value)}
-          placeholder="TITRE DE L’AFFICHE"
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
-                     text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
-                     focus:border-transparent text-sm uppercase"
-          disabled={isGenerating}
-        />
-      </div>
+            {/* ✅ Sous-titre - Majuscules automatiques à la saisie */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Sous-titre
+              </label>
+              <input
+                type="text"
+                value={subtitle}
+                onChange={(e) => setSubtitle(e.target.value.toUpperCase())}
+                placeholder="ÉDITION SPÉCIALE"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+                           text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
+                           focus:border-transparent text-sm uppercase"
+                disabled={isGenerating}
+              />
+            </div>
 
-      <div>
-        <label className="block text-sm text-gray-300 mb-2">
-          Sous-titre
-        </label>
-        <input
-          type="text"
-          value={subtitle}
-          onChange={(e) => setSubtitle(e.target.value.toUpperCase())}
-          placeholder="ÉDITION SPÉCIALE"
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
-                     text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
-                     focus:border-transparent text-sm uppercase"
-          disabled={isGenerating}
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm text-gray-300 mb-2">
-          Accroche
-        </label>
-        <input
-          type="text"
-          value={tagline}
-          onChange={(e) => setTagline(e.target.value.toUpperCase())}
-          placeholder="UNE AVENTURE…"
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
-                     text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
-                     focus:border-transparent text-sm uppercase"
-          disabled={isGenerating}
+            {/* ✅ Accroche - Majuscules automatiques à la saisie */}
+            <div>
+              <label className="block text-sm text-gray-300 mb-2">
+                Accroche
+              </label>
+              <input
+                type="text"
+                value={tagline}
+                onChange={(e) => setTagline(e.target.value.toUpperCase())}
+                placeholder="UNE AVENTURE…"
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+                           text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
+                           focus:border-transparent text-sm uppercase"
+                disabled={isGenerating}
               />
             </div>
 
@@ -787,35 +793,33 @@ console.log(
           </div>
 
           <div className="space-y-4">
-
             <div>
               <label className="block text-sm text-gray-300 mb-2">Environnement</label>
               <select
-  value={environment}
-  onChange={(e) => {
-    setEnvironment(e.target.value);
-    setEnvironmentDescription(''); // ✅ reset champ libre
-  }}
-  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
-  disabled={isGenerating}
->
-  {environments.map((e1) => (
-    <option key={e1} value={e1}>{e1}</option>
-  ))}
-</select>
-
-<input
-  type="text"
-  value={environmentDescription}
-  onChange={(e) => {
-    setEnvironmentDescription(e.target.value);
-    setEnvironment('Choisir...'); // ✅ reset select
-  }}
-  placeholder="Description personnelle..."
-  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
-             text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
-             focus:border-transparent text-sm"
-  disabled={isGenerating}
+                value={environment}
+                onChange={(e) => {
+                  setEnvironment(e.target.value);
+                  setEnvironmentDescription('');
+                }}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm mb-2"
+                disabled={isGenerating}
+              >
+                {environments.map((e1) => (
+                  <option key={e1} value={e1}>{e1}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={environmentDescription}
+                onChange={(e) => {
+                  setEnvironmentDescription(e.target.value);
+                  setEnvironment('Choisir...');
+                }}
+                placeholder="Description personnelle..."
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg
+                           text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500
+                           focus:border-transparent text-sm"
+                disabled={isGenerating}
               />
             </div>
 
@@ -894,3 +898,4 @@ console.log(
     </div>
   );
 }
+
