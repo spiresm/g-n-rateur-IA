@@ -76,8 +76,28 @@ export const Header = memo(function Header() {
                 </div>
               )}
             </div>
-            <button onClick={logout} title="Se déconnecter"
-              style={{ background: '#222', border: '1px solid #2a2a2a', borderRadius: 8, color: '#aaa', padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <button
+              type="button"
+              title="Se déconnecter"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (typeof logout === 'function') {
+                  logout();
+                } else {
+                  localStorage.clear();
+                  window.location.href = '/';
+                }
+              }}
+              style={{
+                background: '#222', border: '1px solid #2a2a2a', borderRadius: 8,
+                color: '#aaa', padding: '8px 12px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                position: 'relative', zIndex: 100,
+                pointerEvents: 'all',
+                flexShrink: 0,
+              }}
+            >
               <LogOut size={18} />
             </button>
           </div>
