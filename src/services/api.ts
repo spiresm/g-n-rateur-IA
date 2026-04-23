@@ -1,18 +1,11 @@
 const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL ?? "").replace(/\/$/, "");
 
-// Header pour contourner la page d'avertissement ngrok
-const NGROK_HEADERS: Record<string, string> = {
-  "ngrok-skip-browser-warning": "true",
-};
-
 export const api = {
   wsBaseUrl: BACKEND_URL.replace("https://", "wss://"),
 
   async getWorkflows() {
     try {
-      const response = await fetch(`${BACKEND_URL}/workflows`, {
-        headers: NGROK_HEADERS,
-      });
+      const response = await fetch(`${BACKEND_URL}/workflows`);
       return response.ok ? await response.json() : [];
     } catch {
       return [];
@@ -31,7 +24,7 @@ export const api = {
     if (params.height) formData.append("height", String(params.height));
     if (params.seed)   formData.append("seed",   String(params.seed));
 
-    const headers: Record<string, string> = { ...NGROK_HEADERS };
+    const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
     const response = await fetch(
@@ -55,9 +48,7 @@ export const api = {
 
     for (let i = 0; i < maxAttempts; i++) {
       try {
-        const response = await fetch(`${BACKEND_URL}/result/${promptId}`, {
-          headers: NGROK_HEADERS,
-        });
+        const response = await fetch(`${BACKEND_URL}/result/${promptId}`);
 
         if (response.ok) {
           const data = await response.json();
