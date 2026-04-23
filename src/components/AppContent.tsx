@@ -28,9 +28,9 @@ export function AppContent() {
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [savedGallery, setSavedGallery] = useState<GeneratedImage[]>([]);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [workflowToUse, setWorkflowToUse] = useState<string | null>(null);
+  const [workflowToUse, setWorkflowToUse] = useState<string>('affiche.json');
   const [workflowsLoaded, setWorkflowsLoaded] = useState(false);
-  const [imageDimensions, setImageDimensions] = useState({ width: 1024, height: 1024 });
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number; label?: string }>({ width: 1080, height: 1920, label: 'Portrait' });
 
   // Références pour les fonctions de génération des sous-composants
   const posterGenerateFn = useRef<(() => void) | null>(null);
@@ -75,9 +75,16 @@ export function AppContent() {
 
   // Handler de génération stabilisé
   const handleGenerateAction = useCallback(async (params: any) => {
-    if (!startGeneration || !workflowToUse || isGenerating) return;
-    await startGeneration(workflowToUse, params, user?.email);
-  }, [startGeneration, workflowToUse, isGenerating, user]);
+    if (!startGeneration || isGenerating) return;
+    const wf = workflowToUse || 'affiche.json';
+    // Injecte les dimensions dans les params si non présentes
+    const finalParams = {
+      ...params,
+      width:  params?.width  || imageDimensions.width,
+      height: params?.height || imageDimensions.height,
+    };
+    await startGeneration(wf, finalParams, user?.email);
+  }, [startGeneration, workflowToUse, isGenerating, user, imageDimensions]);
 
   return (
     <>
