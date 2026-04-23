@@ -6,7 +6,6 @@ import { QuotaDisplay } from "./QuotaDisplay";
 export const Header = memo(function Header() {
   const { user, logout, isAuthenticated } = useAuth();
 
-  // Avatar Google / Supabase
   const avatarUrl =
     user?.user_metadata?.avatar_url ||
     user?.photoURL ||
@@ -17,68 +16,69 @@ export const Header = memo(function Header() {
     user?.email?.split("@")[0] ||
     "Artiste";
 
-  // ✅ Callback PREMIUM (réelle, pas vide)
   const handleUpgradeClick = () => {
-    // Event global simple (tu peux brancher une modale Stripe dessus)
     window.dispatchEvent(new Event("open-upgrade-modal"));
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-32 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-6 z-50">
-      {/* LOGO */}
-      <div className="flex items-center gap-4">
-        <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
-          <span className="text-white text-3xl font-bold">R</span>
+    <header style={{
+      position: 'fixed', top: 0, left: 0, right: 0,
+      height: 80,
+      background: '#181818',
+      borderBottom: '1px solid #2a2a2a',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '0 24px',
+      zIndex: 50,
+    }}>
+
+      {/* LOGO + TITRE */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{
+          background: '#0f172a', padding: '6px 12px', borderRadius: 8,
+          fontWeight: 800, fontSize: 20, color: '#d4af37', letterSpacing: 3,
+          border: '1px solid rgba(212,175,55,0.2)',
+        }}>
+          RUBENS
         </div>
-        <div className="flex flex-col">
-          <h1 className="text-3xl text-white font-bold tracking-tight">
-            RUBENS <span className="text-purple-500">AI</span>
+        <div>
+          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#f2f2f2', lineHeight: 1 }}>
+            Générateur de Contenu IA
           </h1>
-          <p className="text-xs text-gray-400">Générateur de contenu</p>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 4,
+            fontSize: 11, fontWeight: 600,
+            background: 'rgba(212,175,55,0.15)', color: '#f4d47c',
+            padding: '2px 8px', borderRadius: 6,
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d4af37', display: 'inline-block' }} />
+            Connecté
+          </div>
         </div>
       </div>
 
-      {/* USER / QUOTA */}
       {isAuthenticated && user && (
-        <div className="flex items-center gap-6">
-          {/* ✅ QUOTA + PREMIUM */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <QuotaDisplay onUpgradeClick={handleUpgradeClick} />
-
-          {/* USER INFO */}
-          <div className="flex items-center gap-4 pl-6 border-l border-gray-700">
-            <div className="text-right hidden sm:block">
-              <p className="text-xs text-gray-500 uppercase font-bold">
-                Connecté
-              </p>
-              <p className="text-sm text-white font-medium">
-                {userName}
-              </p>
+          <div style={{ width: 1, height: 40, background: '#2a2a2a' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 10, color: '#aaa', fontWeight: 600, textTransform: 'uppercase' }}>Connecté en tant que</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#f2f2f2' }}>{userName}</div>
             </div>
-
-            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-500/30">
+            <div style={{ width: 38, height: 38, borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(212,175,55,0.4)', flexShrink: 0 }}>
               {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt="Profil"
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
+                <img src={avatarUrl} alt="Profil" referrerPolicy="no-referrer"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               ) : (
-                <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                  <User className="text-gray-400" />
+                <div style={{ width: '100%', height: '100%', background: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <User size={18} color="#aaa" />
                 </div>
               )}
             </div>
-
-            <button
-              onClick={logout}
-              className="p-2 text-gray-500 hover:text-red-500 transition-colors"
-              title="Se déconnecter"
-            >
-              <LogOut className="w-6 h-6" />
+            <button onClick={logout} title="Se déconnecter"
+              style={{ background: '#222', border: '1px solid #2a2a2a', borderRadius: 8, color: '#aaa', padding: '7px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+              <LogOut size={18} />
             </button>
           </div>
         </div>
